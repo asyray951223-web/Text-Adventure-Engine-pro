@@ -1,0 +1,36 @@
+/* 編輯器專用自定義樣式 */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap");
+
+body {
+  font-family: "Noto Sans TC", sans-serif;
+}
+
+/* 側邊欄活動狀態的自定義樣式 */
+.nav-btn {
+  border-left: 4px solid transparent;
+}
+
+.nav-btn.active {
+  background-color: #1f2937; /* Tailwind gray-800 */
+  border-left-color: #3b82f6; /* Tailwind blue-500 */
+  color: #60a5fa; /* Tailwind blue-400 */
+}
+
+/* 自定義捲動軸 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

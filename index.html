@@ -1,0 +1,1343 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文字冒險遊戲引擎大廳</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px) scale(1);
+        }
+        50% {
+          transform: translateY(-20px) scale(1.05);
+        }
+      }
+      @keyframes float-reverse {
+        0%,
+        100% {
+          transform: translateY(0px) scale(1);
+        }
+        50% {
+          transform: translateY(20px) scale(0.95);
+        }
+      }
+      .animate-float {
+        animation: float 6s ease-in-out infinite;
+      }
+      .animate-float-reverse {
+        animation: float-reverse 8s ease-in-out infinite;
+      }
+      .glass-panel {
+        background: linear-gradient(
+          135deg,
+          rgba(31, 41, 55, 0.7) 0%,
+          rgba(17, 24, 39, 0.9) 100%
+        );
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        border-left: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow:
+          0 25px 50px -12px rgba(0, 0, 0, 0.7),
+          0 0 40px rgba(0, 0, 0, 0.5) inset;
+      }
+      @keyframes float-up {
+        0% {
+          transform: translateY(100vh) scale(0.5);
+          opacity: 0;
+        }
+        10% {
+          opacity: 0.8;
+        }
+        90% {
+          opacity: 0.3;
+        }
+        100% {
+          transform: translateY(-10vh) scale(1.2);
+          opacity: 0;
+        }
+      }
+      .particle {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+        animation: float-up linear infinite;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(31, 41, 55, 0.5);
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(75, 85, 99, 0.8);
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(107, 114, 128, 1);
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4 relative"
+    style="
+      background-image: url(&quot;https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1920&auto=format&fit=crop&quot;);
+      background-size: cover;
+      background-position: center;
+    "
+  >
+    <!-- 背景遮罩 -->
+    <div
+      class="absolute inset-0 bg-gray-900/85 backdrop-blur-sm z-0 overflow-hidden"
+    >
+      <!-- 裝飾用環境光球 -->
+      <div
+        class="absolute top-[10%] left-[20%] w-72 h-72 bg-blue-600/20 rounded-full blur-[100px] animate-float pointer-events-none"
+      ></div>
+      <div
+        class="absolute bottom-[10%] right-[20%] w-96 h-96 bg-emerald-600/20 rounded-full blur-[120px] animate-float-reverse pointer-events-none"
+      ></div>
+      <div
+        class="absolute top-[40%] left-[60%] w-64 h-64 bg-purple-600/20 rounded-full blur-[90px] animate-float pointer-events-none"
+      ></div>
+
+      <!-- 網點紋理裝飾 -->
+      <div
+        class="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[length:32px_32px] pointer-events-none"
+      ></div>
+
+      <!-- 漂浮發光粒子 -->
+      <div
+        class="particle bg-blue-300 w-1.5 h-1.5 shadow-[0_0_10px_rgba(147,197,253,1)] left-[15%]"
+        style="animation-duration: 12s; animation-delay: 0s"
+      ></div>
+      <div
+        class="particle bg-emerald-300 w-1 h-1 shadow-[0_0_8px_rgba(110,231,183,1)] left-[80%]"
+        style="animation-duration: 18s; animation-delay: 4s"
+      ></div>
+      <div
+        class="particle bg-purple-300 w-2 h-2 shadow-[0_0_12px_rgba(192,132,252,1)] left-[35%]"
+        style="animation-duration: 15s; animation-delay: 2s"
+      ></div>
+      <div
+        class="particle bg-indigo-300 w-1.5 h-1.5 shadow-[0_0_10px_rgba(165,180,252,1)] left-[65%]"
+        style="animation-duration: 20s; animation-delay: 7s"
+      ></div>
+      <div
+        class="particle bg-blue-200 w-1 h-1 shadow-[0_0_8px_rgba(191,219,254,1)] left-[90%]"
+        style="animation-duration: 14s; animation-delay: 9s"
+      ></div>
+      <div
+        class="particle bg-emerald-200 w-2 h-2 shadow-[0_0_12px_rgba(167,243,208,1)] left-[5%]"
+        style="animation-duration: 16s; animation-delay: 5s"
+      ></div>
+      <div
+        class="particle bg-purple-200 w-1 h-1 shadow-[0_0_8px_rgba(233,213,255,1)] left-[50%]"
+        style="animation-duration: 19s; animation-delay: 12s"
+      ></div>
+    </div>
+
+    <!-- 主要面板 -->
+    <div
+      class="w-full max-w-4xl glass-panel backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 md:p-12 text-center z-10 relative"
+    >
+      <!-- 角落高科技/魔法刻痕裝飾 (僅在較大螢幕顯示以免擁擠) -->
+      <div
+        class="absolute top-6 left-6 w-8 h-8 border-t border-l border-blue-400/40 pointer-events-none hidden md:block"
+      ></div>
+      <div
+        class="absolute top-6 right-6 w-8 h-8 border-t border-r border-blue-400/40 pointer-events-none hidden md:block"
+      ></div>
+      <div
+        class="absolute bottom-6 left-6 w-8 h-8 border-b border-l border-blue-400/40 pointer-events-none hidden md:block"
+      ></div>
+      <div
+        class="absolute bottom-6 right-6 w-8 h-8 border-b border-r border-blue-400/40 pointer-events-none hidden md:block"
+      ></div>
+
+      <div class="relative inline-block mb-4">
+        <h1
+          class="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-emerald-400 drop-shadow-[0_0_15px_rgba(56,189,248,0.4)] tracking-tight py-2"
+        >
+          文字冒險遊戲引擎
+        </h1>
+        <!-- 標題裝飾線 -->
+        <div
+          class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent opacity-50"
+        ></div>
+      </div>
+      <p
+        class="mb-8 text-gray-200 text-lg italic tracking-wide leading-relaxed font-light drop-shadow-md"
+      >
+        「每一個選擇，都是通往未知結局的鑰匙。」<br />
+        <span class="text-gray-400 text-base normal-case mt-2 block"
+          >打造專屬你的互動故事，或是沉浸在他人創造的奇幻世界中。</span
+        >
+      </p>
+
+      <!-- 視覺分隔線 -->
+      <div class="flex items-center justify-center space-x-4 mb-8">
+        <div
+          class="h-px w-24 bg-gradient-to-r from-transparent to-gray-500/50"
+        ></div>
+        <div
+          class="text-gray-500/80 text-xs font-medium tracking-widest uppercase bg-gray-800/50 px-3 py-1 rounded-full border border-gray-700/50"
+        >
+          請選擇您的操作
+        </div>
+        <div
+          class="h-px w-24 bg-gradient-to-l from-transparent to-gray-500/50"
+        ></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <button
+          id="new-project-btn-main"
+          class="flex flex-col items-center justify-center bg-blue-900/30 hover:bg-blue-600/80 border border-blue-500/30 hover:border-blue-400 p-8 rounded-2xl transition-all duration-300 group hover:shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:-translate-y-1 relative overflow-hidden"
+        >
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+          ></div>
+          <svg
+            class="w-12 h-12 mb-3 text-blue-400 drop-shadow-md group-hover:scale-110 group-hover:text-white transition-all relative z-10"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M12 4v16m8-8H4"
+            ></path>
+          </svg>
+          <span
+            class="font-bold text-xl text-blue-300 group-hover:text-white transition relative z-10"
+            >建立新專案</span
+          >
+          <span
+            class="text-sm text-blue-200/70 mt-2 transition group-hover:text-blue-100 relative z-10"
+            >從零開始打造專屬故事</span
+          >
+        </button>
+        <button
+          id="load-save-btn"
+          class="flex flex-col items-center justify-center bg-gray-700/30 hover:bg-gray-600/80 border border-gray-500/30 hover:border-gray-400 p-8 rounded-2xl transition-all duration-300 group hover:shadow-[0_0_30px_rgba(107,114,128,0.4)] hover:-translate-y-1 relative overflow-hidden"
+        >
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-gray-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+          ></div>
+          <svg
+            class="w-12 h-12 mb-3 text-gray-400 drop-shadow-md group-hover:scale-110 group-hover:text-white transition-all relative z-10"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+            ></path>
+          </svg>
+          <span
+            class="font-bold text-xl text-gray-300 group-hover:text-white transition relative z-10"
+            >專案管理</span
+          >
+          <span
+            class="text-sm text-gray-400 mt-2 transition group-hover:text-gray-200 relative z-10"
+            >匯入 / 匯出 / 繼續編輯</span
+          >
+        </button>
+        <button
+          id="open-play-modal-btn"
+          class="flex flex-col items-center justify-center bg-emerald-900/30 hover:bg-emerald-600/80 border border-emerald-500/30 hover:border-emerald-400 p-8 rounded-2xl transition-all duration-300 group hover:shadow-[0_0_30px_rgba(5,150,105,0.4)] hover:-translate-y-1 relative overflow-hidden"
+        >
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-emerald-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+          ></div>
+          <svg
+            class="w-12 h-12 mb-3 text-emerald-400 drop-shadow-md group-hover:scale-110 group-hover:text-white transition-all relative z-10"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+            ></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+          <span
+            class="font-bold text-xl text-emerald-300 group-hover:text-white transition relative z-10"
+            >進入遊玩模式</span
+          >
+          <span
+            class="text-sm text-emerald-200/70 mt-2 transition group-hover:text-emerald-100 relative z-10"
+            >載入存檔，體驗冒險旅程</span
+          >
+        </button>
+        <button
+          id="open-gallery-btn"
+          class="flex flex-col items-center justify-center bg-purple-900/30 hover:bg-purple-600/80 border border-purple-500/30 hover:border-purple-400 p-8 rounded-2xl transition-all duration-300 group hover:shadow-[0_0_30px_rgba(147,51,234,0.4)] hover:-translate-y-1 relative overflow-hidden"
+        >
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-purple-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+          ></div>
+          <svg
+            class="w-12 h-12 mb-3 text-purple-400 drop-shadow-md group-hover:scale-110 group-hover:text-white transition-all relative z-10"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            ></path>
+          </svg>
+          <span
+            class="font-bold text-xl text-purple-300 group-hover:text-white transition relative z-10"
+            >結局與成就畫廊</span
+          >
+          <span
+            class="text-sm text-purple-200/70 mt-2 transition group-hover:text-purple-100 relative z-10"
+            >回顧您解鎖的所有榮耀</span
+          >
+        </button>
+      </div>
+
+      <!-- 說明按鈕 -->
+      <div class="mt-8 flex justify-center gap-8">
+        <button
+          id="open-editor-help-btn"
+          class="text-gray-400 hover:text-blue-400 hover:bg-blue-900/20 px-4 py-2 rounded-full transition-all duration-300 flex items-center text-sm font-bold border border-transparent hover:border-blue-500/30"
+        >
+          <svg
+            class="w-5 h-5 mr-1.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+          編輯使用說明
+        </button>
+        <button
+          id="open-player-help-btn"
+          class="text-gray-400 hover:text-emerald-400 hover:bg-emerald-900/20 px-4 py-2 rounded-full transition-all duration-300 flex items-center text-sm font-bold border border-transparent hover:border-emerald-500/30"
+        >
+          <svg
+            class="w-5 h-5 mr-1.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+          遊玩操作說明
+        </button>
+      </div>
+    </div>
+
+    <!-- 遊玩存檔管理 Modal -->
+    <div
+      id="save-slots-modal"
+      class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none"
+    >
+      <div
+        class="bg-gray-900 border border-gray-700 p-8 rounded-xl shadow-2xl w-full max-w-4xl relative transform transition-all duration-300 scale-95 translate-y-4"
+      >
+        <button
+          id="close-modal-btn"
+          class="absolute top-4 right-4 text-gray-400 hover:text-white transition"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+        <h2 class="text-3xl font-bold mb-4 text-emerald-400 text-center">
+          選擇遊玩存檔
+        </h2>
+        <div class="mb-5 max-w-sm mx-auto">
+          <label class="block text-sm text-gray-400 mb-1 text-center"
+            >UI 介面主題</label
+          >
+          <select
+            id="ui-theme-select"
+            class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg p-2 text-center focus:ring-emerald-500 focus:border-emerald-500 transition shadow-inner font-bold"
+          >
+            <option value="player1.html">現代科幻 / 深色 (預設)</option>
+            <option value="player2.html">中國傳統 / 古典武俠</option>
+          </select>
+        </div>
+        <div class="mb-6 flex flex-col items-center">
+          <div class="text-center w-full mb-4">
+            <p class="text-sm text-gray-400 mb-1">當前載入遊戲</p>
+            <div
+              id="current-play-project-name"
+              class="text-2xl text-emerald-300 font-extrabold mb-3"
+            >
+              未載入
+            </div>
+            <div
+              id="current-play-project-desc"
+              class="hidden text-sm text-gray-300 bg-gray-800/60 p-4 rounded-lg border border-gray-700 max-w-3xl mx-auto w-full text-left max-h-32 overflow-y-auto custom-scrollbar leading-relaxed shadow-inner whitespace-pre-wrap"
+            ></div>
+          </div>
+          <div>
+            <input
+              type="file"
+              id="play-import-json"
+              accept=".json"
+              class="hidden"
+            />
+            <button
+              id="play-import-btn"
+              class="text-sm bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 transition shadow-sm font-bold"
+            >
+              自電腦載入其他遊戲專案 (.json)
+            </button>
+          </div>
+        </div>
+        <div class="space-y-4" id="slots-container">
+          <!-- 存檔槽位由 JS 動態渲染 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 專案管理 Modal -->
+    <div
+      id="project-modal"
+      class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none"
+    >
+      <div
+        class="bg-gray-900 border border-gray-700 p-8 rounded-xl shadow-2xl w-full max-w-2xl relative transform transition-all duration-300 scale-95 translate-y-4"
+      >
+        <button
+          id="close-project-modal-btn"
+          class="absolute top-4 right-4 text-gray-400 hover:text-white transition"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+        <h2 class="text-3xl font-bold mb-6 text-blue-400 text-center">
+          專案管理
+        </h2>
+
+        <div class="space-y-5">
+          <!-- 本地暫存專案 -->
+          <div class="bg-gray-800 p-5 rounded-lg border border-gray-600">
+            <h3 class="text-lg font-bold text-white mb-4">目前本地專案庫</h3>
+            <div
+              id="project-list-container"
+              class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-2"
+            >
+              <!-- 動態寫入多個專案 -->
+            </div>
+          </div>
+
+          <!-- 匯入外部專案 -->
+          <div
+            class="bg-gray-800 p-5 rounded-lg border border-gray-600 flex items-center justify-between hover:border-gray-500 transition"
+          >
+            <div>
+              <h3 class="text-lg font-bold text-white">從電腦載入專案</h3>
+              <p class="text-sm text-gray-400">匯入之前下載的 .json 專案檔</p>
+            </div>
+            <div>
+              <input
+                type="file"
+                id="lobby-import-json"
+                accept=".json"
+                class="hidden"
+              />
+              <button
+                id="lobby-import-btn"
+                class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded font-bold transition border border-gray-500"
+              >
+                選擇檔案
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 結局與成就畫廊 Modal -->
+    <div
+      id="gallery-modal"
+      class="fixed inset-0 bg-black/90 flex flex-col items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none"
+    >
+      <div
+        class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col relative transform transition-all duration-300 scale-95 translate-y-4"
+      >
+        <button
+          id="close-gallery-btn"
+          class="absolute top-6 right-6 text-gray-400 hover:text-white transition"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+        <div
+          class="p-6 border-b border-gray-700 bg-gray-800 rounded-t-xl text-center"
+        >
+          <h2 class="text-3xl font-extrabold text-purple-400">收集畫廊</h2>
+          <p class="text-sm text-gray-400 mt-2">
+            這些紀錄會跨越所有的存檔永遠保存
+          </p>
+        </div>
+        <div class="flex space-x-4 px-6 pt-4 border-b border-gray-700">
+          <button
+            id="tab-endings-btn"
+            class="text-purple-400 font-bold px-4 py-2 border-b-2 border-purple-500 transition"
+          >
+            結局收集
+          </button>
+          <button
+            id="tab-achievements-btn"
+            class="text-gray-400 font-bold px-4 py-2 border-b-2 border-transparent hover:text-purple-300 transition"
+          >
+            解鎖成就
+          </button>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1 bg-gray-800/30">
+          <div
+            id="gallery-endings-container"
+            class="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
+            <!-- 結局將由 JS 動態產生 -->
+          </div>
+          <div
+            id="gallery-achievements-container"
+            class="hidden grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            <!-- 成就將由 JS 動態產生 -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 編輯使用說明 Modal -->
+    <div
+      id="editor-help-modal"
+      class="fixed inset-0 bg-black/90 flex flex-col items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none"
+    >
+      <div
+        class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col relative transform transition-all duration-300 scale-95 translate-y-4"
+      >
+        <button
+          id="close-editor-help-btn"
+          class="absolute top-6 right-6 text-gray-400 hover:text-white transition z-10"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+        <div
+          class="p-6 border-b border-gray-700 bg-gray-800 rounded-t-xl text-center"
+        >
+          <h2 class="text-3xl font-extrabold text-blue-400">編輯使用說明</h2>
+          <p class="text-sm text-gray-400 mt-2">
+            了解如何使用引擎的各項強大模組
+          </p>
+        </div>
+        <div
+          class="p-6 overflow-y-auto flex-1 bg-gray-800/30 text-gray-300 space-y-5 text-sm md:text-base leading-relaxed"
+        >
+          <div class="flex items-start">
+            <strong class="text-blue-300 w-24 flex-shrink-0">基本資訊</strong
+            ><span
+              >設定遊戲名稱、簡介，並可在此匯入/匯出 JSON 專案備份檔。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-blue-300 w-24 flex-shrink-0">章節管理</strong
+            ><span
+              >建立遊戲的章節，可為每個章節設定專屬全螢幕背景與
+              BGM，並管理底下的場景排序。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-blue-300 w-24 flex-shrink-0">場景編輯</strong
+            ><span
+              >編寫故事文本、設計對話選項。可設定專屬背景、BGM、駐紮
+              NPC，以及選項的顯示條件與複合效果 (如：增減金幣、獲得道具)。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-blue-300 w-24 flex-shrink-0">數值系統</strong
+            ><span
+              >自訂遊戲內的全域變數
+              (如：HP、金幣)，可作為條件判斷或選項獎勵。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-blue-300 w-24 flex-shrink-0">道具系統</strong
+            ><span
+              >建立消耗品或永久道具，並可設定道具的使用前提條件與複合效果。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-blue-300 w-24 flex-shrink-0">全域觸發器</strong
+            ><span
+              >遊戲的後台監控中心，當滿足特定條件 (如 HP <= 0)
+              時，將自動強制介入並跳轉至指定場景 (例如：死亡結局)。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-blue-300 w-24 flex-shrink-0">NPC 角色</strong
+            ><span
+              >建立角色並綁定專屬數值
+              (如好感度)，可設定登場條件。登場時對話框會顯示頭像與姓名。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-blue-300 w-24 flex-shrink-0">成就系統</strong
+            ><span
+              >設計公開或隱藏成就，設定解鎖條件。解鎖後將跨存檔全域保存於畫廊中。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-blue-300 w-24 flex-shrink-0">辭典系統</strong
+            ><span
+              >管理遊戲內的專有名詞或辭典，供玩家隨時查閱世界觀與設定，可設定解鎖條件。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-blue-300 w-24 flex-shrink-0">商店系統</strong
+            ><span
+              >建立遊戲內的商店，讓玩家可以消耗變數 (如金幣) 購買道具。</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 遊玩操作說明 Modal -->
+    <div
+      id="player-help-modal"
+      class="fixed inset-0 bg-black/90 flex flex-col items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none"
+    >
+      <div
+        class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col relative transform transition-all duration-300 scale-95 translate-y-4"
+      >
+        <button
+          id="close-player-help-btn"
+          class="absolute top-6 right-6 text-gray-400 hover:text-white transition z-10"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+        <div
+          class="p-6 border-b border-gray-700 bg-gray-800 rounded-t-xl text-center"
+        >
+          <h2 class="text-3xl font-extrabold text-emerald-400">遊玩操作說明</h2>
+          <p class="text-sm text-gray-400 mt-2">
+            掌握快捷鍵與功能，享受最佳沉浸體驗
+          </p>
+        </div>
+        <div
+          class="p-6 overflow-y-auto flex-1 bg-gray-800/30 text-gray-300 space-y-5 text-sm md:text-base leading-relaxed"
+        >
+          <div class="flex items-start">
+            <strong class="text-emerald-300 w-28 flex-shrink-0">對話推進</strong
+            ><span
+              >除了滑鼠點擊，您可以使用
+              <kbd
+                class="bg-gray-700 px-1.5 py-0.5 rounded text-white font-mono"
+                >空白鍵</kbd
+              >
+              或
+              <kbd
+                class="bg-gray-700 px-1.5 py-0.5 rounded text-white font-mono"
+                >Enter</kbd
+              >
+              快速跳過打字動畫或自動選擇單一選項以推進劇情。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-emerald-300 w-28 flex-shrink-0">進度存取</strong
+            ><span
+              >點擊上方「存檔」按鈕可手動選擇槽位保存。遊戲中按下
+              <kbd
+                class="bg-gray-700 px-1.5 py-0.5 rounded text-white font-mono"
+                >F5</kbd
+              >
+              可快速覆蓋當前槽位，按下
+              <kbd
+                class="bg-gray-700 px-1.5 py-0.5 rounded text-white font-mono"
+                >F9</kbd
+              >
+              可快速讀取最後一次的進度。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-emerald-300 w-28 flex-shrink-0">冒險背包</strong
+            ><span
+              >點擊右下角背包圖示，可檢視目前持有的道具。當符合前提條件時，可直接點擊使用並觸發對應效果。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-emerald-300 w-28 flex-shrink-0">辭典查閱</strong
+            ><span
+              >點擊左下角的辭典圖示，可隨時查閱已解鎖的專有名詞、世界觀設定與角色背景故事。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-emerald-300 w-28 flex-shrink-0">遊戲設定</strong
+            ><span
+              >點擊上方「設定」，可自由調整文字顯示速度
+              (拉到最右側可即時顯示文字，關閉打字動畫)，以及背景音樂與打字音效的音量。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-emerald-300 w-28 flex-shrink-0">隱藏介面</strong
+            ><span
+              >點擊上方「隱藏介面」可暫時收起所有對話框、狀態列與按鈕，方便您完整欣賞當前的背景圖片。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-emerald-300 w-28 flex-shrink-0"
+              >全螢幕模式</strong
+            ><span
+              >強烈建議點擊「全螢幕」按鈕，或是按下鍵盤的
+              <kbd
+                class="bg-gray-700 px-1.5 py-0.5 rounded text-white font-mono"
+                >F11</kbd
+              >
+              進入全螢幕，以獲得最無干擾的電影級視覺小說體驗。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-blue-300 w-24 flex-shrink-0">測驗系統</strong
+            ><span
+              >建立遊戲內的測驗或密碼鎖，讓玩家輸入文字答案並觸發不同結果。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-blue-300 w-24 flex-shrink-0">時間系統</strong
+            ><span
+              >管理遊戲內的時間系統，設定初始時間，並在場景或事件中推進時間。</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 專案管理邏輯
+      const projectModal = document.getElementById("project-modal");
+      const loadSaveBtn = document.getElementById("load-save-btn");
+      const closeProjectModalBtn = document.getElementById(
+        "close-project-modal-btn",
+      );
+      const newProjectBtnMain = document.getElementById("new-project-btn-main");
+      const lobbyImportBtn = document.getElementById("lobby-import-btn");
+      const lobbyImportJson = document.getElementById("lobby-import-json");
+
+      // 取得多份專案清單，並為舊版專案進行自動移轉
+      function getProjectsList() {
+        let list =
+          JSON.parse(localStorage.getItem("textAdventureProjectsList")) || [];
+        const standalone = JSON.parse(
+          localStorage.getItem("textAdventureProject"),
+        );
+
+        if (standalone && standalone.projectInfo) {
+          if (!standalone.projectId) {
+            standalone.projectId = "proj_" + Date.now();
+            localStorage.setItem(
+              "textAdventureProject",
+              JSON.stringify(standalone),
+            );
+          }
+          const exists = list.some((p) => p.projectId === standalone.projectId);
+          if (!exists) {
+            list.push(standalone);
+            localStorage.setItem(
+              "textAdventureProjectsList",
+              JSON.stringify(list),
+            );
+          }
+        }
+        return list;
+      }
+
+      function renderProjectsList() {
+        const list = getProjectsList();
+        const container = document.getElementById("project-list-container");
+        if (!container) return;
+        container.innerHTML = "";
+
+        if (list.length === 0) {
+          container.innerHTML = `<p class="text-gray-400 italic text-center py-4">目前沒有任何專案</p>`;
+          return;
+        }
+
+        list.forEach((project) => {
+          const title = project.projectInfo.title || "未命名專案";
+          const lastSaved = project.projectInfo.lastSaved || "無紀錄";
+          const projId = project.projectId;
+
+          container.innerHTML += `
+            <div class="bg-gray-900 border border-gray-700 rounded-lg p-4 flex flex-col md:flex-row justify-between md:items-center gap-4 hover:border-blue-500 transition shadow-sm">
+              <div>
+                <p class="font-bold text-blue-300 text-lg">${title}</p>
+                <p class="text-xs text-gray-500 mt-1">最後保存：${lastSaved}</p>
+              </div>
+              <div class="flex space-x-2">
+                <button onclick="window.editProject('${projId}')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-sm font-bold transition shadow-sm">編輯</button>
+                <button onclick="window.exportProject('${projId}')" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded text-sm font-bold transition border border-gray-600 shadow-sm">匯出</button>
+                <button onclick="window.deleteProject('${projId}')" class="bg-red-900/80 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-bold transition border border-red-800 shadow-sm">刪除</button>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      newProjectBtnMain.addEventListener("click", () => {
+        if (localStorage.getItem("textAdventureProject")) {
+          if (
+            !confirm(
+              "建立新專案將會覆蓋當前編輯器中的暫存狀態（不會影響已保存的專案庫）。\n確定要開始新專案嗎？",
+            )
+          )
+            return;
+        }
+        localStorage.removeItem("textAdventureProject");
+        window.location.href = "editor.html";
+      });
+
+      loadSaveBtn.addEventListener("click", () => {
+        renderProjectsList();
+        projectModal.classList.remove("opacity-0", "pointer-events-none");
+        projectModal.firstElementChild.classList.remove(
+          "scale-95",
+          "translate-y-4",
+        );
+      });
+
+      closeProjectModalBtn.addEventListener("click", () => {
+        projectModal.classList.add("opacity-0", "pointer-events-none");
+        projectModal.firstElementChild.classList.add(
+          "scale-95",
+          "translate-y-4",
+        );
+      });
+
+      window.editProject = function (projId) {
+        const list = getProjectsList();
+        const project = list.find((p) => p.projectId === projId);
+        if (project) {
+          localStorage.setItem("textAdventureProject", JSON.stringify(project));
+          window.location.href = "editor.html";
+        }
+      };
+
+      window.exportProject = function (projId) {
+        const list = getProjectsList();
+        const project = list.find((p) => p.projectId === projId);
+        if (!project) return;
+        const title = project.projectInfo.title || "文字冒險遊戲專案";
+        const blob = new Blob([JSON.stringify(project, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = title + ".json";
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      window.deleteProject = function (projId) {
+        if (confirm("確定要刪除本地的暫存專案嗎？此操作無法還原！")) {
+          let list = getProjectsList();
+          list = list.filter((p) => p.projectId !== projId);
+          localStorage.setItem(
+            "textAdventureProjectsList",
+            JSON.stringify(list),
+          );
+
+          const current = JSON.parse(
+            localStorage.getItem("textAdventureProject"),
+          );
+          if (current && current.projectId === projId) {
+            localStorage.removeItem("textAdventureProject");
+          }
+          renderProjectsList();
+        }
+      };
+
+      lobbyImportBtn.addEventListener("click", () => {
+        lobbyImportJson.click();
+      });
+
+      lobbyImportJson.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const importedData = JSON.parse(event.target.result);
+            if (importedData && importedData.projectInfo) {
+              if (!importedData.projectId) {
+                importedData.projectId = "proj_" + Date.now();
+              }
+              localStorage.setItem(
+                "textAdventureProject",
+                JSON.stringify(importedData),
+              );
+
+              let list = getProjectsList();
+              const idx = list.findIndex(
+                (p) => p.projectId === importedData.projectId,
+              );
+              if (idx !== -1) list[idx] = importedData;
+              else list.push(importedData);
+              localStorage.setItem(
+                "textAdventureProjectsList",
+                JSON.stringify(list),
+              );
+
+              alert("專案載入成功！即將進入編輯器...");
+              window.location.href = "editor.html";
+            } else {
+              alert("無效的專案檔案！");
+            }
+          } catch (err) {
+            alert("載入失敗，檔案格式錯誤或已損壞：" + err);
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = ""; // Reset input 以便重複載入同一檔案
+      });
+
+      // 遊玩存檔管理邏輯
+      const playModal = document.getElementById("save-slots-modal");
+      const closePlayModalBtn = document.getElementById("close-modal-btn");
+      const slotsContainer = document.getElementById("slots-container");
+      const openPlayModalBtn = document.getElementById("open-play-modal-btn");
+      const playImportBtn = document.getElementById("play-import-btn");
+      const playImportJson = document.getElementById("play-import-json");
+      const currentPlayProjectName = document.getElementById(
+        "current-play-project-name",
+      );
+      const currentPlayProjectDesc = document.getElementById(
+        "current-play-project-desc",
+      );
+
+      function updateCurrentPlayProjectName() {
+        const saveData = localStorage.getItem("textAdventureProject");
+        if (saveData) {
+          try {
+            const project = JSON.parse(saveData);
+            currentPlayProjectName.textContent =
+              project.projectInfo.title || "未命名遊戲";
+            if (project.projectInfo.description) {
+              currentPlayProjectDesc.textContent =
+                project.projectInfo.description;
+            } else {
+              currentPlayProjectDesc.textContent = "此遊戲無提供簡介。";
+            }
+            currentPlayProjectDesc.classList.remove("hidden");
+          } catch (e) {
+            currentPlayProjectName.textContent = "檔案損壞";
+            currentPlayProjectDesc.classList.add("hidden");
+          }
+        } else {
+          currentPlayProjectName.textContent = "尚未載入任何遊戲";
+          currentPlayProjectDesc.classList.add("hidden");
+        }
+      }
+
+      function renderSlots() {
+        let saves = JSON.parse(
+          localStorage.getItem("textAdventurePlayerSaves"),
+        );
+        // 存檔升級遷移 (舊版 3 個槽位擴充為 5 個槽位，保留 0 和 1 為系統自動與快速存檔)
+        if (saves && saves.length === 3) {
+          saves = [null, null, ...saves];
+          localStorage.setItem(
+            "textAdventurePlayerSaves",
+            JSON.stringify(saves),
+          );
+        } else if (!saves) {
+          saves = [];
+        }
+        while (saves.length < 5) saves.push(null);
+
+        slotsContainer.innerHTML = saves
+          .map((save, index) => {
+            let slotName =
+              index === 0
+                ? "自動存檔"
+                : index === 1
+                  ? "快速存檔 (F5)"
+                  : `槽位 ${index - 1}`;
+            let titleColor =
+              index === 0
+                ? "text-emerald-400"
+                : index === 1
+                  ? "text-blue-400"
+                  : "text-white";
+            let isReserved = index === 0 || index === 1;
+
+            if (save) {
+              return `
+              <div class="bg-gray-800 border border-gray-600 rounded-lg p-4 flex justify-between items-center hover:border-emerald-500 transition shadow-sm">
+                <div>
+                  <h3 class="text-lg font-bold ${titleColor}">${slotName}: ${save.sceneName || "進度紀錄"}</h3>
+                  <p class="text-sm text-gray-400">儲存時間: ${save.time}</p>
+                </div>
+                <div class="flex space-x-2">
+                  <button class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold transition" onclick="loadPlaySave(${index})">讀取</button>
+                  <button class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded font-bold transition" onclick="deletePlaySave(${index})">刪除</button>
+                </div>
+              </div>
+            `;
+            } else {
+              let newGameBtn = isReserved
+                ? `<button class="px-4 py-2 bg-gray-700 text-gray-500 rounded font-bold cursor-not-allowed" disabled>系統保留</button>`
+                : `<button class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold transition" onclick="startNewGame(${index})">新遊戲</button>`;
+              return `
+              <div class="bg-gray-800/50 border border-gray-700 border-dashed rounded-lg p-4 flex justify-between items-center hover:border-gray-500 transition">
+                <div>
+                  <h3 class="text-lg font-bold text-gray-500">${slotName}: 空</h3>
+                </div>
+                ${newGameBtn}
+              </div>
+            `;
+            }
+          })
+          .join("");
+      }
+
+      openPlayModalBtn.addEventListener("click", () => {
+        updateCurrentPlayProjectName();
+        renderSlots();
+        playModal.classList.remove("opacity-0", "pointer-events-none");
+        playModal.firstElementChild.classList.remove(
+          "scale-95",
+          "translate-y-4",
+        );
+      });
+
+      playImportBtn.addEventListener("click", () => {
+        playImportJson.click();
+      });
+
+      playImportJson.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const importedData = JSON.parse(event.target.result);
+            if (importedData && importedData.projectInfo) {
+              localStorage.setItem(
+                "textAdventureProject",
+                JSON.stringify(importedData),
+              );
+              if (
+                confirm(
+                  "是否同時清空舊遊戲的存檔槽位與成就紀錄？\n(若載入的是同一個遊戲的更新版可選取消，若是全新遊戲建議選確定)",
+                )
+              ) {
+                localStorage.removeItem("textAdventurePlayerSaves");
+                localStorage.removeItem("textAdventureGlobalUnlocks");
+              }
+              updateCurrentPlayProjectName();
+              renderSlots();
+              alert("遊戲載入成功！請選擇槽位開始遊玩。");
+            } else {
+              alert("無效的遊戲檔案！");
+            }
+          } catch (err) {
+            alert("載入失敗，檔案格式錯誤或已損壞：" + err);
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = "";
+      });
+
+      closePlayModalBtn.addEventListener("click", () => {
+        playModal.classList.add("opacity-0", "pointer-events-none");
+        playModal.firstElementChild.classList.add("scale-95", "translate-y-4");
+      });
+
+      window.startNewGame = function (slotIndex) {
+        if (!localStorage.getItem("textAdventureProject")) {
+          alert("請先載入遊戲專案！");
+          return;
+        }
+        localStorage.setItem("currentPlayerSaveSlot", slotIndex);
+        // 清除該槽位舊資料以確保是全新開始
+        let saves =
+          JSON.parse(localStorage.getItem("textAdventurePlayerSaves")) || [];
+        while (saves.length < 5) saves.push(null);
+        saves[slotIndex] = null;
+        localStorage.setItem("textAdventurePlayerSaves", JSON.stringify(saves));
+        const theme = document.getElementById("ui-theme-select")
+          ? document.getElementById("ui-theme-select").value
+          : "player1.html";
+        window.location.href = theme;
+      };
+
+      window.loadPlaySave = function (slotIndex) {
+        if (!localStorage.getItem("textAdventureProject")) {
+          alert("請先載入遊戲專案！");
+          return;
+        }
+        localStorage.setItem("currentPlayerSaveSlot", slotIndex);
+        const theme = document.getElementById("ui-theme-select")
+          ? document.getElementById("ui-theme-select").value
+          : "player1.html";
+        window.location.href = theme;
+      };
+
+      window.deletePlaySave = function (slotIndex) {
+        if (confirm("確定要刪除這個存檔嗎？")) {
+          let saves =
+            JSON.parse(localStorage.getItem("textAdventurePlayerSaves")) || [];
+          while (saves.length < 5) saves.push(null);
+          saves[slotIndex] = null;
+          localStorage.setItem(
+            "textAdventurePlayerSaves",
+            JSON.stringify(saves),
+          );
+          renderSlots();
+        }
+      };
+
+      // 畫廊管理邏輯
+      const galleryModal = document.getElementById("gallery-modal");
+      const openGalleryBtn = document.getElementById("open-gallery-btn");
+      const closeGalleryBtn = document.getElementById("close-gallery-btn");
+      const tabEndingsBtn = document.getElementById("tab-endings-btn");
+      const tabAchievementsBtn = document.getElementById(
+        "tab-achievements-btn",
+      );
+      const endingsContainer = document.getElementById(
+        "gallery-endings-container",
+      );
+      const achievementsContainer = document.getElementById(
+        "gallery-achievements-container",
+      );
+
+      function renderGallery() {
+        const project =
+          JSON.parse(localStorage.getItem("textAdventureProject")) || {};
+        const unlocks = JSON.parse(
+          localStorage.getItem("textAdventureGlobalUnlocks"),
+        ) || { achievements: [], endings: [] };
+
+        // 渲染結局
+        const allEndings = new Set();
+        if (project.scenes) {
+          project.scenes.forEach((s) => {
+            if (s.isEnding && s.endingName) allEndings.add(s.endingName);
+          });
+        }
+        endingsContainer.innerHTML = "";
+        if (allEndings.size === 0) {
+          endingsContainer.innerHTML = `<div class="col-span-full text-center text-gray-500 py-10 italic">專案中尚未設定任何結局。</div>`;
+        } else {
+          Array.from(allEndings).forEach((endingName, i) => {
+            const isUnlocked = unlocks.endings.includes(endingName);
+            const iconSvg = isUnlocked
+              ? '<svg class="w-8 h-8 text-yellow-500 drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>'
+              : '<svg class="w-8 h-8 text-gray-600 drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>';
+            endingsContainer.innerHTML += `
+              <div class="p-4 rounded-lg border ${isUnlocked ? "bg-yellow-900/30 border-yellow-600/50" : "bg-gray-800/50 border-gray-700 border-dashed"} flex items-center space-x-4">
+                <div>${iconSvg}</div>
+                <div>
+                  <div class="text-xs text-gray-500 mb-1">Ending No.${i + 1}</div>
+                  <div class="${isUnlocked ? "text-white font-bold text-lg" : "text-gray-500 font-bold"}">${isUnlocked ? endingName : "??? (尚未解鎖)"}</div>
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        // 渲染成就
+        achievementsContainer.innerHTML = "";
+        if (!project.achievements || project.achievements.length === 0) {
+          achievementsContainer.innerHTML = `<div class="col-span-full text-center text-gray-500 py-10 italic">專案中尚未設定任何成就。</div>`;
+        } else {
+          project.achievements.forEach((ach) => {
+            const isUnlocked = unlocks.achievements.includes(ach.id);
+            const showHidden = ach.isHidden && !isUnlocked;
+            const icon =
+              isUnlocked || !ach.isHidden
+                ? ach.iconUrl || "https://via.placeholder.com/150?text=Icon"
+                : "https://via.placeholder.com/150/333333/666666?text=?";
+
+            achievementsContainer.innerHTML += `
+              <div class="p-4 rounded-lg border ${isUnlocked ? "bg-purple-900/30 border-purple-500/50" : "bg-gray-800 border-gray-700"} flex items-center space-x-4 transition">
+                <img src="${icon}" class="w-14 h-14 object-cover rounded border ${isUnlocked ? "border-purple-400" : "border-gray-600 grayscale opacity-50"}">
+                <div class="flex-1">
+                  <div class="text-sm font-bold ${isUnlocked ? "text-purple-300" : "text-gray-400"}">${showHidden ? "隱藏成就" : ach.name}</div>
+                  <div class="text-xs ${isUnlocked ? "text-gray-300" : "text-gray-600"} mt-1 line-clamp-2">${isUnlocked ? ach.description || "無說明" : showHidden ? "??????????" : ach.description || "無說明"}</div>
+                </div>
+              </div>
+            `;
+          });
+        }
+      }
+
+      openGalleryBtn.addEventListener("click", () => {
+        renderGallery();
+        galleryModal.classList.remove("opacity-0", "pointer-events-none");
+        galleryModal.firstElementChild.classList.remove(
+          "scale-95",
+          "translate-y-4",
+        );
+      });
+      closeGalleryBtn.addEventListener("click", () => {
+        galleryModal.classList.add("opacity-0", "pointer-events-none");
+        galleryModal.firstElementChild.classList.add(
+          "scale-95",
+          "translate-y-4",
+        );
+      });
+      tabEndingsBtn.addEventListener("click", () => {
+        tabEndingsBtn.className =
+          "text-purple-400 font-bold px-4 py-2 border-b-2 border-purple-500 transition";
+        tabAchievementsBtn.className =
+          "text-gray-400 font-bold px-4 py-2 border-b-2 border-transparent hover:text-purple-300 transition";
+        endingsContainer.classList.remove("hidden");
+        endingsContainer.classList.add("grid");
+        achievementsContainer.classList.add("hidden");
+        achievementsContainer.classList.remove("grid");
+      });
+      tabAchievementsBtn.addEventListener("click", () => {
+        tabAchievementsBtn.className =
+          "text-purple-400 font-bold px-4 py-2 border-b-2 border-purple-500 transition";
+        tabEndingsBtn.className =
+          "text-gray-400 font-bold px-4 py-2 border-b-2 border-transparent hover:text-purple-300 transition";
+        achievementsContainer.classList.remove("hidden");
+        achievementsContainer.classList.add("grid");
+        endingsContainer.classList.add("hidden");
+        endingsContainer.classList.remove("grid");
+      });
+
+      // 說明 Modal 邏輯
+      const editorHelpModal = document.getElementById("editor-help-modal");
+      const openEditorHelpBtn = document.getElementById("open-editor-help-btn");
+      const closeEditorHelpBtn = document.getElementById(
+        "close-editor-help-btn",
+      );
+      const playerHelpModal = document.getElementById("player-help-modal");
+      const openPlayerHelpBtn = document.getElementById("open-player-help-btn");
+      const closePlayerHelpBtn = document.getElementById(
+        "close-player-help-btn",
+      );
+
+      openEditorHelpBtn.addEventListener("click", () => {
+        editorHelpModal.classList.remove("opacity-0", "pointer-events-none");
+        editorHelpModal.firstElementChild.classList.remove(
+          "scale-95",
+          "translate-y-4",
+        );
+      });
+      closeEditorHelpBtn.addEventListener("click", () => {
+        editorHelpModal.classList.add("opacity-0", "pointer-events-none");
+        editorHelpModal.firstElementChild.classList.add(
+          "scale-95",
+          "translate-y-4",
+        );
+      });
+      openPlayerHelpBtn.addEventListener("click", () => {
+        playerHelpModal.classList.remove("opacity-0", "pointer-events-none");
+        playerHelpModal.firstElementChild.classList.remove(
+          "scale-95",
+          "translate-y-4",
+        );
+      });
+      closePlayerHelpBtn.addEventListener("click", () => {
+        playerHelpModal.classList.add("opacity-0", "pointer-events-none");
+        playerHelpModal.firstElementChild.classList.add(
+          "scale-95",
+          "translate-y-4",
+        );
+      });
+    </script>
+  </body>
+</html>

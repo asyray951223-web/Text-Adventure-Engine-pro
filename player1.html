@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>遊玩模式 - 文字冒險</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="player1.css" />
+  </head>
+  <body
+    class="bg-black h-screen flex items-center justify-center overflow-hidden"
+  >
+    <!-- 背景音樂播放器 -->
+    <audio id="bgm-player" loop></audio>
+
+    <!-- 遊戲主要容器 (全螢幕) -->
+    <div
+      id="game-container"
+      class="relative w-full h-full bg-gray-900 overflow-hidden"
+    >
+      <!-- 快速存檔提示 -->
+      <div
+        id="quicksave-toast"
+        class="absolute top-20 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-2 rounded-full shadow-lg font-bold transition-opacity duration-300 opacity-0 pointer-events-none z-50"
+      >
+        進度已儲存
+      </div>
+
+      <!-- 存檔 Modal -->
+      <div
+        id="save-modal"
+        class="absolute inset-0 bg-black/80 hidden flex-col items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300 opacity-0"
+      >
+        <div
+          class="bg-gray-900 border border-gray-600 rounded-xl w-11/12 max-w-2xl flex flex-col shadow-2xl relative"
+        >
+          <div
+            class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800 rounded-t-xl"
+          >
+            <div class="flex items-center space-x-3">
+              <svg
+                class="w-8 h-8 text-blue-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                ></path>
+              </svg>
+              <div>
+                <h2 class="text-2xl font-bold text-white tracking-wide">
+                  存檔進度
+                </h2>
+                <p class="text-xs text-gray-400 mt-1">
+                  選擇一個槽位來保存目前的遊戲進度
+                </p>
+              </div>
+            </div>
+            <button
+              id="close-save-btn"
+              class="text-gray-400 hover:text-white transition"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <div class="p-6 space-y-4" id="save-slots-container">
+            <!-- 存檔槽位由 JS 動態產生 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 沉浸式背景圖 -->
+      <div
+        class="absolute inset-0 bg-cover bg-center transition-all duration-1000"
+        style="
+          background-image: url(&quot;https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1920&auto=format&fit=crop&quot;);
+          opacity: 0.7;
+        "
+      ></div>
+
+      <!-- 事件 CG 影片 -->
+      <video
+        id="scene-cg-video"
+        class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 opacity-0 pointer-events-none z-10 hidden"
+        playsinline
+        loop
+      ></video>
+
+      <!-- 角色立繪 -->
+      <img
+        id="scene-sprite"
+        class="absolute top-24 bottom-0 left-[10%] w-full max-w-xl object-contain object-bottom transition-opacity duration-500 opacity-0 pointer-events-none z-20 hidden"
+        src=""
+        alt="角色立繪"
+      />
+
+      <!-- 設定 Modal -->
+      <div
+        id="settings-modal"
+        class="absolute inset-0 bg-black/80 hidden flex-col items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300 opacity-0"
+      >
+        <div
+          class="bg-gray-900 border border-gray-600 rounded-xl w-11/12 max-w-md flex flex-col shadow-2xl relative"
+        >
+          <div
+            class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800 rounded-t-xl"
+          >
+            <h2 class="text-2xl font-bold text-blue-400">遊戲設定</h2>
+            <button
+              id="close-settings-btn"
+              class="text-gray-400 hover:text-white transition"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <div class="p-6 space-y-6">
+            <div>
+              <label
+                class="block text-sm font-bold text-gray-300 mb-2 flex justify-between"
+                ><span>文字顯示速度</span
+                ><span id="speed-display" class="text-blue-400 font-mono"></span
+              ></label>
+              <input
+                type="range"
+                id="text-speed-range"
+                min="0"
+                max="100"
+                value="70"
+                class="w-full cursor-pointer"
+              />
+              <div class="flex justify-between text-xs text-gray-500 mt-1">
+                <span>慢</span>
+                <span>快 (即時)</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-gray-300 mb-2"
+                >背景音量</label
+              >
+              <input
+                type="range"
+                id="volume-range"
+                min="0"
+                max="100"
+                value="50"
+                class="w-full cursor-pointer"
+              />
+              <div class="flex justify-between text-xs text-gray-500 mt-1">
+                <span>靜音</span>
+                <span>最大</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-gray-300 mb-2"
+                >打字音量</label
+              >
+              <input
+                type="range"
+                id="typing-volume-range"
+                min="0"
+                max="100"
+                value="50"
+                class="w-full cursor-pointer"
+              />
+              <div class="flex justify-between text-xs text-gray-500 mt-1">
+                <span>靜音</span>
+                <span>最大</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 物品欄 Modal -->
+      <div
+        id="inventory-modal"
+        class="absolute inset-0 bg-black/50 hidden z-50 backdrop-blur-sm transition-opacity duration-300 opacity-0"
+      >
+        <div
+          id="inventory-panel"
+          class="absolute bottom-6 right-6 bg-gray-900/95 border-2 border-gray-600 rounded-2xl w-full max-w-2xl h-[85vh] flex flex-col shadow-[0_10px_50px_rgba(0,0,0,0.8)] transform transition-all duration-300 translate-y-8 scale-95 origin-bottom-right"
+        >
+          <div
+            class="p-5 border-b border-gray-700 flex justify-between items-center bg-gray-800/80 rounded-t-2xl"
+          >
+            <div class="flex items-center space-x-3">
+              <svg
+                class="w-8 h-8 text-blue-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                ></path>
+              </svg>
+              <div>
+                <h2 class="text-2xl font-bold text-white tracking-wide">
+                  冒險背包
+                </h2>
+                <p class="text-xs text-gray-400 mt-1">檢視與使用您的持有物品</p>
+              </div>
+            </div>
+            <button
+              id="close-inventory-btn"
+              class="text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 p-2 rounded-full transition"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <div class="p-6 overflow-y-auto flex-1 custom-scrollbar">
+            <div
+              id="inventory-container"
+              class="grid grid-cols-1 sm:grid-cols-2 gap-5"
+            >
+              <!-- 道具將由 JS 動態產生 -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 章節開場畫面 -->
+      <div
+        id="chapter-screen"
+        class="absolute inset-0 z-50 bg-black bg-cover bg-center flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-1000"
+      >
+        <div
+          class="bg-black/60 p-8 rounded-xl backdrop-blur-md text-center max-w-4xl mx-4 shadow-2xl border border-gray-700"
+        >
+          <h1
+            id="chapter-screen-title"
+            class="text-5xl font-extrabold text-white mb-6 tracking-widest drop-shadow-lg"
+          ></h1>
+          <p
+            id="chapter-screen-desc"
+            class="text-2xl text-gray-200 leading-relaxed drop-shadow-md"
+          ></p>
+        </div>
+        <div
+          class="absolute bottom-8 right-10 text-white/80 text-lg animate-pulse select-none cursor-pointer drop-shadow-md"
+        >
+          點擊畫面繼續 &gt;&gt;
+        </div>
+      </div>
+
+      <!-- 成就解鎖浮出提示容器 -->
+      <div
+        id="achievement-popup-container"
+        class="absolute top-20 right-4 z-50 flex flex-col gap-3 pointer-events-none overflow-visible"
+      ></div>
+
+      <!-- 頂部資訊列 (數值系統) -->
+      <div
+        class="absolute top-0 left-0 right-0 p-4 flex justify-between items-start z-40"
+      >
+        <div id="top-bar-vars" class="flex flex-wrap gap-4 max-w-[70%]">
+          <!-- 動態變數渲染區塊 -->
+        </div>
+        <div class="flex gap-2">
+          <button
+            id="fullscreen-btn"
+            class="bg-black/60 hover:bg-black/80 text-white px-4 py-2 rounded border border-gray-600 transition flex items-center"
+          >
+            <svg
+              class="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+              ></path>
+            </svg>
+            <span>全螢幕</span>
+          </button>
+          <button
+            id="toggle-ui-btn"
+            class="bg-black/60 hover:bg-black/80 text-white px-4 py-2 rounded border border-gray-600 transition flex items-center"
+          >
+            <svg
+              class="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+              ></path>
+            </svg>
+            <span>隱藏介面</span>
+          </button>
+          <button
+            id="save-menu-btn"
+            class="bg-black/60 hover:bg-black/80 text-white px-4 py-2 rounded border border-gray-600 transition flex items-center"
+          >
+            <svg
+              class="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+              ></path>
+            </svg>
+            <span>存檔</span>
+          </button>
+          <button
+            id="settings-btn"
+            class="bg-black/60 hover:bg-black/80 text-white px-4 py-2 rounded border border-gray-600 transition flex items-center"
+          >
+            <svg
+              class="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              ></path>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              ></path>
+            </svg>
+            <span>設定</span>
+          </button>
+          <a
+            href="index.html"
+            class="bg-red-900/60 hover:bg-red-800/80 text-white px-4 py-2 rounded border border-red-700 transition flex items-center"
+            ><svg
+              class="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              ></path></svg
+            ><span>離開</span></a
+          >
+        </div>
+      </div>
+
+      <!-- 智慧跳轉選項區 (預設隱藏，需選擇時顯示) -->
+      <div
+        class="absolute inset-0 flex flex-col items-center justify-center gap-4 z-30 hidden pointer-events-none"
+      >
+        <button
+          class="vn-option pointer-events-auto w-2/3 max-w-lg bg-black/80 hover:bg-blue-900/90 text-white py-3 px-6 rounded border-2 border-gray-500 hover:border-blue-400 text-lg transition"
+        >
+          向前探索未知的洞穴
+        </button>
+        <button
+          class="vn-option pointer-events-auto w-2/3 max-w-lg bg-black/80 hover:bg-blue-900/90 text-white py-3 px-6 rounded border-2 border-gray-500 hover:border-blue-400 text-lg transition"
+        >
+          轉身離開這裡
+        </button>
+      </div>
+
+      <!-- 底部對話框 (經典視覺小說風格) -->
+      <div
+        class="absolute bottom-8 left-1/2 -translate-x-1/2 w-11/12 max-w-6xl z-40"
+      >
+        <div
+          id="dialogue-box"
+          class="relative bg-black/75 border-2 border-gray-500 rounded-xl p-8 backdrop-blur-md shadow-2xl cursor-pointer hover:bg-black/80 transition"
+        >
+          <!-- 對話框上方的計時器 -->
+          <div
+            id="dialogue-timer-container"
+            class="absolute -top-3 left-1/2 -translate-x-1/2 w-3/4 max-w-lg h-2.5 bg-gray-800 rounded-full overflow-hidden border border-gray-600 shadow-[0_0_10px_rgba(239,68,68,0)] transition-all duration-300 hidden"
+          >
+            <div
+              id="dialogue-timer-bar"
+              class="h-full bg-red-500 w-full transition-all duration-100 ease-linear"
+            ></div>
+          </div>
+
+          <!-- 姓名標籤 -->
+          <div
+            id="dialogue-name"
+            class="absolute -top-6 left-8 bg-blue-800 text-white px-8 py-1.5 rounded border-2 border-gray-400 font-bold text-xl tracking-wider shadow-lg z-10"
+          >
+            神秘的旅人
+          </div>
+          <div class="flex gap-8 items-start mt-2">
+            <!-- 頭像 -->
+            <img
+              id="dialogue-avatar"
+              class="hidden w-32 h-32 object-cover rounded border-2 border-gray-600 shadow-md flex-shrink-0"
+              src=""
+              alt="NPC Avatar"
+            />
+            <div class="flex-1 w-full">
+              <!-- 對話文本 -->
+              <div
+                id="dialogue-text"
+                class="text-white text-2xl leading-relaxed min-h-[150px] select-none"
+              >
+                歡迎來到這個未知的世界...你的每一個選擇，都將決定未來的走向。<br />準備好開始你的冒險了嗎？
+              </div>
+            </div>
+          </div>
+          <!-- 點擊繼續提示 -->
+          <div
+            class="absolute bottom-4 right-6 text-gray-400 text-sm animate-pulse select-none pointer-events-none"
+          >
+            ▼ 點擊繼續
+          </div>
+        </div>
+      </div>
+
+      <!-- 獨立的物品欄懸浮按鈕 (FAB) -->
+      <button
+        id="inventory-btn"
+        class="absolute bottom-6 md:bottom-10 right-4 md:right-10 z-50 flex items-center justify-center space-x-3 bg-gray-900/90 hover:bg-gray-800 border-2 border-gray-600 hover:border-blue-400 text-white p-3 md:px-6 md:py-4 rounded-full backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.7)] transition-all transform hover:scale-105 group"
+      >
+        <div
+          class="relative bg-gray-800 p-2 md:p-3 rounded-full border border-gray-600 group-hover:border-blue-400 transition-colors shadow-inner"
+        >
+          <svg
+            class="w-6 h-6 md:w-8 md:h-8 text-blue-400 group-hover:text-blue-300 transition-colors drop-shadow"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+            ></path>
+          </svg>
+        </div>
+        <div class="text-left hidden md:block pr-2">
+          <div
+            class="font-bold text-lg tracking-widest text-blue-100 group-hover:text-white transition-colors drop-shadow-sm"
+          >
+            冒險背包
+          </div>
+          <div
+            class="text-xs text-gray-400 group-hover:text-blue-200 transition-colors mt-0.5"
+          >
+            檢視與使用道具
+          </div>
+        </div>
+      </button>
+    </div>
+    <script src="js/player.js"></script>
+  </body>
+</html>

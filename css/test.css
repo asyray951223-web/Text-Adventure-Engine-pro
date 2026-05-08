@@ -1,0 +1,74 @@
+/* 測試模式專用的除錯介面樣式 */
+#debug-panel {
+  box-shadow: 5px 0 25px rgba(0, 0, 0, 0.8);
+}
+
+/* 美化除錯面板的滾動條 */
+#debug-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+#debug-panel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+#debug-panel::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+/* 場景轉場動畫 (同步 player1.css) */
+@keyframes sceneFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.7;
+  }
+}
+@keyframes sceneSlideLeft {
+  from {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 0.7;
+  }
+}
+@keyframes sceneSlideRight {
+  from {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 0.7;
+  }
+}
+@keyframes sceneZoomIn {
+  from {
+    transform: scale(1.1);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+}
+@keyframes sceneFlash {
+  0% {
+    filter: brightness(1) contrast(1);
+    opacity: 0.7;
+  }
+  20% {
+    filter: brightness(3) contrast(1.5);
+    opacity: 1;
+    transform: translateY(-5px);
+  }
+  100% {
+    filter: brightness(1) contrast(1);
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+}

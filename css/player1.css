@@ -1,0 +1,80 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap");
+
+body {
+  font-family: "Noto Sans TC", sans-serif;
+  /* 外圍背景營造暗色氛圍 */
+  background-image: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
+}
+
+#game-container {
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+}
+
+/* 選項按鈕的發光與懸浮特效 */
+.vn-option {
+  backdrop-filter: blur(4px);
+  transform: translateY(0);
+  transition: all 0.2s ease-in-out;
+}
+
+.vn-option:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.6);
+  letter-spacing: 1px;
+}
+
+/* 場景轉場動畫 */
+@keyframes sceneFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.7;
+  }
+}
+@keyframes sceneSlideLeft {
+  from {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 0.7;
+  }
+}
+@keyframes sceneSlideRight {
+  from {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 0.7;
+  }
+}
+@keyframes sceneZoomIn {
+  from {
+    transform: scale(1.1);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+}
+@keyframes sceneFlash {
+  0% {
+    filter: brightness(1) contrast(1);
+    opacity: 0.7;
+  }
+  20% {
+    filter: brightness(3) contrast(1.5);
+    opacity: 1;
+    transform: translateY(-5px);
+  }
+  100% {
+    filter: brightness(1) contrast(1);
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+}

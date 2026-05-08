@@ -929,14 +929,20 @@ document.addEventListener("DOMContentLoaded", () => {
               (o) => !o.enableCondition || checkConditions(o.conditions),
             );
             if (validOpt) {
-              applyEffects(
-                validOpt.variableId,
-                validOpt.variableVal,
-                validOpt.itemId,
-                validOpt.itemAction,
-                validOpt.itemVal,
-                validOpt.passTime,
-              );
+              const prob =
+                validOpt.effectProbability !== undefined
+                  ? validOpt.effectProbability
+                  : 100;
+              if (Math.random() * 100 < prob) {
+                applyEffects(
+                  validOpt.variableId,
+                  validOpt.variableVal,
+                  validOpt.itemId,
+                  validOpt.itemAction,
+                  validOpt.itemVal,
+                  validOpt.passTime,
+                );
+              }
               handleJump(validOpt.targetSceneId, scene.id);
             } else {
               const idx = projectData.scenes.findIndex(
@@ -1001,14 +1007,20 @@ document.addEventListener("DOMContentLoaded", () => {
           btn.textContent = opt.text || "繼續";
 
           btn.addEventListener("click", () => {
-            applyEffects(
-              opt.variableId,
-              opt.variableVal,
-              opt.itemId,
-              opt.itemAction,
-              opt.itemVal,
-              opt.passTime,
-            );
+            const prob =
+              opt.effectProbability !== undefined ? opt.effectProbability : 100;
+            if (Math.random() * 100 < prob) {
+              applyEffects(
+                opt.variableId,
+                opt.variableVal,
+                opt.itemId,
+                opt.itemAction,
+                opt.itemVal,
+                opt.passTime,
+              );
+            } else {
+              console.log(`[測試模式] 選項附加效果因機率 (${prob}%) 未觸發`);
+            }
             handleJump(opt.targetSceneId, scene.id);
           });
 

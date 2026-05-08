@@ -79,6 +79,8 @@ window.renderTriggers = function () {
       if (!trigger.conditions) {
         trigger.conditions = { variables: {}, items: {} };
       }
+      if (!trigger.conditions.variables) trigger.conditions.variables = {};
+      if (!trigger.conditions.items) trigger.conditions.items = {};
 
       // 向下相容：將舊版純布林值的道具條件升級為包含數量與運算符的物件
       if (trigger.conditions.items) {

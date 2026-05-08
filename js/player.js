@@ -1563,14 +1563,18 @@ document.addEventListener("DOMContentLoaded", () => {
             "vn-option pointer-events-auto w-2/3 max-w-lg bg-black/80 hover:bg-blue-900/90 text-white py-3 px-6 rounded border-2 border-blue-800 hover:border-blue-400 text-lg transition shadow-lg whitespace-normal break-words leading-relaxed";
           btn.textContent = opt.text || "繼續";
           btn.onclick = () => {
-            applyEffects(
-              opt.variableId,
-              opt.variableVal,
-              opt.itemId,
-              opt.itemAction,
-              opt.itemVal,
-              opt.passTime,
-            );
+            const prob =
+              opt.effectProbability !== undefined ? opt.effectProbability : 100;
+            if (Math.random() * 100 < prob) {
+              applyEffects(
+                opt.variableId,
+                opt.variableVal,
+                opt.itemId,
+                opt.itemAction,
+                opt.itemVal,
+                opt.passTime,
+              );
+            }
             handleJump(opt.targetSceneId, scene.id);
           };
           optionsContainer.appendChild(btn);
@@ -1855,14 +1859,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 (o) => !o.enableCondition || checkConditions(o.conditions),
               );
               if (validOpt) {
-                applyEffects(
-                  validOpt.variableId,
-                  validOpt.variableVal,
-                  validOpt.itemId,
-                  validOpt.itemAction,
-                  validOpt.itemVal,
-                  validOpt.passTime,
-                );
+                const prob =
+                  validOpt.effectProbability !== undefined
+                    ? validOpt.effectProbability
+                    : 100;
+                if (Math.random() * 100 < prob) {
+                  applyEffects(
+                    validOpt.variableId,
+                    validOpt.variableVal,
+                    validOpt.itemId,
+                    validOpt.itemAction,
+                    validOpt.itemVal,
+                    validOpt.passTime,
+                  );
+                }
                 handleJump(validOpt.targetSceneId, scene.id);
               } else {
                 // 若無選項，循預設邏輯往下跳
@@ -1995,8 +2005,13 @@ document.addEventListener("DOMContentLoaded", () => {
           : `<span class="text-xs bg-purple-900/50 text-purple-400 px-2.5 py-1 rounded-full border border-purple-700/50 shadow-sm whitespace-nowrap">永久道具</span>`;
 
       // 檢查是否可使用 (檢查 enableCondition 與 conditions)
-      const canUse =
+      const consumeQty =
+        itemData.consumeAmount !== undefined ? itemData.consumeAmount : 1;
+      const hasEnough =
+        itemData.type === "consumable" ? qty >= consumeQty : true;
+      const meetsCondition =
         !itemData.enableCondition || checkConditions(itemData.conditions);
+      const canUse = meetsCondition && hasEnough;
 
       itemCard.innerHTML = `
         <div class="flex items-start space-x-4 mb-5">
@@ -2008,12 +2023,12 @@ document.addEventListener("DOMContentLoaded", () => {
               <h3 class="text-lg font-bold text-white truncate">${itemData.name}</h3>
               ${typeBadge}
             </div>
-            <div class="text-sm font-mono text-blue-300 font-bold bg-blue-900/30 px-2 py-0.5 rounded inline-block mb-2 shadow-sm">擁有數量: ${qty}</div>
+            <div class="text-sm font-mono text-blue-300 font-bold bg-blue-900/30 px-2 py-0.5 rounded inline-block mb-2 shadow-sm">擁有量/次數: ${qty}</div>
             <p class="text-sm text-gray-400 leading-relaxed line-clamp-3" title="${itemData.description || "無說明"}">${itemData.description || "無說明"}</p>
           </div>
         </div>
         <button class="use-item-btn w-full py-2.5 rounded-lg font-bold transition text-md shadow-md flex items-center justify-center space-x-2 ${canUse ? "bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white" : "bg-gray-800 border border-gray-700 text-gray-500 cursor-not-allowed"}" ${canUse ? "" : "disabled"}>
-          ${canUse ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> <span>使用道具</span>' : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> <span>未達使用條件</span>'}
+          ${canUse ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> <span>使用道具</span>' : !hasEnough ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> <span>數量不足</span>' : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> <span>未達使用條件</span>'}
         </button>
       `;
 
@@ -2021,19 +2036,32 @@ document.addEventListener("DOMContentLoaded", () => {
         itemCard
           .querySelector(".use-item-btn")
           .addEventListener("click", () => {
-            // 執行使用邏輯：若是消耗品則數量 -1
+            // 執行使用邏輯：若是消耗品則扣除設定數量
             if (itemData.type === "consumable") {
-              gameState.items[itemId] -= 1;
+              gameState.items[itemId] = Math.max(
+                0,
+                gameState.items[itemId] - consumeQty,
+              );
             }
 
-            applyEffects(
-              itemData.variableId,
-              itemData.variableVal,
-              itemData.targetItemId,
-              itemData.itemAction,
-              itemData.itemVal,
-              itemData.passTime,
-            );
+            const prob =
+              itemData.effectProbability !== undefined
+                ? itemData.effectProbability
+                : 100;
+            const isSuccess = Math.random() * 100 < prob;
+
+            if (isSuccess) {
+              applyEffects(
+                itemData.variableId,
+                itemData.variableVal,
+                itemData.targetItemId,
+                itemData.itemAction,
+                itemData.itemVal,
+                itemData.passTime,
+              );
+            } else {
+              showToast(`使用 ${itemData.name}，但似乎沒有發揮效果...`);
+            }
 
             // 關閉背包面板
             closeInventory();
@@ -2042,7 +2070,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // 檢查全域觸發
             if (!checkGlobalTriggers()) {
-              if (itemData.targetSceneId) {
+              if (itemData.targetSceneId && isSuccess) {
                 handleJump(
                   itemData.targetSceneId,
                   gameState.currentSceneId,

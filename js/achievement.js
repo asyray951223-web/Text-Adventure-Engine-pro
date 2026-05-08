@@ -86,6 +86,9 @@ window.renderAchievements = function () {
       if (!achievement.conditions) {
         achievement.conditions = { variables: {}, items: {} };
       }
+      if (!achievement.conditions.variables)
+        achievement.conditions.variables = {};
+      if (!achievement.conditions.items) achievement.conditions.items = {};
 
       // 準備變數的勾選清單
       let varConditionsHtml = "";

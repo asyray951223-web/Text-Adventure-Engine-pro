@@ -97,6 +97,8 @@ window.renderItems = function () {
           };
         }
       }
+      if (!item.conditions.variables) item.conditions.variables = {};
+      if (!item.conditions.items) item.conditions.items = {};
 
       // 向下相容：將舊版純布林值的道具條件升級為包含數量與運算符的物件
       if (item.conditions.items) {
@@ -315,16 +317,22 @@ window.renderItems = function () {
       }
 
       contentEl.innerHTML = `
-        <div class="flex items-center space-x-4">
-          <label class="block text-sm font-medium text-gray-700 whitespace-nowrap">道具類型</label>
-          <select class="type-select w-full max-w-xs border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
-            <option value="consumable" ${
-              item.type === "consumable" ? "selected" : ""
-            }>消耗品 (使用後消失)</option>
-            <option value="permanent" ${
-              item.type === "permanent" ? "selected" : ""
-            }>永久道具 (可重複使用)</option>
-          </select>
+        <div class="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-2">
+          <div class="flex items-center space-x-4">
+            <label class="block text-sm font-medium text-gray-700 whitespace-nowrap">道具類型</label>
+            <select class="type-select w-full max-w-xs border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+              <option value="consumable" ${
+                item.type === "consumable" ? "selected" : ""
+              }>消耗品 (使用後扣除數量)</option>
+              <option value="permanent" ${
+                item.type === "permanent" ? "selected" : ""
+              }>永久道具 (可重複使用)</option>
+            </select>
+          </div>
+          <div class="flex items-center space-x-2 ${item.type === "consumable" ? "flex" : "hidden"}">
+            <label class="block text-sm font-medium text-gray-700 whitespace-nowrap ml-2">每次使用消耗數量:</label>
+            <input type="number" class="consume-amount-input w-20 border border-gray-300 rounded shadow-sm p-1.5 text-sm focus:ring-blue-500 focus:border-blue-500" value="${item.consumeAmount !== undefined ? item.consumeAmount : 1}" min="1">
+          </div>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">道具說明</label>
@@ -425,6 +433,15 @@ window.renderItems = function () {
                 <input type="number" class="item-pass-time border border-gray-300 rounded shadow-sm p-1.5 w-20 focus:ring-blue-500 focus:border-blue-500" placeholder="分鐘" value="${item.passTime !== undefined ? item.passTime : ""}" title="請輸入流逝的分鐘數">
               </div>
             </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm mt-2 pt-2 border-t border-blue-200">
+              <div class="flex items-center space-x-2 flex-1">
+                <span class="text-purple-600 font-bold whitespace-nowrap">效果觸發機率:</span>
+                <input type="number" class="item-effect-prob border border-purple-300 rounded shadow-sm p-1.5 w-20 focus:ring-purple-500 focus:border-purple-500" placeholder="100" value="${item.effectProbability !== undefined ? item.effectProbability : 100}" title="設定道具複合效果的觸發機率 (0-100)%" min="0" max="100">
+                <span class="text-purple-600 font-bold">%</span>
+                <span class="text-gray-500 ml-2 italic">（機率判定不影響消耗品的扣除）</span>
+              </div>
+            </div>
           </div>
         </div>
       `;
@@ -436,6 +453,16 @@ window.renderItems = function () {
           item.type = e.target.value;
           window.renderItems();
         });
+
+      const consumeAmountInput = contentEl.querySelector(
+        ".consume-amount-input",
+      );
+      if (consumeAmountInput) {
+        consumeAmountInput.addEventListener("input", (e) => {
+          const val = parseInt(e.target.value, 10);
+          item.consumeAmount = isNaN(val) ? 1 : Math.max(1, val);
+        });
+      }
 
       contentEl.querySelector(".desc-text").addEventListener("input", (e) => {
         item.description = e.target.value;
@@ -469,6 +496,15 @@ window.renderItems = function () {
         .addEventListener("input", (e) => {
           const val = parseInt(e.target.value, 10);
           item.passTime = isNaN(val) ? "" : val;
+        });
+
+      contentEl
+        .querySelector(".item-effect-prob")
+        .addEventListener("input", (e) => {
+          const val = parseInt(e.target.value, 10);
+          item.effectProbability = isNaN(val)
+            ? 100
+            : Math.max(0, Math.min(100, val));
         });
 
       contentEl
@@ -623,6 +659,7 @@ function addNewItem() {
     id: "item_" + Date.now(),
     name: "新道具",
     type: "consumable",
+    consumeAmount: 1,
     description: "",
     canSell: false,
     sellVariableId: "",
@@ -634,6 +671,7 @@ function addNewItem() {
     itemAction: "",
     targetItemId: "",
     passTime: "",
+    effectProbability: 100,
     targetSceneId: "",
     isExpanded: true,
   });

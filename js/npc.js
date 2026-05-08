@@ -77,6 +77,8 @@ window.renderNpcs = function () {
       if (!npc.conditions) {
         npc.conditions = { variables: {}, items: {} };
       }
+      if (!npc.conditions.variables) npc.conditions.variables = {};
+      if (!npc.conditions.items) npc.conditions.items = {};
       if (npc.enableCondition === undefined) {
         npc.enableCondition = false;
       }

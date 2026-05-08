@@ -78,6 +78,8 @@ window.renderDictionary = function () {
       if (!entry.conditions) {
         entry.conditions = { variables: {}, items: {} };
       }
+      if (!entry.conditions.variables) entry.conditions.variables = {};
+      if (!entry.conditions.items) entry.conditions.items = {};
 
       // 準備變數的勾選清單
       let varConditionsHtml = "";

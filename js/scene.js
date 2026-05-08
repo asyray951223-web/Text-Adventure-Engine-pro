@@ -192,6 +192,8 @@ window.renderScenes = function () {
             if (!opt.conditions) {
               opt.conditions = { variables: {}, items: {} };
             }
+            if (!opt.conditions.variables) opt.conditions.variables = {};
+            if (!opt.conditions.items) opt.conditions.items = {};
             if (opt.enableCondition === undefined) {
               opt.enableCondition =
                 Object.keys(opt.conditions.variables).length > 0 ||
@@ -404,6 +406,12 @@ window.renderScenes = function () {
                 <input type="number" class="opt-item-val border border-gray-300 rounded shadow-sm p-1.5 w-16 focus:ring-blue-500 focus:border-blue-500" placeholder="數量" value="${opt.itemVal !== undefined ? opt.itemVal : 1}" data-idx="${optIndex}" title="請輸入道具數量" min="1">
                 <span class="text-gray-500 font-bold whitespace-nowrap ml-2">推進時間:</span>
                 <input type="number" class="opt-pass-time border border-gray-300 rounded shadow-sm p-1.5 w-16 focus:ring-blue-500 focus:border-blue-500" placeholder="分" value="${opt.passTime !== undefined ? opt.passTime : ""}" data-idx="${optIndex}" title="流逝分鐘數">
+              </div>
+              <div class="flex items-center space-x-2 text-xs border-t border-gray-200 pt-2 mt-2">
+                <span class="text-purple-600 font-bold whitespace-nowrap">效果觸發機率:</span>
+                <input type="number" class="opt-effect-prob border border-purple-300 rounded shadow-sm p-1.5 w-16 focus:ring-purple-500 focus:border-purple-500" placeholder="100" value="${opt.effectProbability !== undefined ? opt.effectProbability : 100}" data-idx="${optIndex}" title="設定道具、數值與時間推進的觸發機率 (0-100)%" min="0" max="100">
+                <span class="text-purple-600 font-bold">%</span>
+                <span class="text-gray-400 ml-2 italic">（機率判定僅影響數值與道具增減，不影響場景跳轉）</span>
               </div>
             </div>
           `;
@@ -901,6 +909,16 @@ window.renderScenes = function () {
           });
         });
 
+        contentEl.querySelectorAll(".opt-effect-prob").forEach((input) => {
+          input.addEventListener("input", (e) => {
+            const idx = e.target.getAttribute("data-idx");
+            const val = parseInt(e.target.value, 10);
+            scene.options[idx].effectProbability = isNaN(val)
+              ? 100
+              : Math.max(0, Math.min(100, val));
+          });
+        });
+
         contentEl.querySelectorAll(".opt-enable-cond-chk").forEach((chk) => {
           chk.addEventListener("change", (e) => {
             const idx = e.target.getAttribute("data-idx");
@@ -929,6 +947,7 @@ window.renderScenes = function () {
               itemId: "",
               itemVal: 1,
               passTime: "",
+              effectProbability: 100,
               enableCondition: false,
               conditions: { variables: {}, items: {} },
             });

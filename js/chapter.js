@@ -102,7 +102,10 @@ window.renderChapters = function () {
       }
 
       const defaultCover =
-        "https://via.placeholder.com/600x200?text=No+Cover+Image";
+        window.projectData.projectInfo &&
+        window.projectData.projectInfo.defaultBgUrl
+          ? window.projectData.projectInfo.defaultBgUrl
+          : "https://via.placeholder.com/600x200?text=No+Cover+Image";
 
       const contentEl = document.createElement("div");
       contentEl.className =
@@ -117,7 +120,7 @@ window.renderChapters = function () {
           <h4 class="text-md font-bold text-gray-700 border-b pb-2">章節專屬畫面設定</h4>
           <div class="flex flex-col sm:flex-row gap-4">
             <div class="w-full sm:w-1/3">
-              <img src="${chapter.coverUrl || defaultCover}" class="w-full h-32 object-cover rounded border border-gray-300 shadow-sm" alt="章節封面預覽" onerror="this.src='${defaultCover}'">
+              <img src="${chapter.coverUrl || defaultCover}" class="w-full h-32 object-cover rounded border border-gray-300 shadow-sm" alt="章節封面預覽" onerror="this.src='https://via.placeholder.com/600x200?text=No+Cover+Image'">
               <p class="text-xs text-gray-400 mt-1 text-center">畫面預覽</p>
             </div>
             <div class="w-full sm:w-2/3 space-y-3">

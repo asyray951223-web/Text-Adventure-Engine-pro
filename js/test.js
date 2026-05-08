@@ -45,6 +45,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const style = document.createElement("style");
     style.id = "extra-transitions-style";
     style.innerHTML = `
+      @keyframes sceneFadeIn { from { opacity: 0; filter: brightness(0); } to { opacity: 1; filter: brightness(1); } }
+      @keyframes sceneSlideLeft { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+      @keyframes sceneSlideRight { from { transform: translateX(-50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+      @keyframes sceneZoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      @keyframes sceneFlash { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(2) contrast(1.5); opacity: 0.8; } }
       @keyframes sceneBlurIn { from { filter: blur(20px); opacity: 0; } to { filter: blur(0); opacity: 1; } }
       @keyframes sceneSlideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
       @keyframes sceneSlideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -507,9 +512,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (val < 0) valColor = "text-red-400";
         else if (val > 0) valColor = "text-emerald-300";
 
+        const desc = v.description
+          ? v.description
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#39;")
+              .replace(/\n/g, "&#10;")
+          : "無特別說明";
+
         debugVariablesList.innerHTML += `
           <li class="flex justify-between items-center border-b border-gray-800 pb-1 hover:bg-gray-800/80 transition px-1 -mx-1 rounded">
-            <span class="truncate pr-2 cursor-pointer hover:text-white flex-1" onclick="window.setDebugVar('${v.id}')" title="點擊輸入指定數值">${v.name}:</span>
+            <span class="truncate pr-2 cursor-pointer hover:text-white flex-1" onclick="window.setDebugVar('${v.id}')" title="點擊輸入指定數值\n說明：${desc}">${v.name}:</span>
             <div class="flex items-center space-x-1.5">
               <button onclick="window.adjDebugVar('${v.id}', -1)" class="w-5 h-5 flex items-center justify-center bg-gray-800 hover:bg-red-900/80 text-gray-400 hover:text-red-300 rounded border border-gray-700 hover:border-red-500 transition">-</button>
               <span class="${valColor} font-mono font-bold min-w-[1.5rem] text-center cursor-pointer hover:underline" onclick="window.setDebugVar('${v.id}')" title="點擊輸入指定數值">${val}</span>
@@ -823,22 +835,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     playBgm(bgmToPlay);
 
-    // 處理背景圖片 (優先抓取場景設定，再抓取章節設定，最後預設背景)
-    if (scene.bgUrl) {
-      testBg.style.backgroundImage = `url('${scene.bgUrl}')`;
+    // 處理背景圖片 (優先抓取場景設定，最後預設背景)
+    const sceneBgUrl = scene.bgUrl ? scene.bgUrl.trim() : "";
+    if (sceneBgUrl) {
+      testBg.style.backgroundImage = `url("${sceneBgUrl.replace(/"/g, '\\"')}")`;
       testBg.style.opacity = "0.7";
     } else {
-      const chapter = projectData.chapters
-        ? projectData.chapters.find((c) => c.id === scene.chapterId)
-        : null;
-      if (chapter && chapter.coverUrl) {
-        testBg.style.backgroundImage = `url('${chapter.coverUrl}')`;
-        testBg.style.opacity = "0.7";
-      } else if (
-        projectData.projectInfo &&
-        projectData.projectInfo.defaultBgUrl
-      ) {
-        testBg.style.backgroundImage = `url('${projectData.projectInfo.defaultBgUrl}')`;
+      const defaultBgUrl =
+        projectData.projectInfo && projectData.projectInfo.defaultBgUrl
+          ? projectData.projectInfo.defaultBgUrl.trim()
+          : "";
+      if (defaultBgUrl) {
+        testBg.style.backgroundImage = `url("${defaultBgUrl.replace(/"/g, '\\"')}")`;
         testBg.style.opacity = "0.7";
       } else {
         testBg.style.backgroundImage = "none";

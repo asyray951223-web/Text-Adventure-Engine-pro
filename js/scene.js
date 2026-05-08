@@ -418,6 +418,17 @@ window.renderScenes = function () {
           });
         }
 
+        const defaultBgUrl =
+          window.projectData.projectInfo &&
+          window.projectData.projectInfo.defaultBgUrl
+            ? window.projectData.projectInfo.defaultBgUrl.trim()
+            : "";
+        const sceneBgUrl = scene.bgUrl ? scene.bgUrl.trim() : "";
+        const displayBgUrl =
+          sceneBgUrl ||
+          defaultBgUrl ||
+          "https://via.placeholder.com/600x200?text=No+Background+Image";
+
         const contentEl = document.createElement("div");
         contentEl.className = "p-5 border-t border-gray-200 bg-white space-y-4";
 
@@ -477,31 +488,43 @@ window.renderScenes = function () {
             </label>
           </div>
         </div>
-        <div class="mt-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1">場景專屬背景圖 (URL，選填，留空則使用章節背景)</label>
-          <input type="text" class="scene-bg-url w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="https://..." value="${scene.bgUrl || ""}">
-        </div>
-        <div class="mt-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1">場景專屬背景音樂 (BGM URL，選填，留空則使用章節設定)</label>
-          <div class="flex space-x-2">
-            <input type="text" class="scene-bgm-url flex-1 border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="https://... (如 mp3)" value="${scene.bgmUrl || ""}">
-            <button class="scene-bgm-test-btn bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-3 py-1 rounded text-sm font-bold transition whitespace-nowrap">▶ 試聽</button>
+        
+        <div class="mt-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <h4 class="text-md font-bold text-gray-700 border-b pb-2 mb-4">場景畫面與音樂設定</h4>
+          <div class="flex flex-col sm:flex-row gap-4">
+            <div class="w-full sm:w-1/3">
+              <img src="${displayBgUrl}" class="w-full h-32 object-cover rounded border border-gray-300 shadow-sm" alt="場景背景預覽" onerror="this.src='https://via.placeholder.com/600x200?text=No+Background+Image'">
+              <p class="text-xs text-gray-400 mt-1 text-center">背景畫面預覽</p>
+            </div>
+            <div class="w-full sm:w-2/3 space-y-3">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">場景專屬背景圖 (URL，選填，留空則自動套用預設圖)</label>
+                <input type="text" class="scene-bg-url w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="https://..." value="${scene.bgUrl || ""}">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">場景專屬音樂 (BGM URL，選填，留空則套用章節或預設音)</label>
+                <div class="flex space-x-2">
+                  <input type="text" class="scene-bgm-url flex-1 border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="https://... (如 mp3)" value="${scene.bgmUrl || ""}">
+                  <button class="scene-bgm-test-btn bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-3 py-1 rounded text-sm font-bold transition whitespace-nowrap">▶ 試聽</button>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">進場轉場動畫</label>
+                <select class="scene-transition w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                  <option value="fade" ${scene.transition === "fade" || !scene.transition ? "selected" : ""}>淡入淡出 (預設)</option>
+                  <option value="none" ${scene.transition === "none" ? "selected" : ""}>無 (直接切換)</option>
+                  <option value="slide-left" ${scene.transition === "slide-left" ? "selected" : ""}>從右側滑入 (向左移)</option>
+                  <option value="slide-right" ${scene.transition === "slide-right" ? "selected" : ""}>從左側滑入 (向右移)</option>
+                  <option value="slide-up" ${scene.transition === "slide-up" ? "selected" : ""}>從下方滑入 (向上移)</option>
+                  <option value="slide-down" ${scene.transition === "slide-down" ? "selected" : ""}>從上方滑入 (向下移)</option>
+                  <option value="zoom-in" ${scene.transition === "zoom-in" ? "selected" : ""}>放大淡入</option>
+                  <option value="blur-in" ${scene.transition === "blur-in" ? "selected" : ""}>模糊淡入 (夢境/回憶)</option>
+                  <option value="spin-in" ${scene.transition === "spin-in" ? "selected" : ""}>旋轉放大 (傳送/魔法)</option>
+                  <option value="flash" ${scene.transition === "flash" ? "selected" : ""}>閃白震動 (適合受擊/驚嚇)</option>
+                </select>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="mt-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1">進場轉場動畫 (選填)</label>
-          <select class="scene-transition w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-            <option value="fade" ${scene.transition === "fade" || !scene.transition ? "selected" : ""}>淡入淡出 (預設)</option>
-            <option value="none" ${scene.transition === "none" ? "selected" : ""}>無 (直接切換)</option>
-            <option value="slide-left" ${scene.transition === "slide-left" ? "selected" : ""}>從右側滑入 (向左移)</option>
-            <option value="slide-right" ${scene.transition === "slide-right" ? "selected" : ""}>從左側滑入 (向右移)</option>
-            <option value="slide-up" ${scene.transition === "slide-up" ? "selected" : ""}>從下方滑入 (向上移)</option>
-            <option value="slide-down" ${scene.transition === "slide-down" ? "selected" : ""}>從上方滑入 (向下移)</option>
-            <option value="zoom-in" ${scene.transition === "zoom-in" ? "selected" : ""}>放大淡入</option>
-            <option value="blur-in" ${scene.transition === "blur-in" ? "selected" : ""}>模糊淡入 (夢境/回憶)</option>
-            <option value="spin-in" ${scene.transition === "spin-in" ? "selected" : ""}>旋轉放大 (傳送/魔法)</option>
-            <option value="flash" ${scene.transition === "flash" ? "selected" : ""}>閃白震動 (適合受擊/驚嚇)</option>
-          </select>
         </div>
         <div class="mt-4">
           <label class="block text-sm font-medium text-gray-700 mb-1" title="當使用「隨機跳轉」功能時，此場景被抽中的機率。預設為 1，數字越大機率越高，設為 0 則不會被抽中。">隨機抽取權重 (機率)</label>
@@ -606,6 +629,7 @@ window.renderScenes = function () {
         if (bgUrlInput) {
           bgUrlInput.addEventListener("change", (e) => {
             scene.bgUrl = e.target.value;
+            window.renderScenes(); // 重新渲染以更新預覽圖片
           });
         }
 

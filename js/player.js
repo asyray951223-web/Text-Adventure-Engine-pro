@@ -70,6 +70,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const style = document.createElement("style");
     style.id = "extra-transitions-style";
     style.innerHTML = `
+      @keyframes sceneFadeIn { from { opacity: 0; filter: brightness(0); } to { opacity: 1; filter: brightness(1); } }
+      @keyframes sceneSlideLeft { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+      @keyframes sceneSlideRight { from { transform: translateX(-50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+      @keyframes sceneZoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      @keyframes sceneFlash { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(2) contrast(1.5); opacity: 0.8; } }
       @keyframes sceneBlurIn { from { filter: blur(20px); opacity: 0; } to { filter: blur(0); opacity: 1; } }
       @keyframes sceneSlideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
       @keyframes sceneSlideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -85,7 +90,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const textContainer = document.getElementById("dialogue-text");
   const optionsContainer = document.querySelector(".z-30");
   const topBarVars = document.getElementById("top-bar-vars");
-  const bgLayer = document.querySelector(".bg-cover");
+  const bgLayer =
+    document.getElementById("bg-layer") || document.querySelector(".bg-cover");
 
   // 定時炸彈計時器
   const dialogueTimerContainer = document.getElementById(
@@ -573,6 +579,70 @@ document.addEventListener("DOMContentLoaded", () => {
         submitQuiz();
       }
     });
+  }
+
+  // 建立變數說明 Modal (動態注入)
+  let varInfoModal = document.getElementById("var-info-modal");
+  let varInfoTitle = null;
+  let varInfoDesc = null;
+
+  if (!varInfoModal && document.body) {
+    varInfoModal = document.createElement("div");
+    varInfoModal.id = "var-info-modal";
+    varInfoModal.className =
+      "fixed inset-0 z-[110] hidden items-center justify-center bg-black/80 backdrop-blur-sm opacity-0 transition-opacity duration-300";
+    varInfoModal.innerHTML = `
+      <div id="var-info-panel" class="bg-gray-900 w-11/12 max-w-sm rounded-2xl border border-gray-700 shadow-2xl flex flex-col transform scale-95 translate-y-8 transition-all duration-300 relative p-6">
+        <button id="close-var-info-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white transition p-2 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <h2 id="var-info-title" class="text-2xl font-bold text-blue-400 mb-4 flex items-center pr-10"></h2>
+        <p id="var-info-desc" class="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap"></p>
+      </div>
+    `;
+    document.body.appendChild(varInfoModal);
+    varInfoTitle = document.getElementById("var-info-title");
+    varInfoDesc = document.getElementById("var-info-desc");
+
+    document
+      .getElementById("close-var-info-btn")
+      .addEventListener("click", closeVarInfo);
+    varInfoModal.addEventListener("click", (e) => {
+      if (e.target === varInfoModal) closeVarInfo();
+    });
+  }
+
+  window.showVarInfo = function (name, desc) {
+    if (!varInfoModal) return;
+    varInfoTitle.innerHTML = `<svg class="w-6 h-6 mr-2 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="truncate">${name}</span>`;
+    varInfoDesc.textContent = desc;
+
+    varInfoModal.classList.remove("hidden");
+    varInfoModal.classList.add("flex");
+    setTimeout(() => {
+      varInfoModal.classList.remove("opacity-0");
+      varInfoModal.classList.add("opacity-100");
+      const panel = document.getElementById("var-info-panel");
+      if (panel) {
+        panel.classList.remove("translate-y-8", "scale-95");
+        panel.classList.add("translate-y-0", "scale-100");
+      }
+    }, 10);
+  };
+
+  function closeVarInfo() {
+    if (!varInfoModal) return;
+    varInfoModal.classList.remove("opacity-100");
+    varInfoModal.classList.add("opacity-0");
+    const panel = document.getElementById("var-info-panel");
+    if (panel) {
+      panel.classList.remove("translate-y-0", "scale-100");
+      panel.classList.add("translate-y-8", "scale-95");
+    }
+    setTimeout(() => {
+      varInfoModal.classList.remove("flex");
+      varInfoModal.classList.add("hidden");
+    }, 300);
   }
 
   // 建立歷史紀錄 Modal (動態注入)
@@ -1078,8 +1148,16 @@ document.addEventListener("DOMContentLoaded", () => {
         colorClass = "text-yellow-400";
       else if (isNpcVar) colorClass = "text-pink-400"; // NPC 專屬數值給予粉紅色
 
+      const desc = v.description
+        ? v.description
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "\\'")
+            .replace(/\n/g, "\\n")
+        : "無特別說明";
+      const safeName = v.name.replace(/"/g, "&quot;").replace(/'/g, "\\'");
+
       topBarVars.innerHTML += `
-        <div class="bg-black/60 text-white px-4 py-2 rounded border border-gray-600 shadow-sm backdrop-blur-sm transition-all duration-300">
+        <div class="bg-black/60 text-white px-4 py-2 rounded border border-gray-600 shadow-sm backdrop-blur-sm transition-all duration-300 cursor-pointer hover:border-gray-400" onclick="window.showVarInfo('${safeName}', '${desc}')" title="點擊查看數值說明">
           <span class="${colorClass} font-bold mr-1">${v.name}</span> <span class="font-mono">${val}</span>
         </div>
       `;
@@ -1631,8 +1709,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const chapterScreenDesc = document.getElementById("chapter-screen-desc");
 
   function showChapterScreen(chapter, callback) {
-    if (chapter.coverUrl) {
-      chapterScreen.style.backgroundImage = `url('${chapter.coverUrl}')`;
+    const defaultBgUrl =
+      projectData.projectInfo && projectData.projectInfo.defaultBgUrl
+        ? projectData.projectInfo.defaultBgUrl.trim()
+        : "";
+    const chapterCoverUrl = chapter.coverUrl ? chapter.coverUrl.trim() : "";
+
+    if (chapterCoverUrl) {
+      chapterScreen.style.backgroundImage = `url("${chapterCoverUrl.replace(/"/g, '\\"')}")`;
+    } else if (defaultBgUrl) {
+      chapterScreen.style.backgroundImage = `url("${defaultBgUrl.replace(/"/g, '\\"')}")`;
     } else {
       chapterScreen.style.backgroundImage = "none";
     }
@@ -1748,21 +1834,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       playBgm(bgmToPlay);
 
-      // 更新背景圖片 (優先抓取場景設定，再抓取章節設定，最後預設背景)
-      if (scene.bgUrl) {
-        bgLayer.style.backgroundImage = `url('${scene.bgUrl}')`;
+      // 更新背景圖片 (優先抓取場景設定，最後預設背景)
+      const sceneBgUrl = scene.bgUrl ? scene.bgUrl.trim() : "";
+      if (sceneBgUrl) {
+        bgLayer.style.backgroundImage = `url("${sceneBgUrl.replace(/"/g, '\\"')}")`;
       } else {
-        const chapter = projectData.chapters
-          ? projectData.chapters.find((c) => c.id === scene.chapterId)
-          : null;
+        const defaultBgUrl =
+          projectData.projectInfo && projectData.projectInfo.defaultBgUrl
+            ? projectData.projectInfo.defaultBgUrl.trim()
+            : "";
 
-        if (chapter && chapter.coverUrl) {
-          bgLayer.style.backgroundImage = `url('${chapter.coverUrl}')`;
-        } else if (
-          projectData.projectInfo &&
-          projectData.projectInfo.defaultBgUrl
-        ) {
-          bgLayer.style.backgroundImage = `url('${projectData.projectInfo.defaultBgUrl}')`;
+        if (defaultBgUrl) {
+          bgLayer.style.backgroundImage = `url("${defaultBgUrl.replace(/"/g, '\\"')}")`;
         } else {
           bgLayer.style.backgroundImage = "none";
         }

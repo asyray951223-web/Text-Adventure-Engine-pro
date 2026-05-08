@@ -1634,14 +1634,19 @@ document.addEventListener("DOMContentLoaded", () => {
     checkDictionaryUnlocks();
 
     const proceedWithScene = () => {
-      // 處理背景音樂 (優先抓取場景設定，再抓取章節設定)
+      // 處理背景音樂 (優先抓取場景設定，再抓取章節設定，最後預設背景音樂)
       let bgmToPlay = scene.bgmUrl;
       if (!bgmToPlay) {
-        const chapter = projectData.chapters.find(
-          (c) => c.id === scene.chapterId,
-        );
+        const chapter = projectData.chapters
+          ? projectData.chapters.find((c) => c.id === scene.chapterId)
+          : null;
         if (chapter && chapter.bgmUrl) {
           bgmToPlay = chapter.bgmUrl;
+        } else if (
+          projectData.projectInfo &&
+          projectData.projectInfo.defaultBgmUrl
+        ) {
+          bgmToPlay = projectData.projectInfo.defaultBgmUrl;
         }
       }
       playBgm(bgmToPlay);

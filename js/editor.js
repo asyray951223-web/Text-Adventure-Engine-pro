@@ -99,6 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
         title: "",
         author: "",
         defaultBgUrl: "",
+        defaultBgmUrl: "",
         description: "",
         lastSaved: "",
       },
@@ -145,6 +146,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     <label class="block text-sm font-medium text-gray-700 mb-1">預設背景圖網址 (URL，選填)</label>
                     <input type="text" id="input-default-bg" value="${data.projectInfo.defaultBgUrl || ""}" class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="https://...">
                     <p class="text-xs text-gray-500 mt-1">若場景或章節未設定專屬背景圖，將會預設顯示此圖片。</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">預設背景音樂網址 (BGM URL，選填)</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="input-default-bgm" value="${data.projectInfo.defaultBgmUrl || ""}" class="flex-1 border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="https://... (如 mp3)">
+                        <button id="test-default-bgm-btn" class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-3 py-1 rounded text-sm font-bold transition whitespace-nowrap">▶ 試聽</button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">若場景或章節未設定專屬音樂，將會預設播放此音樂。</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">遊戲簡介</label>
@@ -284,6 +293,17 @@ document.addEventListener("DOMContentLoaded", () => {
         .getElementById("input-default-bg")
         .addEventListener("input", (e) => {
           window.projectData.projectInfo.defaultBgUrl = e.target.value;
+        });
+      document
+        .getElementById("input-default-bgm")
+        .addEventListener("input", (e) => {
+          window.projectData.projectInfo.defaultBgmUrl = e.target.value;
+        });
+      document
+        .getElementById("test-default-bgm-btn")
+        .addEventListener("click", (e) => {
+          const url = document.getElementById("input-default-bgm").value;
+          window.toggleAudioPreview(url, e.target);
         });
       document
         .getElementById("input-description")

@@ -1750,7 +1750,7 @@ document.addEventListener("DOMContentLoaded", () => {
       let speakerName = "旁白";
       if (dialogueAvatar) {
         dialogueAvatar.classList.add("hidden");
-        dialogueAvatar.src = "";
+        dialogueAvatar.removeAttribute("src");
       }
       if (scene.npcId) {
         const npc = projectData.npcs.find((n) => n.id === scene.npcId);
@@ -2181,20 +2181,51 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // 漢堡選單邏輯 (手機版)
+  const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+  const topActionMenu = document.getElementById("top-action-menu");
+  if (mobileMenuBtn && topActionMenu) {
+    mobileMenuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      topActionMenu.classList.toggle("hidden");
+      topActionMenu.classList.toggle("flex");
+    });
+
+    // 點擊選單以外的地方自動收起 (手機版)
+    document.addEventListener("click", (e) => {
+      if (
+        window.innerWidth < 768 &&
+        !topActionMenu.classList.contains("hidden")
+      ) {
+        if (
+          !topActionMenu.contains(e.target) &&
+          !mobileMenuBtn.contains(e.target)
+        ) {
+          topActionMenu.classList.add("hidden");
+          topActionMenu.classList.remove("flex");
+        }
+      }
+    });
+
+    // 點擊選單內的按鈕後自動收起
+    topActionMenu.addEventListener("click", (e) => {
+      if (window.innerWidth < 768 && e.target.closest("button, a")) {
+        topActionMenu.classList.add("hidden");
+        topActionMenu.classList.remove("flex");
+      }
+    });
+  }
+
   // 10. 隱藏介面功能
   let uiHidden = false;
-  const otherTopButtons = toggleUiBtn
-    ? Array.from(toggleUiBtn.parentElement.children).filter(
-        (el) => el !== toggleUiBtn,
-      )
-    : [];
   const uiElementsToToggle = [
     topBarVars,
     dialogueBox,
     optionsContainer,
     inventoryBtn,
     dictionaryBtn,
-    ...otherTopButtons,
+    topActionMenu,
+    mobileMenuBtn,
   ];
 
   function toggleUI() {

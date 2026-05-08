@@ -889,7 +889,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (testCgVideo.classList.contains("opacity-0")) {
             testCgVideo.classList.add("hidden");
             testCgVideo.pause();
-            testCgVideo.src = "";
+            testCgVideo.removeAttribute("src");
           }
         }, 500);
       }
@@ -918,7 +918,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 處理 NPC 名稱與頭像
     if (dialogueAvatar) {
       dialogueAvatar.classList.add("hidden");
-      dialogueAvatar.src = "";
+      dialogueAvatar.removeAttribute("src");
     }
     if (scene.npcId && projectData.npcs) {
       const npc = projectData.npcs.find((n) => n.id === scene.npcId);

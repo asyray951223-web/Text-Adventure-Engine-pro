@@ -1,0 +1,129 @@
+/* 手機螢幕自適應樣式 (Mobile Responsive Design) */
+
+@media (max-width: 768px) {
+  /* =========================================
+     1. 遊玩模式與測試模式 (Player & Test)
+     ========================================= */
+
+  /* 對話框整體縮小內邊距 */
+  #dialogue-box {
+    padding: 1.25rem !important;
+  }
+
+  /* 中國風 (player2) 特殊畫卷縮小與畫軸隱藏 */
+  body.bg-\[\#120f0d\] #dialogue-box {
+    padding: 1.5rem 1.5rem !important;
+    border-top-width: 12px !important;
+    border-bottom-width: 12px !important;
+  }
+  body.bg-\[\#120f0d\] #dialogue-box::before,
+  body.bg-\[\#120f0d\] #dialogue-box::after {
+    display: none !important; /* 手機版空間不足，隱藏立體畫軸 */
+  }
+
+  /* 姓名標籤縮小並移至更緊湊的位置 */
+  #dialogue-name {
+    top: -1rem !important;
+    left: 1rem !important;
+    font-size: 1rem !important;
+    padding: 0.25rem 1rem !important;
+  }
+  #test-dialogue-name {
+    top: -1rem !important;
+    left: 1rem !important;
+    font-size: 0.875rem !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+
+  /* 角色立繪與頭像縮小 */
+  #dialogue-avatar,
+  #test-dialogue-avatar {
+    width: 4rem !important;
+    height: 4rem !important;
+  }
+  #scene-sprite,
+  #test-scene-sprite {
+    max-width: 80% !important;
+    left: 10% !important;
+  }
+
+  /* 對話文字縮小字體與高度 */
+  #dialogue-text,
+  #test-dialogue-text {
+    font-size: 1.1rem !important;
+    line-height: 1.6 !important;
+    min-height: 80px !important;
+    max-height: 120px !important;
+  }
+
+  /* 選項按鈕區域：改為垂直排列填滿，方便單手點擊 */
+  #options-layer {
+    padding-right: 1rem !important;
+    padding-left: 1rem !important;
+    align-items: stretch !important;
+  }
+  .vn-option {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    transform: none !important; /* 取消平移避免超出螢幕 */
+  }
+  .vn-option:hover {
+    transform: translateY(-2px) !important;
+  }
+
+  /* 頂部按鈕列：手機版改為漢堡選單，按鈕滿版寬度且靠左對齊 */
+  #top-action-menu .top-action-btn,
+  #top-action-menu button,
+  #top-action-menu a {
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+  #top-bar-vars {
+    max-width: 50% !important;
+  }
+  #top-bar-vars > div {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* =========================================
+     2. 編輯器 (Editor) 與 大廳 (Index)
+     ========================================= */
+
+  /* 編輯器側邊欄在手機版改為頂部導覽列，內容改為垂直滾動 */
+  body.bg-slate-100.h-screen {
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-y: auto !important;
+    flex-direction: column !important;
+  }
+  aside.w-64 {
+    width: 100% !important;
+    max-height: 50vh !important;
+  }
+  main.flex-1 {
+    overflow-y: visible !important;
+    padding: 1rem !important;
+  }
+
+  /* 編輯器清單卡片內容改為垂直排列 */
+  .editor-list-item {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+  }
+  .editor-item-actions {
+    width: 100% !important;
+    justify-content: flex-end !important;
+  }
+
+  /* 大廳字體與內邊距縮小 */
+  .glass-panel {
+    padding: 1.5rem !important;
+  }
+  .glass-panel h1 {
+    font-size: 2.25rem !important;
+  }
+}

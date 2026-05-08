@@ -287,6 +287,43 @@
       </div>
     </div>
 
+    <!-- 繼續編輯懸浮按鈕 (FAB，由 JS 動態顯示) -->
+    <a
+      href="editor.html"
+      id="continue-edit-btn"
+      class="absolute bottom-6 md:bottom-10 right-4 md:right-10 z-40 hidden items-center justify-center space-x-3 bg-amber-900/80 hover:bg-amber-800 border-2 border-amber-600 hover:border-amber-400 text-white p-3 md:px-6 md:py-4 rounded-full backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.7)] transition-all transform hover:scale-105 group"
+    >
+      <div
+        class="relative bg-amber-800 p-2 md:p-3 rounded-full border border-amber-600 group-hover:border-amber-400 transition-colors shadow-inner"
+      >
+        <svg
+          class="w-6 h-6 md:w-8 md:h-8 text-amber-400 group-hover:text-amber-300 transition-colors drop-shadow"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+          ></path>
+        </svg>
+      </div>
+      <div class="text-left hidden md:block pr-2">
+        <div
+          class="font-bold text-lg tracking-widest text-amber-100 group-hover:text-white transition-colors drop-shadow-sm"
+        >
+          繼續編輯
+        </div>
+        <div
+          class="text-xs text-gray-300 group-hover:text-amber-200 transition-colors mt-0.5"
+        >
+          返回當前暫存專案
+        </div>
+      </div>
+    </a>
+
     <!-- 遊玩存檔管理 Modal -->
     <div
       id="save-slots-modal"

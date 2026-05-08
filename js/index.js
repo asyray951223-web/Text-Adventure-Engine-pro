@@ -1,4 +1,35 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // --- 全域點擊水波紋特效 ---
+  if (!document.getElementById("ripple-style")) {
+    const rippleStyle = document.createElement("style");
+    rippleStyle.id = "ripple-style";
+    rippleStyle.innerHTML = `
+      .click-ripple {
+        position: fixed;
+        border-radius: 50%;
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+        animation: ripple-animation 0.6s ease-out forwards;
+        z-index: 99999;
+      }
+      @keyframes ripple-animation {
+        0% { width: 0px; height: 0px; opacity: 0.8; border: 2px solid currentColor; background: currentColor; box-shadow: 0 0 10px currentColor; }
+        100% { width: 100px; height: 100px; opacity: 0; border: 2px solid currentColor; background: transparent; box-shadow: 0 0 20px currentColor; }
+      }
+    `;
+    document.head.appendChild(rippleStyle);
+
+    document.addEventListener("mousedown", (e) => {
+      const ripple = document.createElement("div");
+      ripple.className = "click-ripple";
+      ripple.style.left = e.clientX + "px";
+      ripple.style.top = e.clientY + "px";
+      ripple.style.color = "rgba(96, 165, 250, 0.6)"; // 大廳預設冰藍色
+      document.body.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    });
+  }
+
   // 專案管理邏輯
   const projectModal = document.getElementById("project-modal");
   const loadSaveBtn = document.getElementById("load-save-btn");
@@ -8,6 +39,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const newProjectBtnMain = document.getElementById("new-project-btn-main");
   const lobbyImportBtn = document.getElementById("lobby-import-btn");
   const lobbyImportJson = document.getElementById("lobby-import-json");
+
+  // 檢查是否有暫存專案，決定是否顯示「繼續編輯」按鈕
+  const continueEditBtn = document.getElementById("continue-edit-btn");
+  if (continueEditBtn && localStorage.getItem("textAdventureProject")) {
+    continueEditBtn.classList.remove("hidden");
+    continueEditBtn.classList.add("flex");
+  }
 
   // 取得多份專案清單，並為舊版專案進行自動移轉
   function getProjectsList() {

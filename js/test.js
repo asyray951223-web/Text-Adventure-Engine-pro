@@ -1,6 +1,37 @@
 // 負責管理測試模式 (test.html) 的邏輯與除錯功能
 
 document.addEventListener("DOMContentLoaded", () => {
+  // --- 全域點擊水波紋特效 ---
+  if (!document.getElementById("ripple-style")) {
+    const rippleStyle = document.createElement("style");
+    rippleStyle.id = "ripple-style";
+    rippleStyle.innerHTML = `
+      .click-ripple {
+        position: fixed;
+        border-radius: 50%;
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+        animation: ripple-animation 0.6s ease-out forwards;
+        z-index: 99999;
+      }
+      @keyframes ripple-animation {
+        0% { width: 0px; height: 0px; opacity: 0.8; border: 2px solid currentColor; background: currentColor; box-shadow: 0 0 10px currentColor; }
+        100% { width: 100px; height: 100px; opacity: 0; border: 2px solid currentColor; background: transparent; box-shadow: 0 0 20px currentColor; }
+      }
+    `;
+    document.head.appendChild(rippleStyle);
+
+    document.addEventListener("mousedown", (e) => {
+      const ripple = document.createElement("div");
+      ripple.className = "click-ripple";
+      ripple.style.left = e.clientX + "px";
+      ripple.style.top = e.clientY + "px";
+      ripple.style.color = "rgba(52, 211, 153, 0.6)"; // 測試模式預設翠綠色
+      document.body.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    });
+  }
+
   const projectData = JSON.parse(localStorage.getItem("textAdventureProject"));
 
   if (!projectData) {
@@ -579,6 +610,7 @@ document.addEventListener("DOMContentLoaded", () => {
     dialogueText.innerHTML = scene.text
       ? scene.text.replace(/\n/g, "<br>")
       : "...";
+    dialogueText.scrollTop = 0; // 確保過長的文本載入時維持在最上方
 
     // 處理選項
     optionsContainer.innerHTML = "";

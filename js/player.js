@@ -1,6 +1,42 @@
 // 遊戲遊玩核心引擎 (Player Engine)
 
 document.addEventListener("DOMContentLoaded", () => {
+  // --- 全域點擊水波紋特效 ---
+  if (!document.getElementById("ripple-style")) {
+    const rippleStyle = document.createElement("style");
+    rippleStyle.id = "ripple-style";
+    rippleStyle.innerHTML = `
+      .click-ripple {
+        position: fixed;
+        border-radius: 50%;
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+        animation: ripple-animation 0.6s ease-out forwards;
+        z-index: 99999;
+      }
+      @keyframes ripple-animation {
+        0% { width: 0px; height: 0px; opacity: 0.8; border: 2px solid currentColor; background: currentColor; box-shadow: 0 0 10px currentColor; }
+        100% { width: 120px; height: 120px; opacity: 0; border: 1px solid currentColor; background: transparent; box-shadow: 0 0 20px currentColor; }
+      }
+    `;
+    document.head.appendChild(rippleStyle);
+
+    document.addEventListener("mousedown", (e) => {
+      const ripple = document.createElement("div");
+      ripple.className = "click-ripple";
+      ripple.style.left = e.clientX + "px";
+      ripple.style.top = e.clientY + "px";
+      // 根據主題設定水波紋顏色 (中國風：古典暗金，科幻大廳：霓虹冰藍)
+      if (document.body.classList.contains("bg-[#120f0d]")) {
+        ripple.style.color = "rgba(205, 168, 124, 0.6)";
+      } else {
+        ripple.style.color = "rgba(96, 165, 250, 0.6)";
+      }
+      document.body.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    });
+  }
+
   // 動態注入玩家介面的自訂捲軸 (Scrollbar) 樣式，符合遊戲的深色質感
   if (!document.getElementById("custom-scrollbar-style")) {
     const scrollbarStyle = document.createElement("style");
@@ -291,13 +327,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (canAfford) {
           card.querySelector(".buy-btn").addEventListener("click", () => {
             gameState.variables[good.costVariableId] -= good.price;
+            if (good.price > 0)
+              showVariablePopup(good.costVariableId, -good.price);
             gameState.items[good.itemId] =
               (gameState.items[good.itemId] || 0) + 1;
             if (currentStock !== "infinite") {
               gameState.shopStocks[stockKey] -= 1;
             }
             updateTopBar();
-            showToast(`購買了 ${itemData.name}`);
+            showItemPopup(itemData, 1);
             renderShopItems();
           });
         }
@@ -360,6 +398,8 @@ document.addEventListener("DOMContentLoaded", () => {
           gameState.variables[itemData.sellVariableId] =
             (gameState.variables[itemData.sellVariableId] || 0) +
             (itemData.sellPrice || 0);
+          if (itemData.sellPrice > 0)
+            showVariablePopup(itemData.sellVariableId, itemData.sellPrice);
           updateTopBar();
           showToast(`售出了 ${itemData.name}`);
           renderShopItems();
@@ -675,6 +715,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let typeTimer = null;
   let currentText = "";
   let charIndex = 0;
+  let currentCharElements = [];
 
   // BGM 播放邏輯
   let currentBgmUrl = "";
@@ -1044,12 +1085,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (varId && varVal !== "") {
       gameState.variables[varId] =
         (gameState.variables[varId] || 0) + Number(varVal);
+      showVariablePopup(varId, Number(varVal));
     }
     if (targetItemId && itemAction) {
       const currentQty = gameState.items[targetItemId] || 0;
       const changeQty = Number(itemVal) || 1;
       if (itemAction === "give") {
         gameState.items[targetItemId] = currentQty + changeQty;
+        const itemData = projectData.items.find((i) => i.id === targetItemId);
+        if (itemData) showItemPopup(itemData, changeQty);
       } else if (itemAction === "take") {
         gameState.items[targetItemId] = Math.max(0, currentQty - changeQty);
       }
@@ -1168,6 +1212,81 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 4000);
   }
 
+  function showItemPopup(item, qty) {
+    if (!achievementPopupContainer) return;
+    const popup = document.createElement("div");
+    popup.className =
+      "bg-gray-900 border-l-4 border-emerald-500 rounded shadow-xl p-4 flex items-center gap-4 text-white transform transition-all duration-500 translate-x-full opacity-0";
+    popup.innerHTML = `
+        <div class="w-12 h-12 bg-gray-800 border border-gray-700 rounded flex items-center justify-center text-emerald-400 flex-shrink-0 shadow-inner">
+            <span class="text-2xl">${item.type === "consumable" ? "🧪" : "🗝️"}</span>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-xs text-emerald-400 font-bold mb-1">獲得道具</p>
+            <p class="text-sm font-bold truncate text-gray-100">${item.name} x${qty}</p>
+        </div>
+    `;
+    achievementPopupContainer.appendChild(popup);
+    requestAnimationFrame(() =>
+      popup.classList.remove("translate-x-full", "opacity-0"),
+    );
+    setTimeout(() => {
+      popup.classList.add("translate-x-full", "opacity-0");
+      setTimeout(() => popup.remove(), 500);
+    }, 3000);
+  }
+
+  function showVariablePopup(varId, changeVal) {
+    if (!changeVal || changeVal === 0) return;
+    const varData = (projectData.globalVariables || []).find(
+      (v) => v.id === varId,
+    );
+    if (!varData) return;
+
+    let variablePopupContainer = document.getElementById(
+      "variable-popup-container",
+    );
+    if (!variablePopupContainer) {
+      variablePopupContainer = document.createElement("div");
+      variablePopupContainer.id = "variable-popup-container";
+      variablePopupContainer.className =
+        "absolute top-20 left-4 z-[70] flex flex-col gap-3 pointer-events-none overflow-visible";
+      const gameContainer =
+        document.getElementById("game-container") || document.body;
+      gameContainer.appendChild(variablePopupContainer);
+    }
+
+    const popup = document.createElement("div");
+    const isPositive = changeVal > 0;
+    const sign = isPositive ? "+" : "";
+    const baseBorder = isPositive ? "border-emerald-500" : "border-red-500";
+    const textColor = isPositive ? "text-emerald-400" : "text-red-400";
+    const titleText = isPositive ? "數值增加" : "數值減少";
+    const iconSvg = isPositive
+      ? `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>`
+      : `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path></svg>`;
+
+    popup.className = `bg-gray-900 border-l-4 ${baseBorder} rounded shadow-xl p-4 flex items-center gap-4 text-white transform transition-all duration-500 -translate-x-full opacity-0`;
+    popup.innerHTML = `
+      <div class="w-12 h-12 bg-gray-800 border border-gray-700 rounded flex items-center justify-center ${textColor} flex-shrink-0 shadow-inner">
+          ${iconSvg}
+      </div>
+      <div class="flex-1 min-w-0 pr-2">
+          <p class="text-xs ${textColor} font-bold mb-1">${titleText}</p>
+          <p class="text-sm font-bold truncate text-gray-100">${varData.name} ${sign}${changeVal}</p>
+      </div>
+    `;
+
+    variablePopupContainer.appendChild(popup);
+    requestAnimationFrame(() =>
+      popup.classList.remove("-translate-x-full", "opacity-0"),
+    );
+    setTimeout(() => {
+      popup.classList.add("-translate-x-full", "opacity-0");
+      setTimeout(() => popup.remove(), 500);
+    }, 3000);
+  }
+
   // 權重隨機抽取場景
   function getWeightedRandomScene(scenesArray) {
     let totalWeight = 0;
@@ -1278,7 +1397,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const btnLobby = document.createElement("button");
       btnLobby.className =
-        "vn-option pointer-events-auto w-2/3 max-w-lg bg-yellow-900/90 hover:bg-yellow-700 text-white py-4 px-6 rounded-xl border-2 border-yellow-500 text-lg font-bold transition shadow-[0_0_20px_rgba(234,179,8,0.5)]";
+        "vn-option pointer-events-auto w-2/3 max-w-lg bg-yellow-900/90 hover:bg-yellow-700 text-white py-4 px-6 rounded-xl border-2 border-yellow-500 text-lg font-bold transition shadow-[0_0_20px_rgba(234,179,8,0.5)] whitespace-normal break-words leading-relaxed";
       btnLobby.innerHTML = `<div class="flex items-center justify-center"><svg class="w-6 h-6 mr-2 drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>達成結局：${scene.endingName || "未知結局"}</div><span class="block text-sm font-normal text-yellow-200 mt-2">點擊返回大廳</span>`;
       btnLobby.onclick = () => {
         window.location.href = "index.html";
@@ -1287,7 +1406,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const btnRestart = document.createElement("button");
       btnRestart.className =
-        "vn-option pointer-events-auto w-2/3 max-w-lg bg-gray-800 hover:bg-gray-700 text-white py-3 px-6 rounded-xl border-2 border-gray-500 text-md font-bold transition shadow-lg mt-2";
+        "vn-option pointer-events-auto w-2/3 max-w-lg bg-gray-800 hover:bg-gray-700 text-white py-3 px-6 rounded border-2 border-gray-500 text-md font-bold transition shadow-lg mt-2 whitespace-normal break-words leading-relaxed";
       btnRestart.innerHTML = `<div class="flex items-center justify-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>重新開始遊戲</div>`;
       btnRestart.onclick = handleRestart;
       optionsContainer.appendChild(btnRestart);
@@ -1309,7 +1428,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // 防呆處理：沒有選項時提供自動推進
         const btn = document.createElement("button");
         btn.className =
-          "vn-option system-next-btn pointer-events-auto w-2/3 max-w-lg bg-gray-800 hover:bg-gray-700 text-white py-3 px-6 rounded border-2 border-gray-500 text-lg transition shadow-lg";
+          "vn-option system-next-btn pointer-events-auto w-2/3 max-w-lg bg-gray-800 hover:bg-gray-700 text-white py-3 px-6 rounded border-2 border-gray-500 text-lg transition shadow-lg whitespace-normal break-words leading-relaxed";
         btn.textContent = "繼續";
         btn.onclick = () => {
           handleJump(projectData.scenes[idx + 1].id, scene.id);
@@ -1319,7 +1438,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // 遊戲內容已結束 (死路或未設定結局標籤的最後一幕)
         const btnLobby = document.createElement("button");
         btnLobby.className =
-          "vn-option pointer-events-auto w-2/3 max-w-lg bg-gray-800 hover:bg-gray-700 text-white py-3 px-6 rounded border-2 border-gray-500 text-lg transition shadow-lg";
+          "vn-option pointer-events-auto w-2/3 max-w-lg bg-gray-800 hover:bg-gray-700 text-white py-3 px-6 rounded border-2 border-gray-500 text-lg transition shadow-lg whitespace-normal break-words leading-relaxed";
         btnLobby.textContent = "返回大廳";
         btnLobby.onclick = () => {
           window.location.href = "index.html";
@@ -1328,30 +1447,78 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const btnRestart = document.createElement("button");
         btnRestart.className =
-          "vn-option pointer-events-auto w-2/3 max-w-lg bg-red-900/80 hover:bg-red-700 text-white py-3 px-6 rounded border-2 border-red-500 text-lg transition shadow-lg mt-2";
+          "vn-option pointer-events-auto w-2/3 max-w-lg bg-red-900/80 hover:bg-red-700 text-white py-3 px-6 rounded border-2 border-red-500 text-lg transition shadow-lg mt-2 whitespace-normal break-words leading-relaxed";
         btnRestart.innerHTML = `<div class="flex items-center justify-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>重新開始</div>`;
         btnRestart.onclick = handleRestart;
         optionsContainer.appendChild(btnRestart);
       }
     } else {
-      validOptions.forEach((opt) => {
-        const btn = document.createElement("button");
-        btn.className =
-          "vn-option pointer-events-auto w-2/3 max-w-lg bg-black/80 hover:bg-blue-900/90 text-white py-3 px-6 rounded border-2 border-blue-800 hover:border-blue-400 text-lg transition shadow-lg";
-        btn.textContent = opt.text || "繼續";
-        btn.onclick = () => {
-          applyEffects(
-            opt.variableId,
-            opt.variableVal,
-            opt.itemId,
-            opt.itemAction,
-            opt.itemVal,
-            opt.passTime,
-          );
-          handleJump(opt.targetSceneId, scene.id);
-        };
-        optionsContainer.appendChild(btn);
-      });
+      const optionsPerPage = 4;
+      const totalPages = Math.ceil(validOptions.length / optionsPerPage);
+
+      function drawPage(page) {
+        optionsContainer.innerHTML = "";
+        const startIdx = (page - 1) * optionsPerPage;
+        const pageOptions = validOptions.slice(
+          startIdx,
+          startIdx + optionsPerPage,
+        );
+
+        pageOptions.forEach((opt) => {
+          const btn = document.createElement("button");
+          btn.className =
+            "vn-option pointer-events-auto w-2/3 max-w-lg bg-black/80 hover:bg-blue-900/90 text-white py-3 px-6 rounded border-2 border-blue-800 hover:border-blue-400 text-lg transition shadow-lg whitespace-normal break-words leading-relaxed";
+          btn.textContent = opt.text || "繼續";
+          btn.onclick = () => {
+            applyEffects(
+              opt.variableId,
+              opt.variableVal,
+              opt.itemId,
+              opt.itemAction,
+              opt.itemVal,
+              opt.passTime,
+            );
+            handleJump(opt.targetSceneId, scene.id);
+          };
+          optionsContainer.appendChild(btn);
+        });
+
+        // 如果選項超過一頁，則渲染分頁按鈕
+        if (totalPages > 1) {
+          const paginationEl = document.createElement("div");
+          paginationEl.className =
+            "flex justify-end items-center mt-2 gap-3 pointer-events-auto w-2/3 max-w-lg";
+
+          const pageInfo = document.createElement("span");
+          pageInfo.className =
+            "text-white/50 font-bold font-mono text-sm tracking-widest drop-shadow-md select-none mr-2";
+          pageInfo.textContent = `${page} / ${totalPages}`;
+
+          const prevBtn = document.createElement("button");
+          prevBtn.className = `w-10 h-10 flex items-center justify-center rounded-lg transition shadow-md border-2 ${page === 1 ? "bg-black/40 text-gray-600 border-gray-800 cursor-not-allowed" : "bg-black/80 text-blue-300 hover:text-white border-gray-500 hover:border-blue-400 hover:bg-blue-900/90"}`;
+          prevBtn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>`;
+          prevBtn.disabled = page === 1;
+          prevBtn.onclick = () => {
+            if (page > 1) drawPage(page - 1);
+          };
+
+          const nextBtn = document.createElement("button");
+          nextBtn.className = `w-10 h-10 flex items-center justify-center rounded-lg transition shadow-md border-2 ${page === totalPages ? "bg-black/40 text-gray-600 border-gray-800 cursor-not-allowed" : "bg-black/80 text-blue-300 hover:text-white border-gray-500 hover:border-blue-400 hover:bg-blue-900/90"}`;
+          nextBtn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+          nextBtn.disabled = page === totalPages;
+          nextBtn.onclick = () => {
+            if (page < totalPages) drawPage(page + 1);
+          };
+
+          paginationEl.appendChild(pageInfo);
+          paginationEl.appendChild(prevBtn);
+          paginationEl.appendChild(nextBtn);
+          optionsContainer.appendChild(paginationEl);
+        }
+      }
+
+      // 初始渲染第一頁
+      drawPage(1);
     }
 
     if (!uiHidden) {
@@ -1392,37 +1559,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function typeWriter(scene) {
     if (parseInt(gameSettings.textSpeed, 10) === 100) {
-      textContainer.innerHTML = currentText;
-      charIndex = currentText.length;
+      currentCharElements.forEach((el) => {
+        el.classList.remove("opacity-0", "ink-animate");
+      });
+      charIndex = currentCharElements.length;
       isTyping = false;
       renderOptions(scene);
       dialogueBox.style.pointerEvents = "none";
       return;
     }
 
-    if (charIndex < currentText.length) {
-      if (currentText.charAt(charIndex) === "<") {
-        let tag = "";
-        while (
-          currentText.charAt(charIndex) !== ">" &&
-          charIndex < currentText.length
-        ) {
-          tag += currentText.charAt(charIndex);
-          charIndex++;
-        }
-        tag += ">";
-        textContainer.innerHTML += tag;
-        charIndex++;
-      } else {
-        const char = currentText.charAt(charIndex);
-        textContainer.innerHTML += char;
-        charIndex++;
+    if (charIndex < currentCharElements.length) {
+      const el = currentCharElements[charIndex];
+      el.classList.remove("opacity-0");
+      el.classList.add("ink-animate");
 
-        // 播放打字機復古音效 (略過空白與常見標點符號，讓聲音節奏更自然)
-        if (char.trim() !== "" && !/[.,!?;:，。！？；：、…]/.test(char)) {
-          playTextBeep();
-        }
+      const char = el.textContent;
+      // 播放打字機復古音效 (略過空白與常見標點符號，讓聲音節奏更自然)
+      if (char.trim() !== "" && !/[.,!?;:，。！？；：、…]/.test(char)) {
+        playTextBeep();
       }
+
+      charIndex++;
 
       const speedVal = parseInt(gameSettings.textSpeed, 10);
       // 使用非線性(三次方)映射，讓最慢(0)為 3000ms(3秒)，並在高速區提供更細膩的滑桿控制
@@ -1633,8 +1791,33 @@ document.addEventListener("DOMContentLoaded", () => {
       optionsContainer.classList.add("hidden");
       dialogueBox.style.pointerEvents = "auto";
       currentText = scene.text ? scene.text.replace(/\n/g, "<br>") : "...";
+
+      textContainer.innerHTML = currentText;
+
+      // 轉換所有文本節點為獨立的 span 以利打字機與水墨動畫 (完美避開並保護 HTML 標籤)
+      function wrapTextNodes(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = node.textContent;
+          const fragment = document.createDocumentFragment();
+          for (const char of text) {
+            const span = document.createElement("span");
+            span.className = "vn-char opacity-0";
+            span.textContent = char;
+            fragment.appendChild(span);
+          }
+          node.parentNode.replaceChild(fragment, node);
+        } else if (
+          node.nodeType === Node.ELEMENT_NODE &&
+          node.nodeName !== "BR"
+        ) {
+          Array.from(node.childNodes).forEach(wrapTextNodes);
+        }
+      }
+      wrapTextNodes(textContainer);
+
+      currentCharElements = textContainer.querySelectorAll(".vn-char");
       charIndex = 0;
-      textContainer.innerHTML = "";
+      textContainer.scrollTop = 0; // 進入新場景時重置捲軸位置
       isTyping = true;
 
       if (typeTimer) clearTimeout(typeTimer);
@@ -1651,7 +1834,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function skipTyping() {
     if (isTyping) {
       clearTimeout(typeTimer);
-      textContainer.innerHTML = currentText; // 直接顯示全文本
+      currentCharElements.forEach((el) => {
+        el.classList.remove("opacity-0", "ink-animate");
+      });
       isTyping = false;
       const scene = projectData.scenes.find(
         (s) => s.id === gameState.currentSceneId,

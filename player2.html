@@ -6,32 +6,33 @@
     <title>遊玩模式 - 中國傳統風格</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="player1.css" />
-    <style>
+    <style id="custom-scrollbar-style">
       @import url("https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&display=swap");
 
       body {
         font-family: "Noto Serif TC", serif;
       }
 
-      /* 自訂古典捲軸 */
-      #custom-scrollbar-style {
-        display: none;
-      } /* 隱藏系統預設注入的捲軸 */
       .custom-scrollbar::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 10px;
+        height: 10px;
       }
       .custom-scrollbar::-webkit-scrollbar-track {
-        background: rgba(26, 21, 18, 0.4);
-        border-radius: 4px;
+        background: rgba(35, 26, 20, 0.6);
+        border-left: 1px solid rgba(139, 115, 85, 0.3);
       }
       .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: rgba(139, 115, 85, 0.8);
-        border-radius: 4px;
-        border: 1px solid #5e4835;
+        background: linear-gradient(180deg, #5e4835, #8b7355, #5e4835);
+        border-radius: 6px;
+        border: 1px solid #3d2e24;
+        box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
       }
       .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: rgba(205, 168, 124, 0.9);
+        background: linear-gradient(180deg, #8b7355, #cda87c, #8b7355);
+      }
+      .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: #8b7355 rgba(35, 26, 20, 0.6);
       }
 
       /* -----------------------------------------------------
@@ -70,18 +71,184 @@
         border-color: #cda87c !important;
       }
 
-      /* 動態選項按鈕 (.vn-option) */
+      /* === 動態選項按鈕 (.vn-option) - 帶入場動畫與精緻裝飾的平行四邊形 === */
+      @keyframes optionEntrance {
+        0% {
+          opacity: 0;
+          transform: translateX(60px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
       .vn-option {
-        background-color: rgba(44, 34, 26, 0.9) !important;
-        border-color: #8b7355 !important;
+        position: relative;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
         color: #f5ebd9 !important;
         font-family: "Noto Serif TC", serif !important;
+        letter-spacing: 0.15em !important;
+        font-weight: 700 !important;
+        border-radius: 0 !important;
+        padding: 1rem 2.5rem !important;
+        z-index: 1;
+        transform: translateX(0);
+        transition:
+          transform 0.3s ease,
+          color 0.3s ease,
+          text-shadow 0.3s ease !important;
+        text-align: center;
+        backdrop-filter: none !important;
+        animation: optionEntrance 0.6s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+      }
+
+      /* 依序進場的延遲動畫 (最多支援 6 個選項) */
+      .vn-option:nth-child(1) {
+        animation-delay: 0.05s;
+      }
+      .vn-option:nth-child(2) {
+        animation-delay: 0.15s;
+      }
+      .vn-option:nth-child(3) {
+        animation-delay: 0.25s;
+      }
+      .vn-option:nth-child(4) {
+        animation-delay: 0.35s;
+      }
+      .vn-option:nth-child(5) {
+        animation-delay: 0.45s;
+      }
+      .vn-option:nth-child(6) {
+        animation-delay: 0.55s;
+      }
+
+      /* 平行四邊形底板與多重內嵌邊框裝飾 */
+      .vn-option::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(35, 26, 20, 0.95),
+          rgba(20, 15, 11, 0.98)
+        );
+        border: 1px solid #3d2e24;
+        box-shadow:
+          inset 0 0 0 2px rgba(20, 15, 11, 0.8),
+          inset 0 0 0 3px #8b7355,
+          0 10px 20px rgba(0, 0, 0, 0.7);
+        transform: skewX(-20deg); /* 傾斜角度製造平行四邊形 */
+        z-index: -1;
+        transition: all 0.3s ease;
+      }
+
+      /* 側邊裝飾墜飾 (硃砂紅/暗金點綴) */
+      .vn-option::after {
+        content: "";
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%) skewX(-20deg);
+        width: 3px;
+        height: 35%;
+        background: #8b2323;
+        border-radius: 2px;
+        box-shadow: 0 0 6px rgba(139, 35, 35, 0.6);
+        z-index: -1;
+        transition: all 0.3s ease;
+      }
+
+      .vn-option:hover {
+        transform: translate(-15px, 0) !important; /* 懸停時向左微微突出 */
+        color: #ffd700 !important;
+        text-shadow: 0 0 8px rgba(205, 168, 124, 0.8) !important;
+      }
+
+      .vn-option:hover::before {
+        background: linear-gradient(
+          135deg,
+          rgba(55, 40, 30, 0.95),
+          rgba(30, 20, 15, 0.98)
+        );
+        box-shadow:
+          inset 0 0 0 2px rgba(30, 20, 15, 0.8),
+          inset 0 0 0 3px #cda87c,
+          0 15px 25px rgba(0, 0, 0, 0.9);
+      }
+
+      .vn-option:hover::after {
+        background: #ffd700;
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        height: 55%;
+      }
+
+      /* === 彈出提示 (成就解鎖 / 辭典解鎖 / 數值變動) - 古風飛入牌匾 === */
+      #achievement-popup-container > div,
+      #variable-popup-container > div {
+        background: linear-gradient(
+          135deg,
+          rgba(35, 26, 20, 0.95),
+          rgba(20, 15, 11, 0.98)
+        ) !important;
+        border: 1px solid #3d2e24 !important;
+        border-radius: 0 !important;
+        box-shadow:
+          inset 0 0 0 2px rgba(20, 15, 11, 0.8),
+          inset 0 0 0 3px #8b7355,
+          0 10px 20px rgba(0, 0, 0, 0.7) !important;
+        color: #f5ebd9 !important;
+        font-family: "Noto Serif TC", serif !important;
+        /* 覆蓋 Tailwind 的線性動畫，改為帶有彈性的飛入 */
+        transition:
+          transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2),
+          opacity 0.5s ease !important;
+        padding-left: 1.5rem !important; /* 留空間給左側紅線 */
+        position: relative;
+      }
+      /* 側邊硃砂紅墜飾線 */
+      #achievement-popup-container > div::before,
+      #variable-popup-container > div::before {
+        content: "";
+        position: absolute;
+        left: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 50%;
+        background: #8b2323;
+        border-radius: 2px;
+        box-shadow: 0 0 6px rgba(139, 35, 35, 0.6);
+      }
+      /* 提示框內的文字顏色覆寫 */
+      #achievement-popup-container > div p:first-child,
+      #variable-popup-container > div p:first-child {
+        color: #ffd700 !important; /* 標題改為亮金色 */
+        text-shadow: 0 0 5px rgba(205, 168, 124, 0.5) !important;
+        letter-spacing: 0.1em;
+      }
+      #achievement-popup-container > div p:last-child,
+      #variable-popup-container > div p:last-child {
+        color: #f5ebd9 !important;
         letter-spacing: 0.05em;
       }
-      .vn-option:hover {
-        background-color: rgba(74, 54, 35, 0.95) !important;
-        border-color: #cda87c !important;
-        box-shadow: 0 0 15px rgba(205, 168, 124, 0.3) !important;
+      /* 提示框內的圖片或圖示框 */
+      #achievement-popup-container > div img,
+      #achievement-popup-container > div > div.bg-gray-800,
+      #variable-popup-container > div img,
+      #variable-popup-container > div > div.bg-gray-800 {
+        border-color: #8b7355 !important;
+        border-radius: 2px !important;
+      }
+      #achievement-popup-container > div > div.bg-gray-800,
+      #variable-popup-container > div > div.bg-gray-800 {
+        background-color: rgba(26, 21, 18, 0.9) !important;
+      }
+      #achievement-popup-container > div svg,
+      #variable-popup-container > div svg {
+        color: #cda87c !important;
       }
 
       /* 頂部動態數值列與按鈕 (中國風八邊形牌匾) */
@@ -188,6 +355,21 @@
         color: #6db08c !important;
       } /* 玉石綠 */
 
+      /* === 水墨文字淡入 (Per-character Ink Fade-in) === */
+      .ink-animate {
+        animation: inkCharReveal 0.8s ease-out forwards;
+      }
+      @keyframes inkCharReveal {
+        0% {
+          filter: blur(6px);
+          opacity: 0;
+        }
+        100% {
+          filter: blur(0);
+          opacity: 1;
+        }
+      }
+
       /* 動態按鈕覆蓋 */
       .bg-blue-600,
       .from-blue-600 {
@@ -225,6 +407,285 @@
       .text-orange-400 {
         color: #cda87c !important;
       }
+
+      /* 覆蓋對話框基礎樣式，準備卷軸化 */
+      #dialogue-box {
+        border: none !important; /* 移除 Tailwind 的邊框 */
+        border-radius: 0 !important; /* 卷軸是方的 */
+        background: linear-gradient(
+          to bottom,
+          #2a221c,
+          #1a1512
+        ) !important; /* 宣紙底色 */
+        padding-left: 4rem !important; /* 留出左側卷軸空間 */
+        padding-right: 4rem !important; /* 留出右側卷軸空間 */
+        border-top: 2px solid #5e4835 !important; /* 卷軸上下邊緣 */
+        border-bottom: 2px solid #5e4835 !important;
+      }
+
+      /* 卷軸兩端的軸 (使用偽元素) */
+      #dialogue-box::before,
+      #dialogue-box::after {
+        content: "";
+        position: absolute;
+        top: -12px; /* 讓軸比內容高一點 */
+        bottom: -12px;
+        width: 35px; /* 軸的寬度 */
+        background: linear-gradient(
+          to right,
+          #4a382a,
+          #8b7355,
+          #4a382a
+        ); /* 木紋漸層 */
+        border: 2px solid #3d2e24;
+        border-radius: 3px;
+        box-shadow:
+          0 0 10px rgba(0, 0, 0, 0.8),
+          inset 0 1px 1px rgba(255, 215, 150, 0.1);
+      }
+
+      #dialogue-box::before {
+        left: -40px; /* 定位左軸 */
+      }
+
+      #dialogue-box::after {
+        right: -40px; /* 定位右軸 */
+      }
+
+      /* 調整姓名印章位置以適應卷軸 */
+      #dialogue-name {
+        top: -2.75rem !important;
+        left: 3rem !important;
+      }
+
+      /* 行囊圖示八邊形 (八卦形) 外框與內框 */
+      .inventory-octagon-wrap {
+        position: relative;
+        border-radius: 0 !important;
+        border: none !important;
+        background: #8b7355 !important;
+        clip-path: polygon(
+          29% 0%,
+          71% 0%,
+          100% 29%,
+          100% 71%,
+          71% 100%,
+          29% 100%,
+          0% 71%,
+          0% 29%
+        );
+        transition: background 0.3s ease;
+      }
+      #inventory-btn:hover .inventory-octagon-wrap {
+        background: #cda87c !important;
+      }
+      .inventory-octagon-inner {
+        position: absolute;
+        inset: 2px;
+        background: #1a1512;
+        clip-path: polygon(
+          29% 0%,
+          71% 0%,
+          100% 29%,
+          100% 71%,
+          71% 100%,
+          29% 100%,
+          0% 71%,
+          0% 29%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* === 行囊、商店、辭典內部卡片 (客棧陳列木牌風格) === */
+      #inventory-container > div,
+      #shop-container > div,
+      #dictionary-container > div > div {
+        background: linear-gradient(
+          180deg,
+          #3d2e24 0%,
+          #2a221c 100%
+        ) !important;
+        border: 2px solid #1a1512 !important;
+        border-radius: 6px !important;
+        box-shadow:
+          inset 0 0 0 1px #5e4835,
+          inset 0 0 0 2px #3d2e24,
+          4px 6px 12px rgba(0, 0, 0, 0.8) !important;
+        position: relative;
+        padding-top: 1.75rem !important; /* 為頂部掛釘留空間 */
+      }
+      /* 懸停時木牌亮起 */
+      #inventory-container > div:hover,
+      #shop-container > div:hover,
+      #dictionary-container > div > div:hover {
+        border-color: #3d2e24 !important;
+        box-shadow:
+          inset 0 0 0 1px #8b7355,
+          inset 0 0 0 2px #5e4835,
+          4px 8px 16px rgba(0, 0, 0, 0.9) !important;
+        transform: translateY(-2px);
+      }
+      /* 木牌頂部的掛釘 */
+      #inventory-container > div::before,
+      #shop-container > div::before,
+      #dictionary-container > div > div::before {
+        content: "";
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 10px;
+        height: 10px;
+        background: radial-gradient(circle, #3d2e24 0%, #1a1512 100%);
+        border: 1px solid #000;
+        border-radius: 50%;
+        box-shadow:
+          0 2px 2px rgba(255, 255, 255, 0.1),
+          inset 0 2px 4px rgba(0, 0, 0, 0.8);
+      }
+      /* 左側圖示框 (木雕凹槽) - 僅行囊有此結構 */
+      #inventory-container > div > div:first-child > div.w-14 {
+        background: #1a1512 !important;
+        border: 1px solid #3d2e24 !important;
+        border-radius: 4px !important;
+        box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.8) !important;
+      }
+      /* 標題與名稱 */
+      #inventory-container > div h3,
+      #shop-container > div h3,
+      #dictionary-container > div > div h3 {
+        color: #cda87c !important;
+        font-family: "Noto Serif TC", serif !important;
+        font-weight: 900 !important;
+        letter-spacing: 0.1em;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      }
+      /* 辭典標題底線顏色 */
+      #dictionary-container > div > div h3 {
+        border-color: #5e4835 !important;
+      }
+      /* 擁有數量與庫存標籤 (木刻字) */
+      #inventory-container > div .bg-blue-900\/30,
+      #shop-container > div .bg-blue-900\/50,
+      #shop-container > div .bg-gray-700 {
+        background: transparent !important;
+        color: #cda87c !important;
+        border: 1px dashed #5e4835 !important;
+        border-radius: 2px !important;
+        font-family: "Noto Serif TC", serif !important;
+        padding: 2px 6px !important;
+      }
+      /* 消耗品/永久道具標籤 (硃砂印/綠玉印) */
+      #inventory-container > div .bg-orange-900\/50,
+      #shop-container > div .bg-orange-900\/50 {
+        background: #8b2323 !important; /* 消耗品用硃砂紅 */
+        color: #f5ebd9 !important;
+        border: 1px solid #5e1414 !important;
+        border-radius: 2px !important;
+        font-family: "Noto Serif TC", serif !important;
+        letter-spacing: 0.1em;
+        box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
+      }
+      #inventory-container > div .bg-purple-900\/50,
+      #shop-container > div .bg-purple-900\/50 {
+        background: #2f4d3c !important; /* 永久道具用墨綠玉色 */
+        color: #d3c4b1 !important;
+        border: 1px solid #1a2e24 !important;
+        border-radius: 2px !important;
+        font-family: "Noto Serif TC", serif !important;
+        letter-spacing: 0.1em;
+        box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
+      }
+      /* 說明文字 */
+      #inventory-container > div p.text-gray-400,
+      #shop-container > div p.text-gray-400,
+      #dictionary-container > div > div p.text-gray-400 {
+        color: #b8a892 !important;
+      }
+      /* 商店卡片下方的分隔線 */
+      #shop-container > div .border-t {
+        border-color: #5e4835 !important;
+      }
+      /* 使用/購買/販賣按鈕 (立體木質按鍵) */
+      #inventory-container > div button.use-item-btn,
+      #shop-container > div button.buy-btn,
+      #shop-container > div button.sell-btn {
+        background: linear-gradient(
+          180deg,
+          #4a382a 0%,
+          #2a221c 100%
+        ) !important;
+        border: 1px solid #1a1512 !important;
+        border-radius: 4px !important;
+        color: #d3c4b1 !important;
+        font-family: "Noto Serif TC", serif !important;
+        letter-spacing: 0.2em !important;
+        box-shadow:
+          inset 0 1px 0 #5e4835,
+          0 4px 6px rgba(0, 0, 0, 0.6) !important;
+        transition: all 0.2s ease !important;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      }
+      #inventory-container > div button.use-item-btn:not(:disabled):hover,
+      #shop-container > div button.buy-btn:not(:disabled):hover,
+      #shop-container > div button.sell-btn:not(:disabled):hover {
+        background: linear-gradient(
+          180deg,
+          #5e4835 0%,
+          #3d2e24 100%
+        ) !important;
+        color: #ffd700 !important;
+        box-shadow:
+          inset 0 1px 0 #8b7355,
+          0 4px 10px rgba(0, 0, 0, 0.8) !important;
+      }
+      #inventory-container > div button.use-item-btn:disabled,
+      #shop-container > div button.buy-btn:disabled {
+        background: #1a1512 !important;
+        border-color: #000 !important;
+        color: #5e4835 !important;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8) !important;
+        text-shadow: none;
+      }
+      /* 按鈕內的 SVG 圖示顏色 */
+      #inventory-container > div button.use-item-btn:not(:disabled) svg {
+        color: #cda87c !important;
+      }
+      #inventory-container > div button.use-item-btn:not(:disabled):hover svg {
+        color: #ffd700 !important;
+      }
+
+      /* 辭典分頁按鈕 */
+      #dictionary-container > div:last-child > button {
+        background: linear-gradient(
+          180deg,
+          #3d2e24 0%,
+          #1a1512 100%
+        ) !important;
+        border: 1px solid #5e4835 !important;
+        color: #cda87c !important;
+        font-family: "Noto Serif TC", serif !important;
+        letter-spacing: 0.1em;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.6) !important;
+        border-radius: 4px !important;
+      }
+      #dictionary-container > div:last-child > button:not(:disabled):hover {
+        background: linear-gradient(
+          180deg,
+          #4a382a 0%,
+          #2a221c 100%
+        ) !important;
+        border-color: #8b7355 !important;
+        color: #ffd700 !important;
+      }
+      #dictionary-container > div:last-child > button:disabled {
+        background: #1a1512 !important;
+        border-color: #3d2e24 !important;
+        color: #5e4835 !important;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8) !important;
+      }
     </style>
   </head>
   <body
@@ -241,7 +702,7 @@
       <!-- 快速存檔提示 -->
       <div
         id="quicksave-toast"
-        class="absolute top-20 left-1/2 -translate-x-1/2 bg-[#8b2323] border border-[#cda87c] text-[#f5ebd9] px-6 py-2 rounded-full shadow-lg font-bold transition-opacity duration-300 opacity-0 pointer-events-none z-50 tracking-widest"
+        class="absolute top-20 left-1/2 -translate-x-1/2 bg-[#8b2323] border border-[#cda87c] text-[#f5ebd9] px-6 py-2 rounded-full shadow-lg font-bold transition-opacity duration-300 opacity-0 pointer-events-none z-[70] tracking-widest"
       >
         進度已保存
       </div>
@@ -436,7 +897,7 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                  d="M12 6c-2 0-3 1.5-3 3 0 1.5-2 3-3 4-1 1-.5 4.5 0 5.5.5 1 2.5 2.5 6 2.5s5.5-1.5 6-2.5c.5-1 1-4.5 0-5.5-1-1-3-2.5-3-4 0-1.5-1-3-3-3zM10 6h4M12 3v3"
                 ></path>
               </svg>
               <div>
@@ -481,7 +942,7 @@
       <!-- 章節開場畫面 -->
       <div
         id="chapter-screen"
-        class="absolute inset-0 z-50 bg-[#0a0806] bg-cover bg-center flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-1000"
+        class="absolute inset-0 z-[60] bg-[#0a0806] bg-cover bg-center flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-1000"
       >
         <div
           class="bg-[#1a1512]/80 p-10 rounded-sm backdrop-blur-md text-center max-w-4xl mx-4 shadow-2xl border-y-2 border-[#8b7355]"
@@ -506,7 +967,7 @@
       <!-- 成就解鎖浮出提示容器 -->
       <div
         id="achievement-popup-container"
-        class="absolute top-20 right-4 z-50 flex flex-col gap-3 pointer-events-none overflow-visible"
+        class="absolute top-20 right-4 z-[70] flex flex-col gap-3 pointer-events-none overflow-visible"
       ></div>
 
       <!-- 頂部資訊列 (數值系統) -->
@@ -623,7 +1084,7 @@
 
       <!-- 智慧跳轉選項區 (由 player.js 動態渲染) -->
       <div
-        class="absolute inset-0 flex flex-col items-center justify-center gap-5 z-30 hidden pointer-events-none"
+        class="absolute inset-0 flex flex-col items-end justify-center gap-6 z-30 hidden pointer-events-none pr-8 md:pr-16"
         id="options-layer"
       ></div>
 
@@ -667,7 +1128,7 @@
               <!-- 對話文本 -->
               <div
                 id="dialogue-text"
-                class="text-[#e8e0d5] text-2xl leading-[1.8] min-h-[140px] select-none tracking-wide"
+                class="text-[#e8e0d5] text-2xl leading-[1.8] min-h-[140px] max-h-[180px] overflow-y-auto custom-scrollbar select-none tracking-wide pr-4 pointer-events-auto"
               >
                 字句將於此處緩緩浮現...
               </div>
@@ -682,43 +1143,88 @@
         </div>
       </div>
 
-      <!-- 獨立的物品欄懸浮按鈕 (古典玉珮/令牌風格) -->
+      <!-- 獨立的物品欄懸浮按鈕 (大八邊形玉珮/令牌風格) -->
       <button
         id="inventory-btn"
-        class="absolute bottom-6 md:bottom-10 right-4 md:right-10 z-50 flex items-center justify-center space-x-3 bg-[#2c221a]/95 hover:bg-[#3d2e24] border-2 border-[#8b7355] hover:border-[#cda87c] text-[#f5ebd9] p-3 md:px-6 md:py-4 rounded-full backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.8)] transition-all transform hover:scale-105 group"
+        class="absolute bottom-6 md:bottom-10 right-4 md:right-10 z-50 transition-all transform hover:scale-105 group drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)]"
       >
         <div
-          class="relative bg-[#1a1512] p-2 md:p-3 rounded-full border border-[#8b7355] group-hover:border-[#cda87c] transition-colors shadow-inner"
+          class="inventory-octagon-wrap w-16 h-16 md:w-24 md:h-24 flex-shrink-0"
         >
-          <svg
-            class="w-6 h-6 md:w-8 md:h-8 text-[#cda87c] group-hover:text-[#ffd700] transition-colors drop-shadow"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-            ></path>
-          </svg>
-        </div>
-        <div class="text-left hidden md:block pr-2">
-          <div
-            class="font-bold text-lg tracking-widest text-[#cda87c] group-hover:text-[#ffd700] transition-colors drop-shadow-sm"
-          >
-            行囊
-          </div>
-          <div
-            class="text-xs text-[#8b7355] group-hover:text-[#b8a892] transition-colors mt-0.5 tracking-wider"
-          >
-            盤點持有之物
+          <div class="inventory-octagon-inner" style="flex-direction: column">
+            <svg
+              class="w-6 h-6 md:w-9 md:h-9 text-[#cda87c] group-hover:text-[#ffd700] transition-colors drop-shadow md:mb-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6c-2 0-3 1.5-3 3 0 1.5-2 3-3 4-1 1-.5 4.5 0 5.5.5 1 2.5 2.5 6 2.5s5.5-1.5 6-2.5c.5-1 1-4.5 0-5.5-1-1-3-2.5-3-4 0-1.5-1-3-3-3zM10 6h4M12 3v3"
+              ></path>
+            </svg>
+            <div
+              class="font-bold text-[10px] md:text-sm tracking-[0.2em] text-[#cda87c] group-hover:text-[#ffd700] transition-colors drop-shadow-sm pl-[0.2em]"
+            >
+              行囊
+            </div>
           </div>
         </div>
       </button>
     </div>
 
+    <!-- 水墨粒子特效腳本 -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const container = document.getElementById("ink-particles-container");
+        const particleCount = 35; // 調整此數值可改變畫面中的粒子數量
+
+        for (let i = 0; i < particleCount; i++) {
+          createParticle(container);
+        }
+
+        function createParticle(container) {
+          const particle = document.createElement("div");
+          particle.classList.add("ink-particle");
+
+          // 隨機大小
+          const size = Math.random() * 60 + 20;
+          particle.style.width = `${size}px`;
+          particle.style.height = `${size}px`;
+
+          // 隨機水平起始位置
+          particle.style.left = `${Math.random() * 100}vw`;
+
+          // 隨機動畫時間與延遲
+          const duration = Math.random() * 15 + 15;
+          const delay = Math.random() * 15;
+          particle.style.animationDuration = `${duration}s`;
+          particle.style.animationDelay = `-${delay}s`;
+
+          // 隨機飄移距離
+          const drift = (Math.random() - 0.5) * 200;
+          particle.style.setProperty("--drift", `${drift}px`);
+
+          // 隨機顏色與透明度 (混合深色墨滴與金色粉塵)
+          const isGold = Math.random() > 0.8;
+          if (isGold) {
+            particle.style.background =
+              "radial-gradient(circle, rgba(205, 168, 124, 0.3) 0%, transparent 70%)";
+            particle.style.setProperty("--max-opacity", "0.8");
+            particle.style.filter = "blur(1px)";
+          } else {
+            particle.style.background =
+              "radial-gradient(circle, rgba(0, 0, 0, 0.6) 0%, transparent 70%)";
+            particle.style.setProperty("--max-opacity", "0.5");
+            particle.style.filter = "blur(4px)";
+          }
+
+          container.appendChild(particle);
+        }
+      });
+    </script>
     <!-- 必須引入 player.js 核心邏輯 -->
     <script src="js/player.js"></script>
   </body>

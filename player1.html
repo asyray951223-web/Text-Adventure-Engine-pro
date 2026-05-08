@@ -21,7 +21,7 @@
       <!-- 快速存檔提示 -->
       <div
         id="quicksave-toast"
-        class="absolute top-20 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-2 rounded-full shadow-lg font-bold transition-opacity duration-300 opacity-0 pointer-events-none z-50"
+        class="absolute top-20 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-2 rounded-full shadow-lg font-bold transition-opacity duration-300 opacity-0 pointer-events-none z-[70]"
       >
         進度已儲存
       </div>
@@ -265,7 +265,7 @@
       <!-- 章節開場畫面 -->
       <div
         id="chapter-screen"
-        class="absolute inset-0 z-50 bg-black bg-cover bg-center flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-1000"
+        class="absolute inset-0 z-[60] bg-black bg-cover bg-center flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-1000"
       >
         <div
           class="bg-black/60 p-8 rounded-xl backdrop-blur-md text-center max-w-4xl mx-4 shadow-2xl border border-gray-700"
@@ -289,7 +289,7 @@
       <!-- 成就解鎖浮出提示容器 -->
       <div
         id="achievement-popup-container"
-        class="absolute top-20 right-4 z-50 flex flex-col gap-3 pointer-events-none overflow-visible"
+        class="absolute top-20 right-4 z-[70] flex flex-col gap-3 pointer-events-none overflow-visible"
       ></div>
 
       <!-- 頂部資訊列 (數值系統) -->
@@ -404,15 +404,15 @@
 
       <!-- 智慧跳轉選項區 (預設隱藏，需選擇時顯示) -->
       <div
-        class="absolute inset-0 flex flex-col items-center justify-center gap-4 z-30 hidden pointer-events-none"
+        class="absolute inset-0 flex flex-col items-end justify-center gap-4 z-30 hidden pointer-events-none pr-8 md:pr-16"
       >
         <button
-          class="vn-option pointer-events-auto w-2/3 max-w-lg bg-black/80 hover:bg-blue-900/90 text-white py-3 px-6 rounded border-2 border-gray-500 hover:border-blue-400 text-lg transition"
+          class="vn-option pointer-events-auto w-2/3 max-w-lg bg-black/80 hover:bg-blue-900/90 text-white py-3 px-6 rounded border-2 border-gray-500 hover:border-blue-400 text-lg transition whitespace-normal break-words leading-relaxed"
         >
           向前探索未知的洞穴
         </button>
         <button
-          class="vn-option pointer-events-auto w-2/3 max-w-lg bg-black/80 hover:bg-blue-900/90 text-white py-3 px-6 rounded border-2 border-gray-500 hover:border-blue-400 text-lg transition"
+          class="vn-option pointer-events-auto w-2/3 max-w-lg bg-black/80 hover:bg-blue-900/90 text-white py-3 px-6 rounded border-2 border-gray-500 hover:border-blue-400 text-lg transition whitespace-normal break-words leading-relaxed"
         >
           轉身離開這裡
         </button>
@@ -456,7 +456,7 @@
               <!-- 對話文本 -->
               <div
                 id="dialogue-text"
-                class="text-white text-2xl leading-relaxed min-h-[150px] select-none"
+                class="text-white text-2xl leading-relaxed min-h-[150px] max-h-[180px] overflow-y-auto custom-scrollbar select-none pr-4 pointer-events-auto"
               >
                 歡迎來到這個未知的世界...你的每一個選擇，都將決定未來的走向。<br />準備好開始你的冒險了嗎？
               </div>

@@ -43,7 +43,7 @@
     <!-- 左側開發者除錯面板 -->
     <div
       id="debug-panel"
-      class="w-72 shrink-0 debug-glass border-r border-gray-700/50 text-white p-6 z-50 overflow-y-auto backdrop-blur-xl custom-scrollbar flex flex-col relative h-full"
+      class="w-96 shrink-0 debug-glass border-r border-gray-700/50 text-white p-6 z-50 overflow-y-auto backdrop-blur-xl custom-scrollbar flex flex-col relative h-full"
     >
       <h3
         class="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200 mb-6 border-b border-gray-700/50 pb-4 flex items-center drop-shadow-sm"
@@ -147,6 +147,31 @@
       <div
         class="mt-auto pt-5 border-t border-gray-700/50 shrink-0 flex flex-col gap-3"
       >
+        <button
+          onclick="window.openSettings()"
+          class="flex items-center justify-center w-full bg-gradient-to-r from-purple-800 to-purple-700 hover:from-purple-700 hover:to-purple-600 text-center py-2.5 rounded-lg transition-all duration-300 shadow-[0_0_15px_rgba(107,33,168,0.3)] hover:shadow-[0_0_20px_rgba(107,33,168,0.5)] font-bold text-sm border border-purple-500/30 text-white"
+        >
+          <svg
+            class="w-4 h-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+            ></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            ></path>
+          </svg>
+          環境設定
+        </button>
         <button
           onclick="window.editCurrentScene()"
           class="flex items-center justify-center w-full bg-gradient-to-r from-blue-800 to-blue-700 hover:from-blue-700 hover:to-blue-600 text-center py-2.5 rounded-lg transition-all duration-300 shadow-[0_0_15px_rgba(30,64,175,0.3)] hover:shadow-[0_0_20px_rgba(30,64,175,0.5)] font-bold text-sm border border-blue-500/30 text-white"
@@ -282,6 +307,64 @@
               >
                 <!-- 測試選項由 JS 動態產生 -->
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 設定 Modal -->
+      <div
+        id="settings-modal"
+        class="absolute inset-0 bg-black/80 hidden flex-col items-center justify-center z-[100] backdrop-blur-sm transition-opacity duration-300 opacity-0"
+      >
+        <div
+          class="bg-gray-900 border border-gray-600 rounded-xl w-11/12 max-w-md flex flex-col shadow-2xl relative"
+        >
+          <div
+            class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800 rounded-t-xl"
+          >
+            <h2 class="text-2xl font-bold text-purple-400">測試環境設定</h2>
+            <button
+              id="close-settings-btn"
+              class="text-gray-400 hover:text-white transition"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <div class="p-6 space-y-6">
+            <div>
+              <label class="block text-sm font-bold text-gray-300 mb-2"
+                >背景音量</label
+              >
+              <input
+                type="range"
+                id="volume-range"
+                min="0"
+                max="100"
+                value="50"
+                class="w-full cursor-pointer accent-purple-500"
+              />
+              <div class="flex justify-between text-xs text-gray-500 mt-1">
+                <span>靜音</span><span>最大</span>
+              </div>
+            </div>
+            <div
+              class="text-xs text-gray-400 bg-gray-800 p-3 rounded border border-gray-700"
+            >
+              💡
+              提示：測試模式中為了快速推進與除錯，已強制關閉打字機動畫，因此不提供文字顯示速度設定。此處的音量設定將與正式遊玩模式共用。
             </div>
           </div>
         </div>

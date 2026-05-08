@@ -68,6 +68,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const dialogueText = document.getElementById("test-dialogue-text");
   const optionsContainer = document.getElementById("test-options-container");
 
+  // 設定面板元素
+  const settingsModal = document.getElementById("settings-modal");
+  const closeSettingsBtn = document.getElementById("close-settings-btn");
+  const volumeRange = document.getElementById("volume-range");
+
   // 定時炸彈計時器
   const testTimerContainer = document.getElementById(
     "test-dialogue-timer-container",
@@ -132,6 +137,323 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
+  // 讀取全域設定 (與正式遊玩模式共用)
+  let gameSettings = JSON.parse(
+    localStorage.getItem("textAdventureSettings"),
+  ) || { textSpeed: 70, volume: 50, typingVolume: 50, version: 2 };
+  if (volumeRange) volumeRange.value = gameSettings.volume;
+
+  function saveSettings() {
+    gameSettings.volume = parseInt(volumeRange.value, 10);
+    localStorage.setItem("textAdventureSettings", JSON.stringify(gameSettings));
+    if (testBgmPlayer) testBgmPlayer.volume = gameSettings.volume / 100;
+    if (testCgVideo) testCgVideo.volume = gameSettings.volume / 100;
+  }
+
+  if (volumeRange) volumeRange.addEventListener("input", saveSettings);
+
+  window.openSettings = function () {
+    settingsModal.classList.remove("hidden");
+    settingsModal.classList.add("flex");
+    setTimeout(() => {
+      settingsModal.classList.remove("opacity-0");
+      settingsModal.classList.add("opacity-100");
+    }, 10);
+  };
+
+  function closeSettings() {
+    settingsModal.classList.remove("opacity-100");
+    settingsModal.classList.add("opacity-0");
+    setTimeout(() => {
+      settingsModal.classList.remove("flex");
+      settingsModal.classList.add("hidden");
+    }, 300);
+  }
+
+  if (closeSettingsBtn)
+    closeSettingsBtn.addEventListener("click", closeSettings);
+  if (settingsModal) {
+    settingsModal.addEventListener("click", (e) => {
+      if (e.target === settingsModal) closeSettings();
+    });
+  }
+
+  if (testBgmPlayer) testBgmPlayer.volume = gameSettings.volume / 100;
+  if (testCgVideo) testCgVideo.volume = gameSettings.volume / 100;
+
+  // --- 商店系統 (動態注入) ---
+  let shopModal = document.getElementById("shop-modal");
+  let shopContainer = null;
+  let closeShopBtn = null;
+  let shopTitle = null;
+  let shopDesc = null;
+  let shopTabBuy = null;
+  let shopTabSell = null;
+  let currentShopMode = "buy";
+  let currentOpenShopId = null;
+
+  const gameContainer = document.getElementById("game-container");
+  if (!shopModal && gameContainer) {
+    shopModal = document.createElement("div");
+    shopModal.id = "shop-modal";
+    shopModal.className =
+      "absolute inset-0 z-[100] hidden items-center justify-center bg-black/80 backdrop-blur-sm opacity-0 transition-opacity duration-300";
+    shopModal.innerHTML = `
+      <div id="shop-panel" class="bg-gray-900 w-11/12 max-w-4xl h-5/6 rounded-2xl border border-gray-700 shadow-2xl flex flex-col transform scale-95 translate-y-8 transition-all duration-300 relative">
+        <div class="flex justify-between items-center p-6 border-b border-gray-800 bg-gray-800 rounded-t-2xl">
+          <div>
+            <h2 id="shop-title" class="text-2xl font-extrabold text-white flex items-center">
+              <svg class="w-6 h-6 mr-2 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+              商店 (測試模式)
+            </h2>
+            <p id="shop-desc" class="text-sm text-gray-400 mt-1"></p>
+          </div>
+          <button id="close-shop-btn" class="text-gray-400 hover:text-white transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div class="flex space-x-4 px-6 pt-4 border-b border-gray-800 bg-gray-900">
+          <button id="shop-tab-buy" class="text-yellow-400 font-bold px-4 py-2 border-b-2 border-yellow-500 transition">購買商品</button>
+          <button id="shop-tab-sell" class="text-gray-400 font-bold px-4 py-2 border-b-2 border-transparent hover:text-yellow-300 transition">販賣道具</button>
+        </div>
+        <div id="shop-container" class="flex-1 overflow-y-auto p-6 custom-scrollbar grid grid-cols-1 md:grid-cols-2 gap-4 content-start bg-gray-900 rounded-b-2xl">
+        </div>
+      </div>
+    `;
+    gameContainer.appendChild(shopModal);
+    shopContainer = document.getElementById("shop-container");
+    closeShopBtn = document.getElementById("close-shop-btn");
+    shopTitle = document.getElementById("shop-title");
+    shopDesc = document.getElementById("shop-desc");
+    shopTabBuy = document.getElementById("shop-tab-buy");
+    shopTabSell = document.getElementById("shop-tab-sell");
+
+    shopTabBuy.addEventListener("click", () => {
+      currentShopMode = "buy";
+      shopTabBuy.className =
+        "text-yellow-400 font-bold px-4 py-2 border-b-2 border-yellow-500 transition";
+      shopTabSell.className =
+        "text-gray-400 font-bold px-4 py-2 border-b-2 border-transparent hover:text-yellow-300 transition";
+      renderShopItems();
+    });
+
+    shopTabSell.addEventListener("click", () => {
+      currentShopMode = "sell";
+      shopTabSell.className =
+        "text-yellow-400 font-bold px-4 py-2 border-b-2 border-yellow-500 transition";
+      shopTabBuy.className =
+        "text-gray-400 font-bold px-4 py-2 border-b-2 border-transparent hover:text-yellow-300 transition";
+      renderShopItems();
+    });
+  }
+
+  function renderShopItems() {
+    const shop = (projectData.shops || []).find(
+      (s) => s.id === currentOpenShopId,
+    );
+    if (!shop) return;
+
+    shopContainer.innerHTML = "";
+
+    if (currentShopMode === "buy") {
+      if (!shop.goods || shop.goods.length === 0) {
+        shopContainer.innerHTML = `<div class="col-span-full text-center text-gray-500 py-10 italic">目前沒有販售任何商品。</div>`;
+        return;
+      }
+
+      shop.goods.forEach((good, index) => {
+        const itemData = projectData.items.find((i) => i.id === good.itemId);
+        const varData = projectData.globalVariables.find(
+          (v) => v.id === good.costVariableId,
+        );
+
+        if (!itemData || !varData) return;
+
+        const stockKey = shop.id + "_" + index;
+        if (
+          gameState.shopStocks[stockKey] === undefined &&
+          good.stock !== "" &&
+          good.stock !== undefined
+        ) {
+          gameState.shopStocks[stockKey] = good.stock;
+        }
+        const currentStock =
+          good.stock !== "" && good.stock !== undefined
+            ? gameState.shopStocks[stockKey]
+            : "infinite";
+        const isSoldOut = currentStock !== "infinite" && currentStock <= 0;
+
+        const playerVarVal = gameState.variables[good.costVariableId] || 0;
+        const canAfford = playerVarVal >= good.price && !isSoldOut;
+
+        const stockBadge =
+          currentStock === "infinite"
+            ? ""
+            : `<span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full border border-gray-600 whitespace-nowrap">剩餘: ${currentStock}</span>`;
+        const typeBadge =
+          itemData.type === "consumable"
+            ? `<span class="text-xs bg-orange-900/50 text-orange-400 px-2 py-0.5 rounded-full border border-orange-700/50 whitespace-nowrap">消耗品</span>`
+            : `<span class="text-xs bg-purple-900/50 text-purple-400 px-2 py-0.5 rounded-full border border-purple-700/50 whitespace-nowrap">永久道具</span>`;
+
+        const card = document.createElement("div");
+        card.className =
+          "bg-gray-800 border border-gray-700 p-4 rounded-xl flex flex-col justify-between hover:border-yellow-500 transition shadow-lg";
+
+        card.innerHTML = `
+          <div>
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="text-lg font-bold text-white truncate flex-1 pr-2">${itemData.name}</h3>
+              <div class="flex space-x-1 items-center flex-shrink-0">
+                ${stockBadge}
+                ${typeBadge}
+              </div>
+            </div>
+            <p class="text-sm text-gray-400 line-clamp-2 mb-3 h-10" title="${itemData.description || ""}">${itemData.description || "無說明"}</p>
+          </div>
+          <div class="flex justify-between items-center border-t border-gray-700 pt-3">
+            <div class="flex items-center text-yellow-400 font-bold">
+              <span class="mr-1 text-sm text-gray-400">${varData.name}:</span>
+              ${good.price}
+            </div>
+            <button class="buy-btn px-4 py-1.5 rounded-lg font-bold transition text-sm shadow-md ${canAfford ? "bg-yellow-600 hover:bg-yellow-500 text-white" : "bg-gray-700 text-gray-500 cursor-not-allowed"}" ${canAfford ? "" : "disabled"}>
+              ${isSoldOut ? "已售完" : "購買"}
+            </button>
+          </div>
+        `;
+
+        if (canAfford) {
+          card.querySelector(".buy-btn").addEventListener("click", () => {
+            gameState.variables[good.costVariableId] -= good.price;
+            gameState.items[good.itemId] =
+              (gameState.items[good.itemId] || 0) + 1;
+            if (currentStock !== "infinite") {
+              gameState.shopStocks[stockKey] -= 1;
+            }
+            renderDebugPanels(); // 更新左側除錯面板
+            renderShopItems(); // 重新整理商店介面
+          });
+        }
+        shopContainer.appendChild(card);
+      });
+    } else if (currentShopMode === "sell") {
+      const ownedItems = Object.entries(gameState.items).filter(
+        ([id, qty]) => qty > 0,
+      );
+      const sellableItems = ownedItems.filter(([id, qty]) => {
+        const itemData = projectData.items.find((i) => i.id === id);
+        return itemData && itemData.canSell;
+      });
+
+      if (sellableItems.length === 0) {
+        shopContainer.innerHTML = `<div class="col-span-full text-center text-gray-500 py-10 italic">您持有之道具目前皆不可販賣。</div>`;
+        return;
+      }
+
+      sellableItems.forEach(([itemId, qty]) => {
+        const itemData = projectData.items.find((i) => i.id === itemId);
+        const varData = projectData.globalVariables.find(
+          (v) => v.id === itemData.sellVariableId,
+        );
+        if (!itemData || !varData) return;
+
+        const typeBadge =
+          itemData.type === "consumable"
+            ? `<span class="text-xs bg-orange-900/50 text-orange-400 px-2 py-0.5 rounded-full border border-orange-700/50 whitespace-nowrap">消耗品</span>`
+            : `<span class="text-xs bg-purple-900/50 text-purple-400 px-2 py-0.5 rounded-full border border-purple-700/50 whitespace-nowrap">永久道具</span>`;
+
+        const card = document.createElement("div");
+        card.className =
+          "bg-gray-800 border border-gray-700 p-4 rounded-xl flex flex-col justify-between hover:border-emerald-500 transition shadow-lg";
+
+        card.innerHTML = `
+          <div>
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="text-lg font-bold text-white truncate flex-1 pr-2">${itemData.name}</h3>
+              <div class="flex space-x-1 items-center flex-shrink-0">
+                <span class="text-xs bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded-full border border-blue-700/50 whitespace-nowrap">持有: ${qty}</span>
+                ${typeBadge}
+              </div>
+            </div>
+            <p class="text-sm text-gray-400 line-clamp-2 mb-3 h-10" title="${itemData.description || ""}">${itemData.description || "無說明"}</p>
+          </div>
+          <div class="flex justify-between items-center border-t border-gray-700 pt-3">
+            <div class="flex items-center text-emerald-400 font-bold">
+              <span class="mr-1 text-sm text-gray-400">售出可得:</span>
+              ${varData.name} +${itemData.sellPrice || 0}
+            </div>
+            <button class="sell-btn px-4 py-1.5 rounded-lg font-bold transition text-sm shadow-md bg-emerald-600 hover:bg-emerald-500 text-white">
+              販賣
+            </button>
+          </div>
+        `;
+
+        card.querySelector(".sell-btn").addEventListener("click", () => {
+          gameState.items[itemId] -= 1;
+          gameState.variables[itemData.sellVariableId] =
+            (gameState.variables[itemData.sellVariableId] || 0) +
+            (itemData.sellPrice || 0);
+          renderDebugPanels(); // 更新左側除錯面板
+          renderShopItems(); // 重新整理商店介面
+        });
+        shopContainer.appendChild(card);
+      });
+    }
+  }
+
+  window.openShop = function (shopId) {
+    const shop = (projectData.shops || []).find((s) => s.id === shopId);
+    if (!shop) {
+      alert("找不到商店資料！");
+      return;
+    }
+    currentOpenShopId = shopId;
+    currentShopMode = "buy";
+    if (shopTabBuy && shopTabSell) {
+      shopTabBuy.className =
+        "text-yellow-400 font-bold px-4 py-2 border-b-2 border-yellow-500 transition";
+      shopTabSell.className =
+        "text-gray-400 font-bold px-4 py-2 border-b-2 border-transparent hover:text-yellow-300 transition";
+    }
+
+    shopTitle.innerHTML = `<svg class="w-6 h-6 mr-2 text-yellow-400 inline mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>${shop.name}`;
+    shopDesc.textContent = shop.description || "";
+    renderShopItems();
+
+    shopModal.classList.remove("hidden");
+    shopModal.classList.add("flex");
+    setTimeout(() => {
+      shopModal.classList.remove("opacity-0");
+      shopModal.classList.add("opacity-100");
+      const panel = document.getElementById("shop-panel");
+      if (panel) {
+        panel.classList.remove("translate-y-8", "scale-95");
+        panel.classList.add("translate-y-0", "scale-100");
+      }
+    }, 10);
+  };
+
+  function closeShop() {
+    shopModal.classList.remove("opacity-100");
+    shopModal.classList.add("opacity-0");
+    const panel = document.getElementById("shop-panel");
+    if (panel) {
+      panel.classList.remove("translate-y-0", "scale-100");
+      panel.classList.add("translate-y-8", "scale-95");
+    }
+    setTimeout(() => {
+      shopModal.classList.remove("flex");
+      shopModal.classList.add("hidden");
+      currentOpenShopId = null;
+    }, 300);
+  }
+
+  if (closeShopBtn) closeShopBtn.addEventListener("click", closeShop);
+  if (shopModal) {
+    shopModal.addEventListener("click", (e) => {
+      if (e.target === shopModal) closeShop();
+    });
+  }
+
   // BGM 播放邏輯
   let currentBgmUrl = "";
   function playBgm(url) {
@@ -144,7 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (url !== currentBgmUrl) {
       currentBgmUrl = url;
       testBgmPlayer.src = url;
-      testBgmPlayer.volume = 0.5; // 測試模式預設 50%
+      testBgmPlayer.volume = gameSettings.volume / 100;
       testBgmPlayer.play().catch((e) => console.warn("等待互動以播放音樂"));
     }
   }
@@ -186,9 +508,13 @@ document.addEventListener("DOMContentLoaded", () => {
         else if (val > 0) valColor = "text-emerald-300";
 
         debugVariablesList.innerHTML += `
-          <li class="flex justify-between border-b border-gray-800 pb-1 cursor-pointer hover:bg-gray-800/80 transition px-1 -mx-1 rounded" onclick="window.setDebugVar('${v.id}')" title="點擊修改數值">
-            <span>${v.name}:</span>
-            <span class="${valColor} font-mono font-bold">${val}</span>
+          <li class="flex justify-between items-center border-b border-gray-800 pb-1 hover:bg-gray-800/80 transition px-1 -mx-1 rounded">
+            <span class="truncate pr-2 cursor-pointer hover:text-white flex-1" onclick="window.setDebugVar('${v.id}')" title="點擊輸入指定數值">${v.name}:</span>
+            <div class="flex items-center space-x-1.5">
+              <button onclick="window.adjDebugVar('${v.id}', -1)" class="w-5 h-5 flex items-center justify-center bg-gray-800 hover:bg-red-900/80 text-gray-400 hover:text-red-300 rounded border border-gray-700 hover:border-red-500 transition">-</button>
+              <span class="${valColor} font-mono font-bold min-w-[1.5rem] text-center cursor-pointer hover:underline" onclick="window.setDebugVar('${v.id}')" title="點擊輸入指定數值">${val}</span>
+              <button onclick="window.adjDebugVar('${v.id}', 1)" class="w-5 h-5 flex items-center justify-center bg-gray-800 hover:bg-emerald-900/80 text-gray-400 hover:text-emerald-300 rounded border border-gray-700 hover:border-emerald-500 transition">+</button>
+            </div>
           </li>
         `;
       });
@@ -197,23 +523,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     debugItemsList.innerHTML = "";
-    const ownedItems = Object.entries(gameState.items).filter(
-      ([id, qty]) => qty > 0,
-    );
-    if (ownedItems.length > 0) {
-      ownedItems.forEach(([itemId, qty]) => {
-        const itemData = projectData.items.find((i) => i.id === itemId);
-        if (itemData) {
-          debugItemsList.innerHTML += `
-            <li class="flex justify-between border-b border-gray-800 pb-1 cursor-pointer hover:bg-gray-800/80 transition px-1 -mx-1 rounded" onclick="window.setDebugItem('${itemId}')" title="點擊修改數量">
-              <span class="truncate mr-2">${itemData.name}:</span>
-              <span class="text-yellow-400 font-mono font-bold">x${qty}</span>
-            </li>
-          `;
-        }
+    const allItems = projectData.items || [];
+    if (allItems.length > 0) {
+      allItems.forEach((itemData) => {
+        const qty = gameState.items[itemData.id] || 0;
+        const opacityClass = qty > 0 ? "opacity-100" : "opacity-50";
+        debugItemsList.innerHTML += `
+          <li class="flex justify-between items-center border-b border-gray-800 pb-1 hover:bg-gray-800/80 transition px-1 -mx-1 rounded ${opacityClass}">
+            <span class="truncate pr-2 cursor-pointer hover:text-white flex-1" onclick="window.setDebugItem('${itemData.id}')" title="點擊輸入指定數量">${itemData.name}:</span>
+            <div class="flex items-center space-x-1.5">
+              <button onclick="window.adjDebugItem('${itemData.id}', -1)" class="w-5 h-5 flex items-center justify-center bg-gray-800 hover:bg-red-900/80 text-gray-400 hover:text-red-300 rounded border border-gray-700 hover:border-red-500 transition">-</button>
+              <span class="text-yellow-400 font-mono font-bold min-w-[1.5rem] text-center cursor-pointer hover:underline" onclick="window.setDebugItem('${itemData.id}')" title="點擊輸入指定數量">x${qty}</span>
+              <button onclick="window.adjDebugItem('${itemData.id}', 1)" class="w-5 h-5 flex items-center justify-center bg-gray-800 hover:bg-emerald-900/80 text-gray-400 hover:text-emerald-300 rounded border border-gray-700 hover:border-emerald-500 transition">+</button>
+            </div>
+          </li>
+        `;
       });
     } else {
-      debugItemsList.innerHTML = `<li class="text-gray-500 italic text-center py-2">尚未持有道具</li>`;
+      debugItemsList.innerHTML = `<li class="text-gray-500 italic text-center py-2">尚未建立道具</li>`;
     }
   }
 
@@ -246,6 +573,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  window.adjDebugVar = function (varId, delta) {
+    gameState.variables[varId] = (gameState.variables[varId] || 0) + delta;
+    renderDebugPanels();
+    if (!checkGlobalTriggers()) renderScene(gameState.currentSceneId);
+  };
+
   window.setDebugItem = function (itemId) {
     const itemData = projectData.items.find((x) => x.id === itemId);
     if (!itemData) return;
@@ -258,6 +591,15 @@ document.addEventListener("DOMContentLoaded", () => {
       renderDebugPanels();
       if (!checkGlobalTriggers()) renderScene(gameState.currentSceneId);
     }
+  };
+
+  window.adjDebugItem = function (itemId, delta) {
+    gameState.items[itemId] = Math.max(
+      0,
+      (gameState.items[itemId] || 0) + delta,
+    );
+    renderDebugPanels();
+    if (!checkGlobalTriggers()) renderScene(gameState.currentSceneId);
   };
 
   window.editCurrentScene = function () {
@@ -476,19 +818,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     playBgm(bgmToPlay);
 
-    // 處理背景圖片 (優先抓取場景設定，再抓取章節設定)
+    // 處理背景圖片 (優先抓取場景設定，再抓取章節設定，最後預設背景)
     if (scene.bgUrl) {
       testBg.style.backgroundImage = `url('${scene.bgUrl}')`;
       testBg.style.opacity = "0.7";
     } else {
-      if (scene.chapterId && projectData.chapters) {
-        const chapter = projectData.chapters.find(
-          (c) => c.id === scene.chapterId,
-        );
-        if (chapter && chapter.coverUrl) {
-          testBg.style.backgroundImage = `url('${chapter.coverUrl}')`;
-          testBg.style.opacity = "0.7";
-        }
+      const chapter = projectData.chapters
+        ? projectData.chapters.find((c) => c.id === scene.chapterId)
+        : null;
+      if (chapter && chapter.coverUrl) {
+        testBg.style.backgroundImage = `url('${chapter.coverUrl}')`;
+        testBg.style.opacity = "0.7";
+      } else if (
+        projectData.projectInfo &&
+        projectData.projectInfo.defaultBgUrl
+      ) {
+        testBg.style.backgroundImage = `url('${projectData.projectInfo.defaultBgUrl}')`;
+        testBg.style.opacity = "0.7";
+      } else {
+        testBg.style.backgroundImage = "none";
       }
     }
 
@@ -521,6 +869,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (testCgVideo.src !== scene.cgVideoUrl) {
           testCgVideo.src = scene.cgVideoUrl;
         }
+        testCgVideo.volume = gameSettings.volume / 100;
         // 測試模式直接播放，並給予淡入效果
         testCgVideo.classList.remove("hidden");
         testCgVideo.play().catch((e) => console.warn("CG 影片播放失敗", e));
@@ -629,32 +978,78 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     if (validOptions.length > 0) {
-      validOptions.forEach((opt) => {
-        const btn = document.createElement("button");
-        btn.className =
-          "bg-blue-900/80 hover:bg-blue-700 text-white px-4 py-2 rounded border border-blue-500 text-sm transition shadow-md";
-        btn.textContent = opt.text || "繼續";
+      const optionsPerPage = 4;
+      const totalPages = Math.ceil(validOptions.length / optionsPerPage);
 
-        btn.addEventListener("click", () => {
-          applyEffects(
-            opt.variableId,
-            opt.variableVal,
-            opt.itemId,
-            opt.itemAction,
-            opt.itemVal,
-            opt.passTime,
-          );
-          handleJump(opt.targetSceneId, scene.id);
+      function drawPage(page) {
+        optionsContainer.innerHTML = "";
+        const startIdx = (page - 1) * optionsPerPage;
+        const pageOptions = validOptions.slice(
+          startIdx,
+          startIdx + optionsPerPage,
+        );
+
+        pageOptions.forEach((opt) => {
+          const btn = document.createElement("button");
+          btn.className =
+            "bg-blue-900/80 hover:bg-blue-700 text-white px-4 py-2 rounded border border-blue-500 text-sm transition shadow-md whitespace-normal break-words leading-relaxed text-left w-full";
+          btn.textContent = opt.text || "繼續";
+
+          btn.addEventListener("click", () => {
+            applyEffects(
+              opt.variableId,
+              opt.variableVal,
+              opt.itemId,
+              opt.itemAction,
+              opt.itemVal,
+              opt.passTime,
+            );
+            handleJump(opt.targetSceneId, scene.id);
+          });
+
+          optionsContainer.appendChild(btn);
         });
 
-        optionsContainer.appendChild(btn);
-      });
+        if (totalPages > 1) {
+          const paginationEl = document.createElement("div");
+          paginationEl.className =
+            "flex justify-end items-center mt-2 gap-3 w-full";
+
+          const pageInfo = document.createElement("span");
+          pageInfo.className =
+            "text-gray-400 font-bold font-mono text-xs select-none mr-2";
+          pageInfo.textContent = `${page} / ${totalPages}`;
+
+          const prevBtn = document.createElement("button");
+          prevBtn.className = `w-8 h-8 flex items-center justify-center rounded transition shadow-md border ${page === 1 ? "bg-gray-800 text-gray-600 border-gray-700 cursor-not-allowed" : "bg-blue-900/80 text-blue-300 hover:text-white border-blue-500 hover:bg-blue-700"}`;
+          prevBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>`;
+          prevBtn.disabled = page === 1;
+          prevBtn.onclick = () => {
+            if (page > 1) drawPage(page - 1);
+          };
+
+          const nextBtn = document.createElement("button");
+          nextBtn.className = `w-8 h-8 flex items-center justify-center rounded transition shadow-md border ${page === totalPages ? "bg-gray-800 text-gray-600 border-gray-700 cursor-not-allowed" : "bg-blue-900/80 text-blue-300 hover:text-white border-blue-500 hover:bg-blue-700"}`;
+          nextBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+          nextBtn.disabled = page === totalPages;
+          nextBtn.onclick = () => {
+            if (page < totalPages) drawPage(page + 1);
+          };
+
+          paginationEl.appendChild(pageInfo);
+          paginationEl.appendChild(prevBtn);
+          paginationEl.appendChild(nextBtn);
+          optionsContainer.appendChild(paginationEl);
+        }
+      }
+
+      drawPage(1);
     } else {
       const idx = projectData.scenes.findIndex((s) => s.id === scene.id);
       if (idx !== -1 && idx < projectData.scenes.length - 1) {
         const btn = document.createElement("button");
         btn.className =
-          "bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded border border-gray-500 text-sm transition shadow-md";
+          "bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded border border-gray-500 text-sm transition shadow-md whitespace-normal break-words leading-relaxed w-full";
         btn.textContent = "繼續";
         btn.onclick = () =>
           handleJump(projectData.scenes[idx + 1].id, scene.id);
@@ -673,7 +1068,8 @@ document.addEventListener("DOMContentLoaded", () => {
     clearSceneTimer();
 
     if (targetId.startsWith("__SHOP__")) {
-      alert(`[測試模式] 觸發開啟商店：${targetId.replace("__SHOP__", "")}`);
+      const shopId = targetId.replace("__SHOP__", "");
+      window.openShop(shopId);
       return;
     }
 
@@ -742,6 +1138,26 @@ document.addEventListener("DOMContentLoaded", () => {
   forceJumpBtn.addEventListener("click", () =>
     renderScene(debugSceneSelect.value),
   );
+
+  // 6. 快捷鍵功能 (空白鍵 / Enter 快速推進測試)
+  document.addEventListener("keydown", (e) => {
+    if (
+      e.target.tagName === "INPUT" ||
+      e.target.tagName === "TEXTAREA" ||
+      e.target.tagName === "SELECT"
+    )
+      return;
+
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      if (optionsContainer && optionsContainer.children.length > 0) {
+        const firstBtn = optionsContainer.querySelector("button");
+        if (firstBtn && !firstBtn.disabled) {
+          firstBtn.click();
+        }
+      }
+    }
+  });
 
   // 初始化畫面
   populateSceneDropdown();

@@ -95,7 +95,13 @@ document.addEventListener("DOMContentLoaded", () => {
   window.projectData = JSON.parse(localStorage.getItem("textAdventureProject"));
   if (!window.projectData) {
     window.projectData = {
-      projectInfo: { title: "", author: "", description: "", lastSaved: "" },
+      projectInfo: {
+        title: "",
+        author: "",
+        defaultBgUrl: "",
+        description: "",
+        lastSaved: "",
+      },
       chapters: [],
       items: [],
       npcs: [],
@@ -134,6 +140,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">作者</label>
                     <input type="text" id="input-author" value="${data.projectInfo.author}" class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="您的名字...">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">預設背景圖網址 (URL，選填)</label>
+                    <input type="text" id="input-default-bg" value="${data.projectInfo.defaultBgUrl || ""}" class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="https://...">
+                    <p class="text-xs text-gray-500 mt-1">若場景或章節未設定專屬背景圖，將會預設顯示此圖片。</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">遊戲簡介</label>
@@ -269,6 +280,11 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("input-author").addEventListener("input", (e) => {
         window.projectData.projectInfo.author = e.target.value;
       });
+      document
+        .getElementById("input-default-bg")
+        .addEventListener("input", (e) => {
+          window.projectData.projectInfo.defaultBgUrl = e.target.value;
+        });
       document
         .getElementById("input-description")
         .addEventListener("input", (e) => {
@@ -452,8 +468,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // 儲存專案至 localStorage
-  saveBtn.addEventListener("click", () => {
+  // 共用的儲存專案邏輯 (silent = true 時不跳出 alert 彈窗)
+  window.saveProject = function (silent = false) {
     const now = new Date();
     window.projectData.projectInfo.lastSaved = now.toLocaleString("zh-TW");
     if (!window.projectData.projectId) {
@@ -475,6 +491,39 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("textAdventureProjectsList", JSON.stringify(projects));
 
     updateLastSaveTime();
-    alert("專案已成功保存至本地！");
+    if (!silent) alert("專案已成功保存至本地！");
+  };
+
+  // 點擊儲存按鈕
+  saveBtn.addEventListener("click", () => {
+    window.saveProject(false);
   });
+
+  // 測試遊戲與正式遊玩前自動保存
+  const testGameLink = document.getElementById("test-game-link");
+  if (testGameLink) {
+    testGameLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.saveProject(true); // 靜默保存
+      window.location.href = "test.html";
+    });
+  }
+
+  const playGameLink = document.getElementById("play-game-link");
+  if (playGameLink) {
+    playGameLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.saveProject(true); // 靜默保存
+      window.location.href = "player1.html";
+    });
+  }
+
+  // 自動保存機制：每 5 分鐘 (300000 毫秒) 在背景靜默存檔一次
+  setInterval(
+    () => {
+      window.saveProject(true);
+      console.log("系統已自動在背景保存專案進度");
+    },
+    5 * 60 * 1000,
+  );
 });

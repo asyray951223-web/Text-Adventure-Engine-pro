@@ -1646,15 +1646,23 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       playBgm(bgmToPlay);
 
-      // 更新背景圖片
+      // 更新背景圖片 (優先抓取場景設定，再抓取章節設定，最後預設背景)
       if (scene.bgUrl) {
         bgLayer.style.backgroundImage = `url('${scene.bgUrl}')`;
       } else {
-        const chapter = projectData.chapters.find(
-          (c) => c.id === scene.chapterId,
-        );
+        const chapter = projectData.chapters
+          ? projectData.chapters.find((c) => c.id === scene.chapterId)
+          : null;
+
         if (chapter && chapter.coverUrl) {
           bgLayer.style.backgroundImage = `url('${chapter.coverUrl}')`;
+        } else if (
+          projectData.projectInfo &&
+          projectData.projectInfo.defaultBgUrl
+        ) {
+          bgLayer.style.backgroundImage = `url('${projectData.projectInfo.defaultBgUrl}')`;
+        } else {
+          bgLayer.style.backgroundImage = "none";
         }
       }
 

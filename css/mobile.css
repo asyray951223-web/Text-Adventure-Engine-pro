@@ -127,3 +127,50 @@
     font-size: 2.25rem !important;
   }
 }
+
+/* =========================================
+   3. 平板裝置自適應樣式 (Tablet Responsive Design)
+      (針對寬度 769px ~ 1024px 的螢幕，如 iPad 直式)
+   ========================================= */
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* 對話框微調 */
+  #dialogue-box {
+    padding: 2rem !important;
+  }
+
+  /* 中國風 (player2) 特殊畫卷縮小 */
+  body.bg-\[\#120f0d\] #dialogue-box {
+    padding: 2rem 4rem !important;
+    border-top-width: 20px !important;
+    border-bottom-width: 20px !important;
+  }
+
+  /* 對話文字大小與高度微調 */
+  #dialogue-text,
+  #test-dialogue-text {
+    font-size: 1.25rem !important;
+    line-height: 1.7 !important;
+  }
+
+  /* 角色立繪與場景縮放 */
+  #scene-sprite,
+  #test-scene-sprite {
+    max-width: 50% !important;
+    left: 5% !important;
+  }
+
+  /* 選項按鈕區域微調加寬，方便觸控點擊 */
+  .vn-option {
+    width: 85% !important;
+    max-width: 85% !important;
+  }
+
+  /* 編輯器與測試模式的側邊欄縮小保留主畫面空間 */
+  aside.w-64 {
+    width: 200px !important;
+  }
+  #debug-panel {
+    width: 280px !important;
+    padding: 1.25rem !important;
+  }
+}

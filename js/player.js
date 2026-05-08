@@ -575,6 +575,97 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // 建立歷史紀錄 Modal (動態注入)
+  let logModal = document.getElementById("log-modal");
+  let logContainer = null;
+  let closeLogBtn = null;
+  const openLogBtn = document.getElementById("open-log-btn");
+
+  if (!logModal && document.body) {
+    logModal = document.createElement("div");
+    logModal.id = "log-modal";
+    logModal.className =
+      "fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 backdrop-blur-sm opacity-0 transition-opacity duration-300";
+    logModal.innerHTML = `
+      <div id="log-panel" class="bg-gray-900 w-11/12 max-w-3xl h-[80vh] rounded-2xl border border-gray-700 shadow-2xl flex flex-col transform scale-95 translate-y-8 transition-all duration-300 relative">
+        <div class="flex justify-between items-center p-6 border-b border-gray-800 bg-gray-800 rounded-t-2xl">
+          <h2 class="text-2xl font-extrabold text-white flex items-center">
+            <svg class="w-6 h-6 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            歷史對話紀錄
+          </h2>
+          <button id="close-log-btn" class="text-gray-400 hover:text-white transition p-2 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div id="log-container" class="flex-1 overflow-y-auto p-6 custom-scrollbar flex flex-col gap-4">
+        </div>
+      </div>
+    `;
+    document.body.appendChild(logModal);
+    logContainer = document.getElementById("log-container");
+    closeLogBtn = document.getElementById("close-log-btn");
+  }
+
+  function renderLog() {
+    if (!logContainer) return;
+    if (!gameState.dialogueLog || gameState.dialogueLog.length === 0) {
+      logContainer.innerHTML = `<div class="text-center text-gray-500 italic py-10">尚無任何對話紀錄...</div>`;
+      return;
+    }
+    logContainer.innerHTML = gameState.dialogueLog
+      .map(
+        (entry) => `
+      <div class="border-b border-gray-700/50 pb-3">
+        <span class="text-blue-400 font-bold text-sm mr-2">${entry.name}</span>
+        <p class="text-gray-300 mt-1 leading-relaxed">${entry.text}</p>
+      </div>
+    `,
+      )
+      .join("");
+
+    // 自動滾動到底部最新紀錄
+    setTimeout(() => {
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }, 10);
+  }
+
+  function openLog() {
+    renderLog();
+    logModal.classList.remove("hidden");
+    logModal.classList.add("flex");
+    setTimeout(() => {
+      logModal.classList.remove("opacity-0");
+      logModal.classList.add("opacity-100");
+      const panel = document.getElementById("log-panel");
+      if (panel) {
+        panel.classList.remove("translate-y-8", "scale-95");
+        panel.classList.add("translate-y-0", "scale-100");
+      }
+    }, 10);
+  }
+
+  function closeLog() {
+    logModal.classList.remove("opacity-100");
+    logModal.classList.add("opacity-0");
+    const panel = document.getElementById("log-panel");
+    if (panel) {
+      panel.classList.remove("translate-y-0", "scale-100");
+      panel.classList.add("translate-y-8", "scale-95");
+    }
+    setTimeout(() => {
+      logModal.classList.remove("flex");
+      logModal.classList.add("hidden");
+    }, 300);
+  }
+
+  if (openLogBtn) openLogBtn.addEventListener("click", openLog);
+  if (closeLogBtn) closeLogBtn.addEventListener("click", closeLog);
+  if (logModal) {
+    logModal.addEventListener("click", (e) => {
+      if (e.target === logModal) closeLog();
+    });
+  }
+
   const saveMenuBtn = document.getElementById("save-menu-btn");
   const saveModal = document.getElementById("save-modal");
   const closeSaveBtn = document.getElementById("close-save-btn");
@@ -613,6 +704,7 @@ document.addEventListener("DOMContentLoaded", () => {
     notifiedDictionary: [],
     shopStocks: {},
     time: { day: 1, hour: 8, minute: 0 },
+    dialogueLog: [], // 歷史對話紀錄
   };
 
   let slotIndex =
@@ -638,6 +730,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!gameState.notifiedDictionary) gameState.notifiedDictionary = [];
     if (!gameState.shopStocks) gameState.shopStocks = {};
     if (!gameState.time) gameState.time = { day: 1, hour: 8, minute: 0 };
+    if (!gameState.dialogueLog) gameState.dialogueLog = [];
   } else {
     // 新遊戲初始化
     if (projectData.globalVariables) {
@@ -1804,6 +1897,19 @@ document.addEventListener("DOMContentLoaded", () => {
       optionsContainer.classList.add("hidden");
       dialogueBox.style.pointerEvents = "auto";
       currentText = scene.text ? scene.text.replace(/\n/g, "<br>") : "...";
+
+      // --- 新增至歷史對話紀錄 ---
+      if (!gameState.dialogueLog) gameState.dialogueLog = [];
+      // 避免因為載入存檔或重繪導致重複寫入相同的最後一句
+      if (
+        !gameState.dialogueLog.length ||
+        gameState.dialogueLog[gameState.dialogueLog.length - 1].text !==
+          currentText
+      ) {
+        gameState.dialogueLog.push({ name: speakerName, text: currentText });
+        // 限制保留最新的 100 筆紀錄，避免記憶體或效能溢出
+        if (gameState.dialogueLog.length > 100) gameState.dialogueLog.shift();
+      }
 
       textContainer.innerHTML = currentText;
 

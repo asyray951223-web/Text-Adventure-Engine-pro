@@ -580,9 +580,9 @@ window.renderScenes = function () {
           <p class="text-xs text-gray-500 mt-1">立繪將顯示在對話框上方、背景圖之前。</p>
         </div>
         <div class="mt-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1">全螢幕事件 CG (影片 URL，選填)</label>
-          <input type="text" class="scene-cg-video-url w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="https://... (如 mp4)" value="${scene.cgVideoUrl || ""}">
-          <p class="text-xs text-gray-500 mt-1">進入場景時將自動循環播放並覆蓋背景，支援帶有音效的影片。</p>
+          <label class="block text-sm font-medium text-gray-700 mb-1">全螢幕事件 CG (影片或 YouTube URL，選填)</label>
+          <input type="text" class="scene-cg-video-url w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="支援直連 mp4 或 YouTube 網址" value="${scene.cgVideoUrl || ""}">
+          <p class="text-xs text-gray-500 mt-1">進入場景時將自動循環播放並覆蓋背景，支援 YouTube 影片嵌入。</p>
         </div>
         <div class="mt-4">
           <div class="flex items-center justify-between mb-1">

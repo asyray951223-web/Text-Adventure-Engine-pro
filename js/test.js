@@ -87,8 +87,14 @@ document.addEventListener("DOMContentLoaded", () => {
   let sceneTimerTimeout = null;
 
   function clearSceneTimer() {
-    if (sceneTimerInterval) clearInterval(sceneTimerInterval);
-    if (sceneTimerTimeout) clearTimeout(sceneTimerTimeout);
+    if (sceneTimerInterval) {
+      clearInterval(sceneTimerInterval);
+      sceneTimerInterval = null;
+    }
+    if (sceneTimerTimeout) {
+      clearTimeout(sceneTimerTimeout);
+      sceneTimerTimeout = null;
+    }
     if (testTimerContainer) {
       testTimerContainer.classList.add("hidden");
     }
@@ -910,26 +916,67 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 處理事件 CG 影片
     if (testCgVideo) {
+      let ytIframe = document.getElementById("yt-test-cg-iframe");
+      if (!ytIframe) {
+        ytIframe = document.createElement("iframe");
+        ytIframe.id = "yt-test-cg-iframe";
+        ytIframe.className = testCgVideo.className.replace("object-cover", "");
+        ytIframe.style.pointerEvents = "none";
+        ytIframe.setAttribute("frameborder", "0");
+        ytIframe.setAttribute("allow", "autoplay; encrypted-media");
+        testCgVideo.parentNode.insertBefore(ytIframe, testCgVideo.nextSibling);
+      }
+
       if (scene.cgVideoUrl) {
-        if (testCgVideo.src !== scene.cgVideoUrl) {
-          testCgVideo.src = scene.cgVideoUrl;
+        const ytMatch = scene.cgVideoUrl.match(
+          /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i,
+        );
+
+        if (ytMatch) {
+          const videoId = ytMatch[1];
+          const isMuted = gameSettings.volume === 0 ? "&mute=1" : "";
+          const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&disablekb=1&fs=0&modestbranding=1&rel=0&showinfo=0&playsinline=1&loop=1&playlist=${videoId}${isMuted}`;
+
+          testCgVideo.classList.add("hidden");
+          testCgVideo.pause();
+
+          if (ytIframe.getAttribute("src") !== embedUrl) {
+            ytIframe.setAttribute("src", embedUrl);
+          }
+          ytIframe.classList.remove("hidden");
+          setTimeout(() => {
+            ytIframe.classList.remove("opacity-0");
+            ytIframe.classList.add("opacity-100");
+          }, 10);
+        } else {
+          ytIframe.classList.add("hidden");
+          ytIframe.removeAttribute("src");
+
+          if (testCgVideo.src !== scene.cgVideoUrl) {
+            testCgVideo.src = scene.cgVideoUrl;
+          }
+          testCgVideo.volume = gameSettings.volume / 100;
+          testCgVideo.classList.remove("hidden");
+          testCgVideo.play().catch((e) => console.warn("CG 影片播放失敗", e));
+          setTimeout(() => {
+            testCgVideo.classList.remove("opacity-0");
+            testCgVideo.classList.add("opacity-100");
+          }, 10);
         }
-        testCgVideo.volume = gameSettings.volume / 100;
-        // 測試模式直接播放，並給予淡入效果
-        testCgVideo.classList.remove("hidden");
-        testCgVideo.play().catch((e) => console.warn("CG 影片播放失敗", e));
-        setTimeout(() => {
-          testCgVideo.classList.remove("opacity-0");
-          testCgVideo.classList.add("opacity-100");
-        }, 10);
       } else {
         testCgVideo.classList.remove("opacity-100");
         testCgVideo.classList.add("opacity-0");
+        ytIframe.classList.remove("opacity-100");
+        ytIframe.classList.add("opacity-0");
         setTimeout(() => {
           if (testCgVideo.classList.contains("opacity-0")) {
             testCgVideo.classList.add("hidden");
             testCgVideo.pause();
             testCgVideo.removeAttribute("src");
+          }
+          if (ytIframe.classList.contains("opacity-0")) {
+            ytIframe.classList.add("hidden");
+            ytIframe.removeAttribute("src");
           }
         }, 500);
       }

@@ -1118,11 +1118,29 @@ document.addEventListener("DOMContentLoaded", () => {
     ) {
       const hh = (gameState.time.hour || 0).toString().padStart(2, "0");
       const mm = (gameState.time.minute || 0).toString().padStart(2, "0");
+
+      let dayText = `第 ${gameState.time.day || 1} 天`;
+      if (projectData.timeSettings.dayNames) {
+        const names = projectData.timeSettings.dayNames
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s);
+        if (names.length > 0) {
+          const dayIndex = ((gameState.time.day || 1) - 1) % names.length;
+          dayText = names[dayIndex];
+        }
+      }
+
+      const clockHtml = projectData.timeSettings.hideClock
+        ? ""
+        : `<span class="font-mono text-blue-100">${hh}:${mm}</span>`;
+      const marginClass = projectData.timeSettings.hideClock ? "" : "mr-2";
+
       topBarVars.innerHTML += `
         <div class="bg-black/60 text-white px-4 py-2 rounded border border-gray-600 shadow-sm backdrop-blur-sm transition-all duration-300 flex items-center">
           <svg class="w-4 h-4 mr-2 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          <span class="text-blue-200 font-bold mr-2">第 ${gameState.time.day || 1} 天</span>
-          <span class="font-mono text-blue-100">${hh}:${mm}</span>
+          <span class="text-blue-200 font-bold ${marginClass}">${dayText}</span>
+          ${clockHtml}
         </div>
       `;
     }
@@ -1133,6 +1151,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (isNpcVar) {
         const currentNpc = projectData.npcs.find((n) => n.id === currentNpcId);
         if (!currentNpc || currentNpc.boundVariableId !== v.id) return;
+      }
+
+      // 若變數有開啟顯示條件，且未滿足條件時，不顯示該變數
+      if (v.enableCondition && !checkConditions(v.conditions)) {
+        return;
       }
 
       const val = gameState.variables[v.id] || 0;
@@ -1238,11 +1261,18 @@ document.addEventListener("DOMContentLoaded", () => {
       !minutes
     )
       return;
+    const oldDay = gameState.time.day || 1;
     let m = (gameState.time.minute || 0) + minutes;
     let h = (gameState.time.hour || 0) + Math.floor(m / 60);
     gameState.time.minute = m % 60;
-    gameState.time.day = (gameState.time.day || 1) + Math.floor(h / 24);
-    gameState.time.hour = h % 24;
+    const hoursPerDay = projectData.timeSettings.hoursPerDay || 24;
+    gameState.time.day =
+      (gameState.time.day || 1) + Math.floor(h / hoursPerDay);
+    gameState.time.hour = h % hoursPerDay;
+
+    if (gameState.time.day > oldDay) {
+      gameState.pendingDayChangeJump = true;
+    }
   }
 
   function applyEffects(
@@ -1296,7 +1326,15 @@ document.addEventListener("DOMContentLoaded", () => {
           trigger.passTime,
         );
 
-        if (trigger.targetSceneId) {
+        if (
+          gameState.pendingDayChangeJump &&
+          projectData.timeSettings &&
+          projectData.timeSettings.jumpOnDayChange &&
+          projectData.timeSettings.dayChangeSceneId
+        ) {
+          handleJump(null, gameState.currentSceneId, true);
+          return true;
+        } else if (trigger.targetSceneId) {
           handleJump(trigger.targetSceneId, gameState.currentSceneId, true);
           return true; // 成功觸發並跳轉
         }
@@ -1484,6 +1522,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 5. 智慧跳轉與選項渲染
   function handleJump(targetId, currentId, fromTrigger = false) {
+    if (
+      gameState.pendingDayChangeJump &&
+      projectData.timeSettings &&
+      projectData.timeSettings.jumpOnDayChange &&
+      projectData.timeSettings.dayChangeSceneId
+    ) {
+      targetId = projectData.timeSettings.dayChangeSceneId;
+    }
+    gameState.pendingDayChangeJump = false;
+
     if (!targetId) return;
 
     clearSceneTimer();
@@ -2153,7 +2201,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // 檢查全域觸發
             if (!checkGlobalTriggers()) {
-              if (itemData.targetSceneId && isSuccess) {
+              if (
+                gameState.pendingDayChangeJump &&
+                projectData.timeSettings &&
+                projectData.timeSettings.jumpOnDayChange &&
+                projectData.timeSettings.dayChangeSceneId
+              ) {
+                handleJump(null, gameState.currentSceneId, true);
+              } else if (itemData.targetSceneId && isSuccess) {
                 handleJump(
                   itemData.targetSceneId,
                   gameState.currentSceneId,

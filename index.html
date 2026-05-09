@@ -407,7 +407,7 @@
       class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none"
     >
       <div
-        class="bg-gray-900 border border-gray-700 p-8 rounded-xl shadow-2xl w-full max-w-2xl relative transform transition-all duration-300 scale-95 translate-y-4"
+        class="bg-gray-900 border border-gray-700 p-8 rounded-xl shadow-2xl w-full max-w-4xl relative transform transition-all duration-300 scale-95 translate-y-4"
       >
         <button
           id="close-project-modal-btn"
@@ -476,7 +476,7 @@
       class="fixed inset-0 bg-black/90 flex flex-col items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none"
     >
       <div
-        class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col relative transform transition-all duration-300 scale-95 translate-y-4"
+        class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-6xl max-h-[85vh] flex flex-col relative transform transition-all duration-300 scale-95 translate-y-4"
       >
         <button
           id="close-gallery-btn"
@@ -521,13 +521,13 @@
         <div class="p-6 overflow-y-auto flex-1 bg-gray-800/30">
           <div
             id="gallery-endings-container"
-            class="grid grid-cols-1 md:grid-cols-2 gap-4"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             <!-- 結局將由 JS 動態產生 -->
           </div>
           <div
             id="gallery-achievements-container"
-            class="hidden grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            class="hidden grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             <!-- 成就將由 JS 動態產生 -->
           </div>
@@ -635,6 +635,18 @@
             <strong class="text-blue-300 w-24 flex-shrink-0">商店系統</strong
             ><span
               >建立遊戲內的商店，讓玩家可以消耗變數 (如金幣) 購買道具。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-blue-300 w-24 flex-shrink-0">測驗系統</strong
+            ><span
+              >建立遊戲內的測驗或密碼鎖，讓玩家輸入文字答案並觸發不同結果。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-blue-300 w-24 flex-shrink-0">時間系統</strong
+            ><span
+              >管理遊戲內的時間系統，設定初始天數與時制，並在場景或事件中推進時間，或設定跨日自動跳轉。</span
             >
           </div>
         </div>
@@ -748,15 +760,10 @@
             >
           </div>
           <div class="flex items-start">
-            <strong class="text-blue-300 w-24 flex-shrink-0">測驗系統</strong
+            <strong class="text-emerald-300 w-28 flex-shrink-0">歷史紀錄</strong
             ><span
-              >建立遊戲內的測驗或密碼鎖，讓玩家輸入文字答案並觸發不同結果。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-blue-300 w-24 flex-shrink-0">時間系統</strong
-            ><span
-              >管理遊戲內的時間系統，設定初始時間，並在場景或事件中推進時間。</span
+              >點擊上方的「前塵 /
+              歷史紀錄」按鈕，可隨時回顧先前的對話與劇情，不用擔心不小心點太快而錯過任何細節。</span
             >
           </div>
         </div>

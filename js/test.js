@@ -497,10 +497,27 @@ document.addEventListener("DOMContentLoaded", () => {
     ) {
       const hh = (gameState.time.hour || 0).toString().padStart(2, "0");
       const mm = (gameState.time.minute || 0).toString().padStart(2, "0");
+
+      let dayText = `D${gameState.time.day || 1}`;
+      if (projectData.timeSettings.dayNames) {
+        const names = projectData.timeSettings.dayNames
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s);
+        if (names.length > 0) {
+          const dayIndex = ((gameState.time.day || 1) - 1) % names.length;
+          dayText = names[dayIndex];
+        }
+      }
+
+      const clockText = projectData.timeSettings.hideClock
+        ? ""
+        : ` ${hh}:${mm}`;
+
       debugVariablesList.innerHTML += `
         <li class="flex justify-between border-b border-gray-800 pb-1 cursor-pointer hover:bg-gray-800/80 transition px-1 -mx-1 rounded" onclick="window.setDebugTime()" title="點擊修改時間">
           <span>系統時間:</span>
-          <span class="text-blue-300 font-mono font-bold">D${gameState.time.day || 1} ${hh}:${mm}</span>
+          <span class="text-blue-300 font-mono font-bold">${dayText}${clockText}</span>
         </li>
       `;
     }
@@ -703,11 +720,18 @@ document.addEventListener("DOMContentLoaded", () => {
       !minutes
     )
       return;
+    const oldDay = gameState.time.day || 1;
     let m = (gameState.time.minute || 0) + minutes;
     let h = (gameState.time.hour || 0) + Math.floor(m / 60);
     gameState.time.minute = m % 60;
-    gameState.time.day = (gameState.time.day || 1) + Math.floor(h / 24);
-    gameState.time.hour = h % 24;
+    const hoursPerDay = projectData.timeSettings.hoursPerDay || 24;
+    gameState.time.day =
+      (gameState.time.day || 1) + Math.floor(h / hoursPerDay);
+    gameState.time.hour = h % hoursPerDay;
+
+    if (gameState.time.day > oldDay) {
+      gameState.pendingDayChangeJump = true;
+    }
   }
 
   function applyEffects(
@@ -759,7 +783,15 @@ document.addEventListener("DOMContentLoaded", () => {
           trigger.itemVal,
           trigger.passTime,
         );
-        if (trigger.targetSceneId) {
+        if (
+          gameState.pendingDayChangeJump &&
+          projectData.timeSettings &&
+          projectData.timeSettings.jumpOnDayChange &&
+          projectData.timeSettings.dayChangeSceneId
+        ) {
+          handleJump(null, gameState.currentSceneId, true);
+          return true;
+        } else if (trigger.targetSceneId) {
           console.warn(`[觸發器] 觸發了全域事件：${trigger.name}`);
           handleJump(trigger.targetSceneId, gameState.currentSceneId, true);
           return true;
@@ -1088,6 +1120,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function handleJump(targetId, currentId, fromTrigger = false) {
+    if (
+      gameState.pendingDayChangeJump &&
+      projectData.timeSettings &&
+      projectData.timeSettings.jumpOnDayChange &&
+      projectData.timeSettings.dayChangeSceneId
+    ) {
+      targetId = projectData.timeSettings.dayChangeSceneId;
+    }
+    gameState.pendingDayChangeJump = false;
+
     if (!targetId) return;
 
     clearSceneTimer();

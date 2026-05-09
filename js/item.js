@@ -1,6 +1,30 @@
 // 負責管理與渲染「道具系統」頁面邏輯
 
 window.renderItems = function () {
+  if (!document.getElementById("rainbow-style")) {
+    const style = document.createElement("style");
+    style.id = "rainbow-style";
+    style.innerHTML = `
+      @property --bg-angle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+      @keyframes rainbow-bg-spin { 0% { --bg-angle: 0deg; } 100% { --bg-angle: 360deg; } }
+      @keyframes rainbow-text-anim { 0%, 100% { filter: drop-shadow(0 0 5px rgba(255,255,255,0.6)) hue-rotate(0deg); } 50% { filter: drop-shadow(0 0 12px rgba(255,255,255,0.9)) hue-rotate(180deg); } }
+      @keyframes rainbow-border-anim { 0% { background-position: 0% 0%, 0px 0px, 0% 0%; } 100% { background-position: 0% 0%, -100px -100px, 0% 0%; } }
+      @keyframes rainbow-border-pulse { 0%, 100% { box-shadow: 0 0 15px rgba(255,105,180,0.5), inset 0 0 10px rgba(0,255,255,0.3); } 50% { box-shadow: 0 0 25px rgba(255,105,180,0.9), inset 0 0 15px rgba(0,255,255,0.6); } }
+      @keyframes gold-shine { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+      @keyframes red-pulse { 0%, 100% { box-shadow: 0 0 10px rgba(220,38,38,0.5), inset 0 0 8px rgba(220,38,38,0.3); border-color: rgba(220,38,38,0.5); } 50% { box-shadow: 0 0 20px rgba(248,113,113,0.9), inset 0 0 15px rgba(248,113,113,0.6); border-color: rgba(248,113,113,1); } }
+      .rainbow-border-editor { background: linear-gradient(#ffffff, #ffffff) padding-box, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='10' cy='10' r='1.5' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0.2;1;0.2' dur='1.5s' repeatCount='indefinite'/%3E%3C/circle%3E%3Ccircle cx='90' cy='15' r='1.5' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0.2;1;0.2' dur='2s' repeatCount='indefinite'/%3E%3C/circle%3E%3Ccircle cx='50' cy='50' r='1' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0;1;0' dur='1s' repeatCount='indefinite'/%3E%3C/circle%3E%3Ccircle cx='80' cy='80' r='2' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0.2;1;0.2' dur='2.5s' repeatCount='indefinite'/%3E%3C/circle%3E%3Ccircle cx='20' cy='85' r='1' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0.1;0.8;0.1' dur='1.8s' repeatCount='indefinite'/%3E%3C/circle%3E%3Ccircle cx='60' cy='90' r='1.5' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0.3;1;0.3' dur='1.2s' repeatCount='indefinite'/%3E%3C/circle%3E%3C/svg%3E") border-box, conic-gradient(from var(--bg-angle), #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #ff2400) border-box !important; border: 3px solid transparent !important; background-size: 100% 100%, 100px 100px, 100% 100% !important; animation: rainbow-border-anim 4s linear infinite, rainbow-border-pulse 3s ease-in-out infinite, rainbow-bg-spin 4s linear infinite; }
+      .rainbow-border-dark { background: linear-gradient(#1f2937, #1f2937) padding-box, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='10' cy='10' r='1.5' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0.2;1;0.2' dur='1.5s' repeatCount='indefinite'/%3E%3C/circle%3E%3Ccircle cx='90' cy='15' r='1.5' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0.2;1;0.2' dur='2s' repeatCount='indefinite'/%3E%3C/circle%3E%3Ccircle cx='50' cy='50' r='1' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0;1;0' dur='1s' repeatCount='indefinite'/%3E%3C/circle%3E%3Ccircle cx='80' cy='80' r='2' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0.2;1;0.2' dur='2.5s' repeatCount='indefinite'/%3E%3C/circle%3E%3Ccircle cx='20' cy='85' r='1' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0.1;0.8;0.1' dur='1.8s' repeatCount='indefinite'/%3E%3C/circle%3E%3Ccircle cx='60' cy='90' r='1.5' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0.3;1;0.3' dur='1.2s' repeatCount='indefinite'/%3E%3C/circle%3E%3C/svg%3E") border-box, conic-gradient(from var(--bg-angle), #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #ff2400) border-box !important; border: 2px solid transparent !important; background-size: 100% 100%, 100px 100px, 100% 100% !important; animation: rainbow-border-anim 4s linear infinite, rainbow-border-pulse 3s ease-in-out infinite, rainbow-bg-spin 4s linear infinite; }
+      @keyframes rainbow-text-bg-anim { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+      .rainbow-text { background-image: linear-gradient(124deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #ff2400) !important; -webkit-background-clip: text !important; color: transparent !important; background-size: 300% 300% !important; animation: rainbow-text-anim 3s ease-in-out infinite, rainbow-text-bg-anim 4s linear infinite; }
+      .gold-border-editor { background: linear-gradient(#ffffff, #ffffff) padding-box, linear-gradient(60deg, #b45309, #fef08a, #ca8a04, #fef08a, #b45309) border-box !important; border: 3px solid transparent !important; background-size: 200% 200% !important; animation: gold-shine 2s linear infinite; }
+      .gold-border-dark { background: linear-gradient(#1f2937, #1f2937) padding-box, linear-gradient(60deg, #b45309, #fef08a, #ca8a04, #fef08a, #b45309) border-box !important; border: 2px solid transparent !important; background-size: 200% 200% !important; animation: gold-shine 2s linear infinite; }
+      .gold-text { background-image: linear-gradient(60deg, #ca8a04, #fef08a, #ca8a04, #fef08a, #ca8a04) !important; -webkit-background-clip: text !important; color: transparent !important; background-size: 200% 200% !important; animation: gold-shine 2s linear infinite; }
+      .red-border-editor { border: 2px solid #dc2626 !important; animation: red-pulse 1.5s ease-in-out infinite; }
+      .red-border-dark { border: 2px solid #ef4444 !important; animation: red-pulse 1.5s ease-in-out infinite; }
+    `;
+    document.head.appendChild(style);
+  }
+
   const container = document.getElementById("items-container");
   const addBtn = document.getElementById("add-item-btn");
   if (!container || !addBtn) return;
@@ -38,8 +62,7 @@ window.renderItems = function () {
     hasRenderedAny = true;
 
     const itemEl = document.createElement("div");
-    itemEl.className =
-      "bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden transition";
+    itemEl.className = `bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden transition ${item.rarity === "rainbow" ? "rainbow-border-editor shadow-[0_0_15px_rgba(255,0,255,0.3)]" : item.rarity === "gold" ? "gold-border-editor shadow-[0_0_15px_rgba(250,204,21,0.4)]" : item.rarity === "red" ? "red-border-editor shadow-[0_0_15px_rgba(220,38,38,0.4)]" : ""}`;
 
     // 道具標題區塊 (點擊此區塊進行摺疊/展開)
     const headerEl = document.createElement("div");
@@ -66,12 +89,27 @@ window.renderItems = function () {
         ? `<span class="bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded ml-2 whitespace-nowrap font-bold">消耗品</span>`
         : `<span class="bg-purple-100 text-purple-600 text-xs px-2 py-1 rounded ml-2 whitespace-nowrap font-bold">永久道具</span>`;
 
+    const colorMap = {
+      gray: "text-gray-500",
+      white: "text-gray-800",
+      green: "text-emerald-600 drop-shadow-[0_0_2px_rgba(5,150,105,0.4)]",
+      blue: "text-blue-600 drop-shadow-[0_0_4px_rgba(37,99,235,0.5)]",
+      indigo: "text-indigo-600 drop-shadow-[0_0_5px_rgba(79,70,229,0.5)]",
+      purple: "text-purple-600 drop-shadow-[0_0_6px_rgba(147,51,234,0.6)]",
+      orange:
+        "text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)] brightness-110",
+      red: "text-red-600 drop-shadow-[0_0_10px_rgba(220,38,38,0.9)] animate-pulse",
+      gold: "gold-text drop-shadow-[0_0_12px_rgba(255,215,0,1)]",
+      rainbow: "rainbow-text drop-shadow-[0_0_5px_rgba(0,0,0,0.3)]",
+    };
+    const titleColor = colorMap[item.rarity] || "text-gray-800";
+
     headerEl.innerHTML = `
       <div class="flex items-center space-x-3 w-full">
         <span>${iconSvg}</span>
         <span class="text-sm font-mono text-gray-400 w-24 truncate cursor-pointer hover:text-blue-500 transition select-none" title="點擊複製 ID: ${item.id}" onclick="window.copyId(event, '${item.id}')">${item.id}</span>
         <input type="text" value="${item.name}" placeholder="輸入道具名稱..." 
-               class="flex-1 font-bold text-lg text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none px-1 py-1 transition">
+               class="flex-1 font-bold text-lg ${titleColor} bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none px-1 py-1 transition">
         ${typeBadge}
       </div>
       <button class="delete-btn text-red-500 hover:text-red-700 p-1 bg-white hover:bg-red-50 rounded shadow-sm border border-transparent hover:border-red-200 transition ml-4" title="刪除此道具">
@@ -345,6 +383,21 @@ window.renderItems = function () {
             <label class="block text-sm font-medium text-gray-700 whitespace-nowrap ml-2">每次使用消耗數量:</label>
             <input type="number" class="consume-amount-input w-20 border border-gray-300 rounded shadow-sm p-1.5 text-sm focus:ring-blue-500 focus:border-blue-500" value="${item.consumeAmount !== undefined ? item.consumeAmount : 1}" min="1">
           </div>
+          <div class="flex items-center space-x-2 ml-4">
+            <label class="block text-sm font-medium text-gray-700 whitespace-nowrap">稀有度/顏色</label>
+            <select class="rarity-select w-full max-w-xs border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+              <option value="gray" ${item.rarity === "gray" ? "selected" : ""}>殘破 (灰)</option>
+              <option value="white" ${item.rarity === "white" || !item.rarity ? "selected" : ""}>一般 (白)</option>
+              <option value="green" ${item.rarity === "green" ? "selected" : ""}>優秀 (綠)</option>
+              <option value="blue" ${item.rarity === "blue" ? "selected" : ""}>精良 (藍)</option>
+              <option value="indigo" ${item.rarity === "indigo" ? "selected" : ""}>卓越 (靛)</option>
+              <option value="purple" ${item.rarity === "purple" ? "selected" : ""}>史詩 (紫)</option>
+              <option value="orange" ${item.rarity === "orange" ? "selected" : ""}>傳說 (橘)</option>
+              <option value="red" ${item.rarity === "red" ? "selected" : ""}>神話 (紅)</option>
+              <option value="gold" ${item.rarity === "gold" ? "selected" : ""}>究極 (金)</option>
+              <option value="rainbow" ${item.rarity === "rainbow" ? "selected" : ""}>永恆 (虹)</option>
+            </select>
+          </div>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">道具說明</label>
@@ -463,6 +516,13 @@ window.renderItems = function () {
         .querySelector(".type-select")
         .addEventListener("change", (e) => {
           item.type = e.target.value;
+          window.renderItems();
+        });
+
+      contentEl
+        .querySelector(".rarity-select")
+        .addEventListener("change", (e) => {
+          item.rarity = e.target.value;
           window.renderItems();
         });
 
@@ -680,6 +740,7 @@ function addNewItem() {
     name: "新道具",
     type: "consumable",
     consumeAmount: 1,
+    rarity: "white",
     description: "",
     canSell: false,
     sellVariableId: "",

@@ -54,6 +54,19 @@ document.addEventListener("DOMContentLoaded", () => {
       @keyframes sceneSlideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
       @keyframes sceneSlideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
       @keyframes sceneSpinIn { from { transform: rotate(-180deg) scale(0.5); opacity: 0; } to { transform: rotate(0) scale(1); opacity: 1; } }
+      @property --bg-angle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+      @keyframes rainbow-bg-spin { 0% { --bg-angle: 0deg; } 100% { --bg-angle: 360deg; } }
+      @keyframes rainbow-text-anim { 0%, 100% { filter: drop-shadow(0 0 5px rgba(255,255,255,0.6)) hue-rotate(0deg); } 50% { filter: drop-shadow(0 0 12px rgba(255,255,255,0.9)) hue-rotate(180deg); } }
+      @keyframes rainbow-border-anim { 0% { background-position: 0% 0%, 0px 0px, 0% 0%; } 100% { background-position: 0% 0%, -100px -100px, 0% 0%; } }
+      @keyframes rainbow-border-pulse { 0%, 100% { box-shadow: 0 0 15px rgba(255,105,180,0.5), inset 0 0 10px rgba(0,255,255,0.3); } 50% { box-shadow: 0 0 25px rgba(255,105,180,0.9), inset 0 0 15px rgba(0,255,255,0.6); } }
+      @keyframes gold-shine { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+      @keyframes red-pulse { 0%, 100% { box-shadow: 0 0 15px rgba(220,38,38,0.5), inset 0 0 10px rgba(220,38,38,0.2); border-color: rgba(220,38,38,0.5); } 50% { box-shadow: 0 0 25px rgba(248,113,113,0.9), inset 0 0 15px rgba(248,113,113,0.6); border-color: rgba(248,113,113,1); } }
+      .rainbow-border-dark { background: linear-gradient(#1f2937, #1f2937) padding-box, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='10' cy='10' r='1.5' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0.2;1;0.2' dur='1.5s' repeatCount='indefinite'/%3E%3C/circle%3E%3Ccircle cx='90' cy='15' r='1.5' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0.2;1;0.2' dur='2s' repeatCount='indefinite'/%3E%3C/circle%3E%3Ccircle cx='50' cy='50' r='1' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0;1;0' dur='1s' repeatCount='indefinite'/%3E%3C/circle%3E%3Ccircle cx='80' cy='80' r='2' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0.2;1;0.2' dur='2.5s' repeatCount='indefinite'/%3E%3C/circle%3E%3Ccircle cx='20' cy='85' r='1' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0.1;0.8;0.1' dur='1.8s' repeatCount='indefinite'/%3E%3C/circle%3E%3Ccircle cx='60' cy='90' r='1.5' fill='%23fff'%3E%3Canimate attributeName='opacity' values='0.3;1;0.3' dur='1.2s' repeatCount='indefinite'/%3E%3C/circle%3E%3C/svg%3E") border-box, conic-gradient(from var(--bg-angle), #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #ff2400) border-box !important; border: 2px solid transparent !important; background-size: 100% 100%, 100px 100px, 100% 100% !important; animation: rainbow-border-anim 4s linear infinite, rainbow-border-pulse 3s ease-in-out infinite, rainbow-bg-spin 4s linear infinite; }
+      @keyframes rainbow-text-bg-anim { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+      .rainbow-text { background-image: linear-gradient(124deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #ff2400) !important; -webkit-background-clip: text !important; color: transparent !important; background-size: 300% 300% !important; animation: rainbow-text-anim 3s ease-in-out infinite, rainbow-text-bg-anim 4s linear infinite; }
+      .gold-border-dark { background: linear-gradient(#1f2937, #1f2937) padding-box, linear-gradient(60deg, #b45309, #fef08a, #ca8a04, #fef08a, #b45309) border-box !important; border: 2px solid transparent !important; background-size: 200% 200% !important; animation: gold-shine 2s linear infinite; }
+      .gold-text { background-image: linear-gradient(60deg, #ca8a04, #fef08a, #ca8a04, #fef08a, #ca8a04) !important; -webkit-background-clip: text !important; color: transparent !important; background-size: 200% 200% !important; animation: gold-shine 2s linear infinite; }
+      .red-border-dark { border: 2px solid #ef4444 !important; animation: red-pulse 1.5s ease-in-out infinite; }
     `;
     document.head.appendChild(style);
   }
@@ -162,6 +175,50 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (volumeRange) volumeRange.addEventListener("input", saveSettings);
+
+  let audioCtx = null;
+
+  // 商店收銀機音效 (合成喀鏘聲)
+  function playCashSound() {
+    if (gameSettings.volume === 0) return;
+    try {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === "suspended") audioCtx.resume();
+
+      const t = audioCtx.currentTime;
+      const vol = (gameSettings.volume / 100) * 0.15;
+
+      // 喀 (Ka) - 沉悶的機械敲擊聲
+      const osc1 = audioCtx.createOscillator();
+      const gain1 = audioCtx.createGain();
+      osc1.type = "square";
+      osc1.frequency.setValueAtTime(150, t);
+      gain1.gain.setValueAtTime(vol, t);
+      gain1.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+      osc1.connect(gain1);
+      gain1.connect(audioCtx.destination);
+      osc1.start(t);
+      osc1.stop(t + 0.1);
+
+      // 鏘 (Ching) - 清脆的高頻金屬鈴聲
+      const osc2 = audioCtx.createOscillator();
+      const gain2 = audioCtx.createGain();
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(1800, t + 0.08);
+      osc2.frequency.exponentialRampToValueAtTime(2800, t + 0.3);
+      gain2.gain.setValueAtTime(0, t);
+      gain2.gain.setValueAtTime(vol * 1.5, t + 0.08);
+      gain2.gain.exponentialRampToValueAtTime(0.01, t + 0.6);
+      osc2.connect(gain2);
+      gain2.connect(audioCtx.destination);
+      osc2.start(t + 0.08);
+      osc2.stop(t + 0.6);
+    } catch (e) {
+      console.warn("收銀機音效播放失敗", e);
+    }
+  }
 
   window.openSettings = function () {
     settingsModal.classList.remove("hidden");
@@ -280,6 +337,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!itemData || !varData) return;
 
+        const colorMap = {
+          gray: "text-gray-500",
+          white: "text-white",
+          green: "text-emerald-400 drop-shadow-[0_0_3px_rgba(52,211,153,0.8)]",
+          blue: "text-blue-400 drop-shadow-[0_0_5px_rgba(96,165,250,0.8)]",
+          indigo: "text-indigo-400 drop-shadow-[0_0_6px_rgba(129,140,248,0.8)]",
+          purple: "text-purple-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.9)]",
+          orange:
+            "text-orange-400 drop-shadow-[0_0_12px_rgba(251,146,60,1)] brightness-110",
+          red: "text-red-400 drop-shadow-[0_0_15px_rgba(248,113,113,1)] brightness-125 animate-pulse",
+          gold: "gold-text drop-shadow-[0_0_18px_rgba(250,204,21,1)]",
+          rainbow: "rainbow-text drop-shadow-[0_0_10px_rgba(255,255,255,0.6)]",
+        };
+        const titleColor = colorMap[itemData.rarity] || "text-white";
+
+        const cardStyleMap = {
+          gray: "border-gray-800 shadow-md",
+          white: "border-gray-700 shadow-lg",
+          green: "border-emerald-500/40 shadow-[0_0_10px_rgba(52,211,153,0.2)]",
+          blue: "border-blue-500/50 shadow-[0_0_12px_rgba(96,165,250,0.3)]",
+          indigo:
+            "border-indigo-500/50 shadow-[0_0_14px_rgba(129,140,248,0.3)]",
+          purple:
+            "border-purple-500/60 shadow-[0_0_15px_rgba(192,132,252,0.4)]",
+          orange: "border-orange-500/70 shadow-[0_0_20px_rgba(251,146,60,0.5)]",
+          red: "red-border-dark shadow-[0_0_25px_rgba(248,113,113,0.6)]",
+          gold: "gold-border-dark shadow-[0_0_30px_rgba(250,204,21,0.6)]",
+          rainbow:
+            "rainbow-border-dark shadow-[0_0_35px_rgba(255,255,255,0.5)]",
+        };
+        const cardStyle = cardStyleMap[itemData.rarity] || cardStyleMap.white;
+
         const stockKey = shop.id + "_" + index;
         if (
           gameState.shopStocks[stockKey] === undefined &&
@@ -307,13 +396,12 @@ document.addEventListener("DOMContentLoaded", () => {
             : `<span class="text-xs bg-purple-900/50 text-purple-400 px-2 py-0.5 rounded-full border border-purple-700/50 whitespace-nowrap">永久道具</span>`;
 
         const card = document.createElement("div");
-        card.className =
-          "bg-gray-800 border border-gray-700 p-4 rounded-xl flex flex-col justify-between hover:border-yellow-500 transition shadow-lg";
+        card.className = `bg-gray-800 border p-4 rounded-xl flex flex-col justify-between hover:border-yellow-500 transition-all duration-200 hover:-translate-y-1 hover:scale-105 active:scale-95 active:translate-y-0 hover:z-10 relative ${cardStyle}`;
 
         card.innerHTML = `
           <div>
             <div class="flex justify-between items-start mb-2">
-              <h3 class="text-lg font-bold text-white truncate flex-1 pr-2">${itemData.name}</h3>
+              <h3 class="text-lg font-bold ${titleColor} truncate flex-1 pr-2">${itemData.name}</h3>
               <div class="flex space-x-1 items-center flex-shrink-0">
                 ${stockBadge}
                 ${typeBadge}
@@ -334,6 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (canAfford) {
           card.querySelector(".buy-btn").addEventListener("click", () => {
+            playCashSound();
             gameState.variables[good.costVariableId] -= good.price;
             gameState.items[good.itemId] =
               (gameState.items[good.itemId] || 0) + 1;
@@ -367,19 +456,50 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         if (!itemData || !varData) return;
 
+        const colorMap = {
+          gray: "text-gray-500",
+          white: "text-white",
+          green: "text-emerald-400 drop-shadow-[0_0_3px_rgba(52,211,153,0.8)]",
+          blue: "text-blue-400 drop-shadow-[0_0_5px_rgba(96,165,250,0.8)]",
+          indigo: "text-indigo-400 drop-shadow-[0_0_6px_rgba(129,140,248,0.8)]",
+          purple: "text-purple-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.9)]",
+          orange:
+            "text-orange-400 drop-shadow-[0_0_12px_rgba(251,146,60,1)] brightness-110",
+          red: "text-red-400 drop-shadow-[0_0_15px_rgba(248,113,113,1)] brightness-125 animate-pulse",
+          gold: "gold-text drop-shadow-[0_0_18px_rgba(250,204,21,1)]",
+          rainbow: "rainbow-text drop-shadow-[0_0_10px_rgba(255,255,255,0.6)]",
+        };
+        const titleColor = colorMap[itemData.rarity] || "text-white";
+
+        const cardStyleMap = {
+          gray: "border-gray-800 shadow-md",
+          white: "border-gray-700 shadow-lg",
+          green: "border-emerald-500/40 shadow-[0_0_10px_rgba(52,211,153,0.2)]",
+          blue: "border-blue-500/50 shadow-[0_0_12px_rgba(96,165,250,0.3)]",
+          indigo:
+            "border-indigo-500/50 shadow-[0_0_14px_rgba(129,140,248,0.3)]",
+          purple:
+            "border-purple-500/60 shadow-[0_0_15px_rgba(192,132,252,0.4)]",
+          orange: "border-orange-500/70 shadow-[0_0_20px_rgba(251,146,60,0.5)]",
+          red: "red-border-dark shadow-[0_0_25px_rgba(248,113,113,0.6)]",
+          gold: "gold-border-dark shadow-[0_0_30px_rgba(250,204,21,0.6)]",
+          rainbow:
+            "rainbow-border-dark shadow-[0_0_35px_rgba(255,255,255,0.5)]",
+        };
+        const cardStyle = cardStyleMap[itemData.rarity] || cardStyleMap.white;
+
         const typeBadge =
           itemData.type === "consumable"
             ? `<span class="text-xs bg-orange-900/50 text-orange-400 px-2 py-0.5 rounded-full border border-orange-700/50 whitespace-nowrap">消耗品</span>`
             : `<span class="text-xs bg-purple-900/50 text-purple-400 px-2 py-0.5 rounded-full border border-purple-700/50 whitespace-nowrap">永久道具</span>`;
 
         const card = document.createElement("div");
-        card.className =
-          "bg-gray-800 border border-gray-700 p-4 rounded-xl flex flex-col justify-between hover:border-emerald-500 transition shadow-lg";
+        card.className = `bg-gray-800 border p-4 rounded-xl flex flex-col justify-between hover:border-emerald-500 transition-all duration-200 hover:-translate-y-1 hover:scale-105 active:scale-95 active:translate-y-0 hover:z-10 relative ${cardStyle}`;
 
         card.innerHTML = `
           <div>
             <div class="flex justify-between items-start mb-2">
-              <h3 class="text-lg font-bold text-white truncate flex-1 pr-2">${itemData.name}</h3>
+              <h3 class="text-lg font-bold ${titleColor} truncate flex-1 pr-2">${itemData.name}</h3>
               <div class="flex space-x-1 items-center flex-shrink-0">
                 <span class="text-xs bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded-full border border-blue-700/50 whitespace-nowrap">持有: ${qty}</span>
                 ${typeBadge}
@@ -399,6 +519,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
 
         card.querySelector(".sell-btn").addEventListener("click", () => {
+          playCashSound();
           gameState.items[itemId] -= 1;
           gameState.variables[itemData.sellVariableId] =
             (gameState.variables[itemData.sellVariableId] || 0) +
@@ -663,12 +784,26 @@ document.addEventListener("DOMContentLoaded", () => {
       allItems.forEach((itemData) => {
         const qty = gameState.items[itemData.id] || 0;
         const opacityClass = qty > 0 ? "opacity-100" : "opacity-50";
+        const colorMap = {
+          gray: "text-gray-500",
+          white: "",
+          green: "text-emerald-400 drop-shadow-[0_0_3px_rgba(52,211,153,0.8)]",
+          blue: "text-blue-400 drop-shadow-[0_0_5px_rgba(96,165,250,0.8)]",
+          indigo: "text-indigo-400 drop-shadow-[0_0_6px_rgba(129,140,248,0.8)]",
+          purple: "text-purple-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.9)]",
+          orange:
+            "text-orange-400 drop-shadow-[0_0_12px_rgba(251,146,60,1)] brightness-110",
+          red: "text-red-400 drop-shadow-[0_0_15px_rgba(248,113,113,1)] brightness-125 animate-pulse",
+          gold: "gold-text drop-shadow-[0_0_18px_rgba(250,204,21,1)]",
+          rainbow: "rainbow-text drop-shadow-[0_0_10px_rgba(255,255,255,0.6)]",
+        };
+        const titleColor = colorMap[itemData.rarity] || "";
         debugItemsList.innerHTML += `
           <li class="flex justify-between items-center border-b border-gray-800 pb-1 hover:bg-gray-800/80 transition px-1 -mx-1 rounded ${opacityClass}">
-            <span class="truncate pr-2 cursor-pointer hover:text-white flex-1" onclick="window.setDebugItem('${itemData.id}')" title="點擊輸入指定數量">${itemData.name}:</span>
+            <span class="truncate pr-2 cursor-pointer hover:text-white flex-1 ${titleColor}" onclick="window.setDebugItem('${itemData.id}')" title="點擊輸入指定數量">${itemData.name}:</span>
             <div class="flex items-center space-x-1.5">
               <button onclick="window.adjDebugItem('${itemData.id}', -1)" class="w-5 h-5 flex items-center justify-center bg-gray-800 hover:bg-red-900/80 text-gray-400 hover:text-red-300 rounded border border-gray-700 hover:border-red-500 transition">-</button>
-              <span class="text-yellow-400 font-mono font-bold min-w-[1.5rem] text-center cursor-pointer hover:underline" onclick="window.setDebugItem('${itemData.id}')" title="點擊輸入指定數量">x${qty}</span>
+              <span class="font-mono font-bold min-w-[1.5rem] text-center cursor-pointer hover:underline text-gray-300" onclick="window.setDebugItem('${itemData.id}')" title="點擊輸入指定數量">${qty}</span>
               <button onclick="window.adjDebugItem('${itemData.id}', 1)" class="w-5 h-5 flex items-center justify-center bg-gray-800 hover:bg-emerald-900/80 text-gray-400 hover:text-emerald-300 rounded border border-gray-700 hover:border-emerald-500 transition">+</button>
             </div>
           </li>

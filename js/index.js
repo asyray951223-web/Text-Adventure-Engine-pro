@@ -42,9 +42,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 檢查是否有暫存專案，決定是否顯示「繼續編輯」按鈕
   const continueEditBtn = document.getElementById("continue-edit-btn");
+  const continueTitle = document.getElementById("continue-edit-title");
+  const continueDesc = document.getElementById("continue-edit-desc");
   if (continueEditBtn && localStorage.getItem("textAdventureProject")) {
-    continueEditBtn.classList.remove("hidden");
-    continueEditBtn.classList.add("flex");
+    if (continueTitle) continueTitle.textContent = "繼續編輯";
+    if (continueDesc) continueDesc.textContent = "返回當前暫存專案";
   }
 
   // 取得多份專案清單，並為舊版專案進行自動移轉

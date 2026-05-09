@@ -324,11 +324,11 @@
       </div>
     </a>
 
-    <!-- 繼續編輯懸浮按鈕 (FAB，由 JS 動態顯示) -->
+    <!-- 進入編輯器懸浮按鈕 (FAB，永遠顯示，文字由 JS 動態變更) -->
     <a
       href="editor.html"
       id="continue-edit-btn"
-      class="absolute bottom-6 md:bottom-10 right-4 md:right-10 z-40 hidden items-center justify-center space-x-3 bg-amber-900/80 hover:bg-amber-800 border-2 border-amber-600 hover:border-amber-400 text-white p-3 md:px-6 md:py-4 rounded-full backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.7)] transition-all transform hover:scale-105 group"
+      class="absolute bottom-6 md:bottom-10 right-4 md:right-10 z-40 flex items-center justify-center space-x-3 bg-amber-900/80 hover:bg-amber-800 border-2 border-amber-600 hover:border-amber-400 text-white p-3 md:px-6 md:py-4 rounded-full backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.7)] transition-all transform hover:scale-105 group"
     >
       <div
         class="relative bg-amber-800 p-2 md:p-3 rounded-full border border-amber-600 group-hover:border-amber-400 transition-colors shadow-inner"
@@ -349,14 +349,16 @@
       </div>
       <div class="text-left hidden md:block pr-2">
         <div
+          id="continue-edit-title"
           class="font-bold text-lg tracking-widest text-amber-100 group-hover:text-white transition-colors drop-shadow-sm"
         >
-          繼續編輯
+          開啟編輯器
         </div>
         <div
+          id="continue-edit-desc"
           class="text-xs text-gray-300 group-hover:text-amber-200 transition-colors mt-0.5"
         >
-          返回當前暫存專案
+          進入工作區
         </div>
       </div>
     </a>
@@ -823,6 +825,18 @@
       </div>
     </div>
 
+    <script>
+      // 動態更新右下角按鈕文字
+      document.addEventListener("DOMContentLoaded", () => {
+        const continueBtn = document.getElementById("continue-edit-btn");
+        const titleEl = document.getElementById("continue-edit-title");
+        const descEl = document.getElementById("continue-edit-desc");
+        if (continueBtn && localStorage.getItem("textAdventureProject")) {
+          if (titleEl) titleEl.textContent = "繼續編輯";
+          if (descEl) descEl.textContent = "返回當前暫存專案";
+        }
+      });
+    </script>
     <script src="js/index.js"></script>
   </body>
 </html>

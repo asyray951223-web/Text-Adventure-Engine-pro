@@ -113,7 +113,12 @@ window.renderChapters = function () {
       contentEl.innerHTML = `
         <div class="flex justify-between items-center mb-3">
           <p class="text-gray-500">章節系統 ID：<span class="font-mono text-gray-400 bg-gray-100 px-1 py-0.5 rounded cursor-pointer hover:bg-gray-200 hover:text-blue-500 transition select-none" onclick="window.copyId(event, '${chapter.id}')" title="點擊複製 ID">${chapter.id}</span></p>
-          <button class="add-scene-to-chapter-btn bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 px-3 py-1 rounded text-sm font-bold transition shadow-sm">+ 新增場景至此章節</button>
+          <div class="flex space-x-2">
+            <button class="export-chapter-btn bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm font-bold transition shadow-sm flex items-center" title="單獨匯出此章節與其所有場景">
+              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> 匯出章節
+            </button>
+            <button class="add-scene-to-chapter-btn bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 px-3 py-1 rounded text-sm font-bold transition shadow-sm">+ 新增場景至此章節</button>
+          </div>
         </div>
 
         <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4">
@@ -165,6 +170,40 @@ window.renderChapters = function () {
           ${scenesHtml}
         </div>
       `;
+
+      contentEl
+        .querySelector(".export-chapter-btn")
+        .addEventListener("click", () => {
+          const exportData = {
+            projectId: "proj_" + Date.now(),
+            projectInfo: {
+              title:
+                (window.projectData.projectInfo?.title || "未命名專案") +
+                " - " +
+                chapter.name,
+              lastSaved: new Date().toLocaleString("zh-TW"),
+            },
+            chapters: [JSON.parse(JSON.stringify(chapter))],
+            scenes: JSON.parse(JSON.stringify(chapterScenes)),
+            globalVariables: [],
+            items: [],
+            npcs: [],
+            triggers: [],
+            achievements: [],
+            dictionary: [],
+            shops: [],
+            quizzes: [],
+          };
+
+          const dataStr = JSON.stringify(exportData, null, 2);
+          const blob = new Blob([dataStr], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `${chapter.name || "未命名章節"}_匯出.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+        });
 
       contentEl
         .querySelector(".cover-input")

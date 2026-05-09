@@ -651,6 +651,106 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 300);
   }
 
+  // 建立 NPC 角色簡介 Modal (動態注入)
+  let npcInfoModal = document.getElementById("npc-info-modal");
+  let npcInfoAvatar = null;
+  let npcInfoName = null;
+  let npcInfoDesc = null;
+
+  if (!npcInfoModal && document.body) {
+    npcInfoModal = document.createElement("div");
+    npcInfoModal.id = "npc-info-modal";
+    npcInfoModal.className =
+      "fixed inset-0 z-[110] hidden items-center justify-center bg-black/80 backdrop-blur-sm opacity-0 transition-opacity duration-300";
+    npcInfoModal.innerHTML = `
+      <div id="npc-info-panel" class="bg-gray-900 w-11/12 max-w-md rounded-2xl border border-gray-700 shadow-2xl flex flex-col transform scale-95 translate-y-8 transition-all duration-300 relative p-6">
+        <button id="close-npc-info-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white transition p-2 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <div class="flex items-center space-x-4 mb-4">
+          <img id="npc-info-avatar" src="" class="w-16 h-16 rounded-full object-cover border-2 border-gray-600 hidden">
+          <h2 id="npc-info-name" class="text-2xl font-bold text-white flex-1 pr-10"></h2>
+        </div>
+        <div class="overflow-y-auto custom-scrollbar max-h-64 pr-2">
+            <p id="npc-info-desc" class="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap"></p>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(npcInfoModal);
+    npcInfoAvatar = document.getElementById("npc-info-avatar");
+    npcInfoName = document.getElementById("npc-info-name");
+    npcInfoDesc = document.getElementById("npc-info-desc");
+
+    document
+      .getElementById("close-npc-info-btn")
+      .addEventListener("click", closeNpcInfo);
+    npcInfoModal.addEventListener("click", (e) => {
+      if (e.target === npcInfoModal) closeNpcInfo();
+    });
+  }
+
+  window.showNpcInfo = function (npcId) {
+    if (!npcInfoModal) return;
+    const npc = projectData.npcs.find((n) => n.id === npcId);
+    if (!npc) return;
+
+    npcInfoName.textContent = npc.name;
+    npcInfoDesc.textContent = npc.description || "沒有提供關於此角色的介紹。";
+
+    // 如果有綁定變數，在簡介下方額外顯示當前數值
+    let existingVarTag = document.getElementById("npc-info-var-tag");
+    if (existingVarTag) existingVarTag.remove();
+    if (npc.boundVariableId) {
+      const val = gameState.variables[npc.boundVariableId] || 0;
+      const varInfo = projectData.globalVariables.find(
+        (v) => v.id === npc.boundVariableId,
+      );
+      if (varInfo) {
+        const varTag = document.createElement("div");
+        varTag.id = "npc-info-var-tag";
+        varTag.className =
+          "mt-4 inline-block bg-blue-900/50 border border-blue-700 text-blue-300 px-3 py-1 rounded-full text-sm font-bold shadow-sm";
+        varTag.textContent = `${varInfo.name}：${val}`;
+        npcInfoDesc.parentNode.appendChild(varTag);
+      }
+    }
+
+    if (npc.avatarUrl) {
+      npcInfoAvatar.src = npc.avatarUrl;
+      npcInfoAvatar.classList.remove("hidden");
+    } else {
+      npcInfoAvatar.removeAttribute("src");
+      npcInfoAvatar.classList.add("hidden");
+    }
+
+    npcInfoModal.classList.remove("hidden");
+    npcInfoModal.classList.add("flex");
+    setTimeout(() => {
+      npcInfoModal.classList.remove("opacity-0");
+      npcInfoModal.classList.add("opacity-100");
+      const panel = document.getElementById("npc-info-panel");
+      if (panel) {
+        panel.classList.remove("translate-y-8", "scale-95");
+        panel.classList.add("translate-y-0", "scale-100");
+      }
+    }, 10);
+  };
+
+  function closeNpcInfo() {
+    if (!npcInfoModal) return;
+    npcInfoModal.classList.remove("opacity-100");
+    npcInfoModal.classList.add("opacity-0");
+    const panel = document.getElementById("npc-info-panel");
+    if (panel) {
+      panel.classList.remove("translate-y-0", "scale-100");
+      panel.classList.add("translate-y-8", "scale-95");
+    }
+    setTimeout(() => {
+      npcInfoModal.classList.remove("flex");
+      npcInfoModal.classList.add("hidden");
+    }, 300);
+  }
+
   // 建立歷史紀錄 Modal (動態注入)
   let logModal = document.getElementById("log-modal");
   let logContainer = null;
@@ -2028,9 +2128,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // 處理 NPC 出現條件與對話標籤
       let speakerName = "旁白";
+      let displayName = "旁白";
       if (dialogueAvatar) {
         dialogueAvatar.classList.add("hidden");
         dialogueAvatar.removeAttribute("src");
+        dialogueAvatar.onclick = null;
+        dialogueAvatar.classList.remove(
+          "cursor-pointer",
+          "hover:opacity-80",
+          "transition",
+          "pointer-events-auto",
+        );
       }
       if (scene.npcId) {
         const npc = projectData.npcs.find((n) => n.id === scene.npcId);
@@ -2069,22 +2177,36 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           } else {
             speakerName = npc.name;
+            displayName = `<span class="pointer-events-auto cursor-pointer text-blue-300 hover:text-blue-400 transition" onclick="event.stopPropagation(); window.showNpcInfo('${npc.id}')" title="點擊查看角色簡介">${npc.name}</span>`;
             if (dialogueAvatar && npc.avatarUrl) {
               dialogueAvatar.src = npc.avatarUrl;
               dialogueAvatar.classList.remove("hidden");
+              dialogueAvatar.classList.add(
+                "cursor-pointer",
+                "hover:opacity-80",
+                "transition",
+                "pointer-events-auto",
+              );
+              dialogueAvatar.onclick = (e) => {
+                e.stopPropagation();
+                window.showNpcInfo(npc.id);
+              };
             }
             if (npc.boundVariableId) {
               const val = gameState.variables[npc.boundVariableId] || 0;
               const varInfo = projectData.globalVariables.find(
                 (v) => v.id === npc.boundVariableId,
               );
-              if (varInfo)
-                speakerName += ` <span class="text-xs font-normal text-gray-300 ml-2">(${varInfo.name}: ${val})</span>`;
+              if (varInfo) {
+                const appendHtml = ` <span class="text-xs font-normal text-gray-300 ml-2">(${varInfo.name}: ${val})</span>`;
+                speakerName += ` (${varInfo.name}: ${val})`;
+                displayName += appendHtml;
+              }
             }
           }
         }
       }
-      nameTag.innerHTML = speakerName;
+      nameTag.innerHTML = displayName;
 
       // 重置對話框 UI 並播放打字機
       optionsContainer.classList.add("hidden");

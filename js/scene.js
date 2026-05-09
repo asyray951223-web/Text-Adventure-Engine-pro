@@ -596,6 +596,11 @@ window.renderScenes = function () {
               <button type="button" class="format-btn px-2 py-0.5 bg-white hover:bg-gray-100 border border-gray-300 rounded text-xs font-bold transition text-yellow-500" data-tag="span" data-style="color:#eab308" title="黃色文字">黃</button>
               <button type="button" class="format-btn px-2 py-0.5 bg-white hover:bg-gray-100 border border-gray-300 rounded text-xs font-bold transition text-emerald-500" data-tag="span" data-style="color:#10b981" title="綠色文字">綠</button>
               <button type="button" class="format-btn px-2 py-0.5 bg-white hover:bg-gray-100 border border-gray-300 rounded text-xs font-bold transition text-blue-500" data-tag="span" data-style="color:#3b82f6" title="藍色文字">藍</button>
+              <div class="w-px h-5 bg-gray-300 mx-1 self-center"></div>
+              <button type="button" class="format-btn px-2 py-0.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded text-xs font-bold transition text-blue-700" data-tag="span" data-class="inline-block bg-gray-800 text-blue-300 px-2 py-0.5 rounded font-bold border border-gray-600 shadow-sm mr-1" title="隊友/主角標籤 (藍)">友</button>
+              <button type="button" class="format-btn px-2 py-0.5 bg-red-50 hover:bg-red-100 border border-red-200 rounded text-xs font-bold transition text-red-700" data-tag="span" data-class="inline-block bg-gray-800 text-red-400 px-2 py-0.5 rounded font-bold border border-gray-600 shadow-sm mr-1" title="敵人標籤 (紅)">敵</button>
+              <button type="button" class="format-btn px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded text-xs font-bold transition text-emerald-700" data-tag="span" data-class="inline-block bg-gray-800 text-emerald-400 px-2 py-0.5 rounded font-bold border border-gray-600 shadow-sm mr-1" title="NPC/中立標籤 (綠)">中</button>
+              <button type="button" class="format-btn px-2 py-0.5 bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 rounded text-xs font-bold transition text-yellow-700" data-tag="span" data-class="inline-block bg-gray-800 text-yellow-400 px-2 py-0.5 rounded font-bold border border-gray-600 shadow-sm mr-1" title="特殊標籤 (黃)">特</button>
             </div>
           </div>
           <textarea class="scene-text w-full border border-gray-300 rounded-md shadow-sm p-3 h-96 focus:ring-blue-500 focus:border-blue-500 text-lg leading-relaxed resize-none custom-scrollbar" placeholder="輸入此場景的文字內容...">${scene.text || ""}</textarea>
@@ -743,6 +748,7 @@ window.renderScenes = function () {
           btn.addEventListener("click", (e) => {
             const tag = e.currentTarget.getAttribute("data-tag");
             const style = e.currentTarget.getAttribute("data-style");
+            const cls = e.currentTarget.getAttribute("data-class");
             const start = textEl.selectionStart;
             const end = textEl.selectionEnd;
             const text = textEl.value;
@@ -753,6 +759,9 @@ window.renderScenes = function () {
             if (tag === "span" && style) {
               insertion = `<span style="${style}">${selectedText}</span>`;
               cursorOffset = `<span style="${style}">`.length;
+            } else if (tag === "span" && cls) {
+              insertion = `<span class="${cls}">${selectedText}</span>`;
+              cursorOffset = `<span class="${cls}">`.length;
             } else {
               insertion = `<${tag}>${selectedText}</${tag}>`;
               cursorOffset = `<${tag}>`.length;

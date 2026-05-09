@@ -288,6 +288,42 @@
       </div>
     </div>
 
+    <!-- 專案合併工具懸浮按鈕 (FAB) -->
+    <a
+      href="merge.html"
+      class="absolute bottom-6 md:bottom-10 left-4 md:left-10 z-40 flex items-center justify-center space-x-3 bg-orange-900/80 hover:bg-orange-800 border-2 border-orange-600 hover:border-orange-400 text-white p-3 md:px-6 md:py-4 rounded-full backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.7)] transition-all transform hover:scale-105 group"
+    >
+      <div
+        class="relative bg-orange-800 p-2 md:p-3 rounded-full border border-orange-600 group-hover:border-orange-400 transition-colors shadow-inner"
+      >
+        <svg
+          class="w-6 h-6 md:w-8 md:h-8 text-orange-400 group-hover:text-orange-300 transition-colors drop-shadow"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+          ></path>
+        </svg>
+      </div>
+      <div class="text-left hidden md:block pr-2">
+        <div
+          class="font-bold text-lg tracking-widest text-orange-100 group-hover:text-white transition-colors drop-shadow-sm"
+        >
+          合併工具
+        </div>
+        <div
+          class="text-xs text-gray-300 group-hover:text-orange-200 transition-colors mt-0.5"
+        >
+          多人協作整合專案
+        </div>
+      </div>
+    </a>
+
     <!-- 繼續編輯懸浮按鈕 (FAB，由 JS 動態顯示) -->
     <a
       href="editor.html"
@@ -393,6 +429,15 @@
             >
               自電腦載入其他遊戲專案 (.json)
             </button>
+          </div>
+          <div class="flex items-start">
+            <strong class="text-blue-300 w-24 flex-shrink-0"
+              >專案合併工具</strong
+            ><span
+              >支援多人分工作業！可一次上傳多個由不同成員製作的 .json
+              專案檔，系統將自動過濾重複
+              ID，並彙整所有場景、變數與設定為一個完整專案。</span
+            >
           </div>
         </div>
         <div class="space-y-4" id="slots-container">
@@ -720,6 +765,14 @@
                 >F9</kbd
               >
               可快速讀取最後一次的進度。</span
+            >
+          </div>
+          <div class="flex items-start">
+            <strong class="text-emerald-300 w-28 flex-shrink-0">主題切換</strong
+            ><span
+              >在遊戲大廳選擇「載入存檔」時，您可以自由切換「現代科幻
+              (預設深色)」與「古典武俠
+              (中國風)」兩種截然不同的沉浸式視覺主題。</span
             >
           </div>
           <div class="flex items-start">

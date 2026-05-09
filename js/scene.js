@@ -28,10 +28,204 @@ window.renderScenes = function () {
     return;
   }
 
+  // 初始化批量選取的 Set
+  window.selectedSceneIds = window.selectedSceneIds || new Set();
+  // 清理已經不存在的 ID
+  const allSceneIds = new Set(window.projectData.scenes.map((s) => s.id));
+  for (let id of window.selectedSceneIds) {
+    if (!allSceneIds.has(id)) window.selectedSceneIds.delete(id);
+  }
+
+  // --- 滑鼠框選 (Marquee Selection) 邏輯 ---
+  if (!window.hasBoundSceneMarquee) {
+    window.hasBoundSceneMarquee = true;
+    let isSelecting = false;
+    let selectionBox = null;
+    let startX = 0;
+    let startY = 0;
+    let initialSelectedIds = new Set();
+
+    document.addEventListener("mousedown", (e) => {
+      const container = document.getElementById("scenes-container");
+      if (!container || !container.contains(e.target)) return;
+
+      // 必須是左鍵
+      if (e.button !== 0) return;
+
+      // 忽略互動元素
+      const interactiveTags = [
+        "INPUT",
+        "BUTTON",
+        "SELECT",
+        "TEXTAREA",
+        "A",
+        "LABEL",
+      ];
+      if (interactiveTags.includes(e.target.tagName)) return;
+      if (e.target.closest(".cursor-pointer, #scene-batch-bar")) return;
+
+      isSelecting = true;
+      startX = e.pageX;
+      startY = e.pageY;
+
+      // 如果沒有按住 Ctrl / Shift，則清除目前的選擇 (點擊空白處取消全選)
+      if (!e.ctrlKey && !e.shiftKey && !e.metaKey) {
+        window.selectedSceneIds.clear();
+        container
+          .querySelectorAll(".scene-select-chk")
+          .forEach((chk) => (chk.checked = false));
+      }
+      initialSelectedIds = new Set(window.selectedSceneIds);
+
+      selectionBox = document.createElement("div");
+      selectionBox.className =
+        "absolute border border-blue-500 bg-blue-500/20 pointer-events-none z-50 rounded-sm";
+      selectionBox.style.left = startX + "px";
+      selectionBox.style.top = startY + "px";
+      selectionBox.style.width = "0px";
+      selectionBox.style.height = "0px";
+      document.body.appendChild(selectionBox);
+
+      e.preventDefault(); // 防止文字反白
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!isSelecting || !selectionBox) return;
+
+      const container = document.getElementById("scenes-container");
+      if (!container) return;
+
+      const currentX = e.pageX;
+      const currentY = e.pageY;
+
+      selectionBox.style.left = Math.min(startX, currentX) + "px";
+      selectionBox.style.top = Math.min(startY, currentY) + "px";
+      selectionBox.style.width = Math.abs(currentX - startX) + "px";
+      selectionBox.style.height = Math.abs(currentY - startY) + "px";
+
+      const selectionRect = selectionBox.getBoundingClientRect();
+
+      container.querySelectorAll(".scene-select-chk").forEach((chk) => {
+        const sceneEl = chk.closest(".bg-white.border"); // 找到場景容器卡片
+        if (!sceneEl) return;
+        const sceneRect = sceneEl.getBoundingClientRect();
+
+        const isIntersecting = !(
+          selectionRect.right < sceneRect.left ||
+          selectionRect.left > sceneRect.right ||
+          selectionRect.bottom < sceneRect.top ||
+          selectionRect.top > sceneRect.bottom
+        );
+
+        const sceneId = chk.getAttribute("data-id");
+        if (isIntersecting) {
+          window.selectedSceneIds.add(sceneId);
+          chk.checked = true;
+        } else {
+          if (!initialSelectedIds.has(sceneId)) {
+            window.selectedSceneIds.delete(sceneId);
+            chk.checked = false;
+          } else {
+            window.selectedSceneIds.add(sceneId);
+            chk.checked = true;
+          }
+        }
+      });
+
+      // 即時更新浮動工具列
+      const bar = document.getElementById("scene-batch-bar");
+      const count = document.getElementById("batch-count");
+      if (bar && count) {
+        if (window.selectedSceneIds.size > 0) {
+          bar.classList.remove("hidden");
+          bar.classList.add("flex");
+          count.textContent = window.selectedSceneIds.size;
+        } else {
+          bar.classList.add("hidden");
+          bar.classList.remove("flex");
+        }
+      }
+    });
+
+    document.addEventListener("mouseup", () => {
+      if (isSelecting) {
+        isSelecting = false;
+        if (selectionBox) {
+          selectionBox.remove();
+          selectionBox = null;
+        }
+      }
+    });
+  }
+
   // 準備章節的下拉選單選項
   let chapterOptions = `<option value="">-- 不指定章節 --</option>`;
   window.projectData.chapters.forEach((ch) => {
     chapterOptions += `<option value="${ch.id}">${ch.name}</option>`;
+  });
+
+  // 建立批量操作浮動工具列
+  const batchBar = document.createElement("div");
+  batchBar.id = "scene-batch-bar";
+  batchBar.className =
+    "bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6 items-center justify-between shadow-sm sticky top-2 z-40 transition-all " +
+    (window.selectedSceneIds.size > 0 ? "flex" : "hidden");
+  batchBar.innerHTML = `
+    <div class="flex items-center space-x-4">
+      <span class="font-bold text-blue-800">已選取 <span id="batch-count">${window.selectedSceneIds.size}</span> 個場景</span>
+      <button id="batch-select-all-btn" class="text-sm text-blue-600 hover:text-blue-800 underline font-bold transition">全選本頁</button>
+      <button id="batch-deselect-btn" class="text-sm text-gray-500 hover:text-gray-700 underline font-bold transition">取消全選</button>
+    </div>
+    <div class="flex items-center space-x-3">
+      <select id="batch-move-select" class="border border-gray-300 rounded shadow-sm p-1.5 text-sm focus:ring-blue-500 bg-white">
+        ${chapterOptions}
+      </select>
+      <button id="batch-move-btn" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-sm font-bold shadow-sm transition">移動</button>
+      <div class="w-px h-6 bg-blue-200 mx-1"></div>
+      <button id="batch-delete-btn" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded text-sm font-bold shadow-sm transition flex items-center">
+         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> 批量刪除
+      </button>
+    </div>
+  `;
+  container.appendChild(batchBar);
+
+  // 綁定批量操作事件
+  batchBar
+    .querySelector("#batch-select-all-btn")
+    .addEventListener("click", () => {
+      document
+        .querySelectorAll(".scene-select-chk")
+        .forEach((chk) =>
+          window.selectedSceneIds.add(chk.getAttribute("data-id")),
+        );
+      window.renderScenes();
+    });
+  batchBar
+    .querySelector("#batch-deselect-btn")
+    .addEventListener("click", () => {
+      window.selectedSceneIds.clear();
+      window.renderScenes();
+    });
+  batchBar.querySelector("#batch-move-btn").addEventListener("click", () => {
+    const sel = document.getElementById("batch-move-select").value;
+    window.projectData.scenes.forEach((s) => {
+      if (window.selectedSceneIds.has(s.id)) s.chapterId = sel;
+    });
+    window.selectedSceneIds.clear();
+    window.renderScenes();
+  });
+  batchBar.querySelector("#batch-delete-btn").addEventListener("click", () => {
+    if (
+      confirm(
+        `確定要刪除選取的 ${window.selectedSceneIds.size} 個場景嗎？\n此操作無法復原！`,
+      )
+    ) {
+      window.projectData.scenes = window.projectData.scenes.filter(
+        (s) => !window.selectedSceneIds.has(s.id),
+      );
+      window.selectedSceneIds.clear();
+      window.renderScenes();
+    }
   });
 
   // 建立章節群組
@@ -150,10 +344,11 @@ window.renderScenes = function () {
 
       headerEl.innerHTML = `
       <div class="flex items-center space-x-3 w-full">
+        <input type="checkbox" class="scene-select-chk w-4 h-4 text-blue-600 rounded focus:ring-blue-500 cursor-pointer flex-shrink-0" data-id="${scene.id}" ${window.selectedSceneIds.has(scene.id) ? "checked" : ""}>
         <span>${iconSvg}</span>
         <span class="text-sm font-mono text-gray-400 w-24 truncate cursor-pointer hover:text-blue-500 transition select-none" title="點擊複製 ID: ${scene.id}" onclick="window.copyId(event, '${scene.id}')">${scene.id}</span>
         <input type="text" value="${scene.name}" placeholder="輸入場景名稱..." 
-               class="flex-1 font-bold text-lg text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none px-1 py-1 transition">
+               class="w-full max-w-[500px] font-bold text-lg text-gray-800 bg-transparent border border-transparent hover:bg-white hover:border-gray-300 hover:shadow-sm focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none rounded px-2 py-1 transition-all cursor-text">
       </div>
       <div class="flex items-center space-x-2 ml-4">
         <button class="move-up-btn p-1 text-gray-400 hover:text-blue-500 bg-white hover:bg-blue-50 rounded shadow-sm border border-transparent hover:border-blue-200 transition ${isFirst ? "opacity-30 cursor-not-allowed" : ""}" ${isFirst ? "disabled" : 'title="往上移"'}>
@@ -172,8 +367,29 @@ window.renderScenes = function () {
     `;
 
       headerEl
-        .querySelector("input")
+        .querySelector('input[type="text"]')
         .addEventListener("input", (e) => (scene.name = e.target.value));
+
+      // Checkbox 勾選邏輯
+      headerEl
+        .querySelector(".scene-select-chk")
+        .addEventListener("change", (e) => {
+          if (e.target.checked) window.selectedSceneIds.add(scene.id);
+          else window.selectedSceneIds.delete(scene.id);
+
+          const bar = document.getElementById("scene-batch-bar");
+          const count = document.getElementById("batch-count");
+          if (bar && count) {
+            if (window.selectedSceneIds.size > 0) {
+              bar.classList.remove("hidden");
+              bar.classList.add("flex");
+              count.textContent = window.selectedSceneIds.size;
+            } else {
+              bar.classList.add("hidden");
+              bar.classList.remove("flex");
+            }
+          }
+        });
 
       const moveUpBtn = headerEl.querySelector(".move-up-btn");
       if (moveUpBtn && !moveUpBtn.disabled) {

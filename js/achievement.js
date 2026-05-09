@@ -65,20 +65,22 @@ window.renderAchievements = function () {
       : `<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
 
     const hiddenBadge = achievement.isHidden
-      ? `<span class="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded ml-2 whitespace-nowrap font-bold">隱藏成就</span>`
-      : `<span class="bg-yellow-100 text-yellow-600 text-xs px-2 py-1 rounded ml-2 whitespace-nowrap font-bold">公開成就</span>`;
+      ? `<span class="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded whitespace-nowrap font-bold">隱藏成就</span>`
+      : `<span class="bg-yellow-100 text-yellow-600 text-xs px-2 py-1 rounded whitespace-nowrap font-bold">公開成就</span>`;
 
     headerEl.innerHTML = `
       <div class="flex items-center space-x-3 w-full">
         <span>${iconSvg}</span>
         <span class="text-sm font-mono text-gray-400 w-24 truncate cursor-pointer hover:text-blue-500 transition select-none" title="點擊複製 ID: ${achievement.id}" onclick="window.copyId(event, '${achievement.id}')">${achievement.id}</span>
         <input type="text" value="${achievement.name}" placeholder="輸入成就名稱..." 
-               class="flex-1 font-bold text-lg text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none px-1 py-1 transition">
-        ${hiddenBadge}
+               class="w-full max-w-[500px] font-bold text-lg text-gray-800 bg-transparent border border-transparent hover:bg-white hover:border-gray-300 hover:shadow-sm focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none rounded px-2 py-1 transition-all cursor-text">
       </div>
-      <button class="delete-btn text-red-500 hover:text-red-700 p-1 bg-white hover:bg-red-50 rounded shadow-sm border border-transparent hover:border-red-200 transition ml-4" title="刪除此成就">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-      </button>
+      <div class="flex items-center space-x-2 ml-4">
+        ${hiddenBadge}
+        <button class="delete-btn text-red-500 hover:text-red-700 p-1 bg-white hover:bg-red-50 rounded shadow-sm border border-transparent hover:border-red-200 transition" title="刪除此成就">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        </button>
+      </div>
     `;
 
     headerEl

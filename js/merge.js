@@ -203,6 +203,23 @@ document.addEventListener("DOMContentLoaded", () => {
     if (projectFiles.length === 0) return null;
 
     const conflicts = []; // 儲存衝突紀錄
+    let conflictChapterId = null;
+
+    function getConflictChapterId(mergedData) {
+      if (!conflictChapterId) {
+        conflictChapterId = "chapter_conflict_" + Date.now();
+        mergedData.chapters.push({
+          id: conflictChapterId,
+          name: "⚠️ 衝突保留區 (合併產出)",
+          coverUrl: "",
+          bgmUrl: "",
+          description:
+            "此章節包含了合併時發生 ID 衝突而保留的備份場景。這些場景已被重新分配 ID，且原有的選項跳轉可能已失效，請自行確認與修正。",
+          isExpanded: false,
+        });
+      }
+      return conflictChapterId;
+    }
 
     // 1. 基底專案 (深拷貝，避免修改原始檔案資料)
     const mergedData = JSON.parse(JSON.stringify(projectFiles[0].data));
@@ -237,20 +254,43 @@ document.addEventListener("DOMContentLoaded", () => {
       quizzes: "測驗",
     };
 
-    // 2. 輔助函式: 合併陣列去重複 (透過 ID 檢查，保留先匯入的設定)
-    function mergeArrays(baseArray, newArray, typeName, fileName) {
+    // 2. 輔助函式: 合併陣列並處理衝突 (重新命名與賦予新 ID)
+    function mergeArrays(baseArray, newArray, typeName, fileName, mergedData) {
       const existingIds = new Set(baseArray.map((item) => item.id));
       newArray.forEach((item) => {
         if (!existingIds.has(item.id)) {
           baseArray.push(item);
           existingIds.add(item.id);
         } else {
+          // 處理 ID 衝突：修改 ID 並保留
+          const newId =
+            item.id + "_conflict_" + Math.random().toString(36).substr(2, 5);
+          const oldName = item.name || item.term || item.question || "未命名";
+          const newName = oldName + " (衝突備份)";
+
           conflicts.push({
             type: typeName,
             id: item.id,
-            name: item.name || item.term || item.question || "未命名",
+            newId: newId,
+            name: newName,
             source: fileName,
           });
+
+          const conflictItem = JSON.parse(JSON.stringify(item));
+          conflictItem.id = newId;
+
+          if (conflictItem.name !== undefined) conflictItem.name = newName;
+          else if (conflictItem.term !== undefined) conflictItem.term = newName;
+          else if (conflictItem.question !== undefined)
+            conflictItem.question = newName;
+
+          // 若為場景，將其集中放入衝突保留區章節
+          if (typeName === "場景") {
+            conflictItem.chapterId = getConflictChapterId(mergedData);
+          }
+
+          baseArray.push(conflictItem);
+          existingIds.add(newId);
         }
       });
     }
@@ -261,7 +301,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const fileName = projectFiles[i].name;
       arrayKeys.forEach((k) => {
         if (currentData[k] && Array.isArray(currentData[k])) {
-          mergeArrays(mergedData[k], currentData[k], typeNames[k], fileName);
+          mergeArrays(
+            mergedData[k],
+            currentData[k],
+            typeNames[k],
+            fileName,
+            mergedData,
+          );
         }
       });
     }
@@ -329,7 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
       conflictsList.innerHTML = conflicts
         .map(
           (c) =>
-            `<li>[${c.type}] <strong class="text-red-200">${c.name}</strong> <span class="text-xs text-red-400/70">(ID: ${c.id})</span> - 已忽略來自 <span class="italic text-red-200">${c.source}</span> 的設定</li>`,
+            `<li>[${c.type}] <strong class="text-red-200">${c.name}</strong> <span class="text-xs text-red-400/70">(原 ID: ${c.id} &rarr; 新 ID: ${c.newId})</span> - 來自 <span class="italic text-red-200">${c.source}</span></li>`,
         )
         .join("");
     } else {

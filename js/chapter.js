@@ -29,6 +29,9 @@ window.renderChapters = function () {
     chapterEl.className =
       "bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden transition";
 
+    const isFirst = index === 0;
+    const isLast = index === window.projectData.chapters.length - 1;
+
     // 章節標題區塊 (點擊此區塊進行摺疊/展開)
     const headerEl = document.createElement("div");
     headerEl.className =
@@ -49,11 +52,22 @@ window.renderChapters = function () {
       <div class="flex items-center space-x-3 w-full">
         <span>${iconSvg}</span>
         <input type="text" value="${chapter.name}" placeholder="輸入章節名稱..." 
-               class="flex-1 font-bold text-lg text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none px-1 py-1 transition">
+               class="w-full max-w-[500px] font-bold text-lg text-gray-800 bg-transparent border border-transparent hover:bg-white hover:border-gray-300 hover:shadow-sm focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none rounded px-2 py-1 transition-all cursor-text">
       </div>
-      <button class="delete-btn text-red-500 hover:text-red-700 p-1 bg-white hover:bg-red-50 rounded shadow-sm border border-transparent hover:border-red-200 transition ml-4" title="刪除此章節">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-      </button>
+      <div class="flex items-center space-x-2 ml-4">
+        <button class="move-up-btn p-1 text-gray-400 hover:text-blue-500 bg-white hover:bg-blue-50 rounded shadow-sm border border-transparent hover:border-blue-200 transition ${isFirst ? "opacity-30 cursor-not-allowed" : ""}" ${isFirst ? "disabled" : 'title="往上移"'}>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+        </button>
+        <button class="move-down-btn p-1 text-gray-400 hover:text-blue-500 bg-white hover:bg-blue-50 rounded shadow-sm border border-transparent hover:border-blue-200 transition ${isLast ? "opacity-30 cursor-not-allowed" : ""}" ${isLast ? "disabled" : 'title="往下移"'}>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+        <button class="copy-btn text-blue-500 hover:text-blue-700 p-1 bg-white hover:bg-blue-50 rounded shadow-sm border border-transparent hover:border-blue-200 transition" title="複製此章節 (包含底下所有場景)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+        </button>
+        <button class="delete-btn text-red-500 hover:text-red-700 p-1 bg-white hover:bg-red-50 rounded shadow-sm border border-transparent hover:border-red-200 transition" title="刪除此章節">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        </button>
+      </div>
     `;
 
     // 綁定輸入事件與刪除事件
@@ -66,6 +80,24 @@ window.renderChapters = function () {
         window.renderChapters();
       }
     });
+
+    headerEl.querySelector(".copy-btn").addEventListener("click", () => {
+      duplicateChapter(chapter.id);
+    });
+
+    const moveUpBtn = headerEl.querySelector(".move-up-btn");
+    if (moveUpBtn && !moveUpBtn.disabled) {
+      moveUpBtn.addEventListener("click", () => {
+        moveChapterOrder(index, -1);
+      });
+    }
+
+    const moveDownBtn = headerEl.querySelector(".move-down-btn");
+    if (moveDownBtn && !moveDownBtn.disabled) {
+      moveDownBtn.addEventListener("click", () => {
+        moveChapterOrder(index, 1);
+      });
+    }
     chapterEl.appendChild(headerEl);
 
     // 展開的內容區域
@@ -328,6 +360,20 @@ function addNewChapter() {
   window.renderChapters();
 }
 
+function moveChapterOrder(index, direction) {
+  const chapters = window.projectData.chapters;
+  if (!chapters) return;
+
+  const targetIndex = index + direction;
+  if (targetIndex < 0 || targetIndex >= chapters.length) return;
+
+  const temp = chapters[index];
+  chapters[index] = chapters[targetIndex];
+  chapters[targetIndex] = temp;
+
+  window.renderChapters();
+}
+
 function moveSceneInChapter(sceneId, direction, chapterId) {
   const scenes = window.projectData.scenes;
   if (!scenes) return;
@@ -350,6 +396,41 @@ function moveSceneInChapter(sceneId, direction, chapterId) {
   const temp = scenes[indexInMain1];
   scenes[indexInMain1] = scenes[indexInMain2];
   scenes[indexInMain2] = temp;
+
+  window.renderChapters();
+}
+
+function duplicateChapter(chapterId) {
+  const chapters = window.projectData.chapters;
+  const scenes = window.projectData.scenes;
+  if (!chapters || !scenes) return;
+
+  const chapterIndex = chapters.findIndex((c) => c.id === chapterId);
+  if (chapterIndex === -1) return;
+
+  const originalChapter = chapters[chapterIndex];
+  const newChapter = JSON.parse(JSON.stringify(originalChapter));
+  newChapter.id = "chapter_" + Date.now();
+  newChapter.name = originalChapter.name + " (複製)";
+
+  // 找出屬於該章節的場景並一併深拷貝
+  const chapterScenes = scenes.filter((s) => s.chapterId === chapterId);
+  const newScenes = chapterScenes.map((s, idx) => {
+    const newScene = JSON.parse(JSON.stringify(s));
+    newScene.id =
+      "scene_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5);
+    newScene.chapterId = newChapter.id;
+    newScene.name = s.name + " (複製)";
+    return newScene;
+  });
+
+  // 插入新章節
+  chapters.splice(chapterIndex + 1, 0, newChapter);
+
+  // 將新場景加入全域 scenes 中
+  if (newScenes.length > 0) {
+    scenes.push(...newScenes);
+  }
 
   window.renderChapters();
 }

@@ -24,7 +24,19 @@ window.renderDictionary = function () {
     return;
   }
 
+  const query = window.dictionarySearchQuery || "";
+  let hasRenderedAny = false;
+
   window.projectData.dictionary.forEach((entry, index) => {
+    if (query) {
+      const textToSearch = [entry.term, entry.id, entry.description]
+        .join(" ")
+        .toLowerCase();
+      if (!textToSearch.includes(query)) return;
+    }
+
+    hasRenderedAny = true;
+
     const entryEl = document.createElement("div");
     entryEl.className =
       "bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden transition";
@@ -355,6 +367,14 @@ window.renderDictionary = function () {
     }
     container.appendChild(entryEl);
   });
+
+  if (query && !hasRenderedAny) {
+    container.innerHTML = `
+      <div class="text-gray-500 italic p-10 text-center border border-dashed border-gray-300 rounded-xl bg-white">
+          找不到符合「${query}」的辭條。
+      </div>
+    `;
+  }
 };
 
 function addNewDictionary() {

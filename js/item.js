@@ -24,7 +24,19 @@ window.renderItems = function () {
     return;
   }
 
+  const query = window.itemSearchQuery || "";
+  let hasRenderedAny = false;
+
   window.projectData.items.forEach((item, index) => {
+    if (query) {
+      const textToSearch = [item.name, item.id, item.description]
+        .join(" ")
+        .toLowerCase();
+      if (!textToSearch.includes(query)) return;
+    }
+
+    hasRenderedAny = true;
+
     const itemEl = document.createElement("div");
     itemEl.className =
       "bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden transition";
@@ -652,6 +664,14 @@ window.renderItems = function () {
     }
     container.appendChild(itemEl);
   });
+
+  if (query && !hasRenderedAny) {
+    container.innerHTML = `
+      <div class="text-gray-500 italic p-10 text-center border border-dashed border-gray-300 rounded-xl bg-white">
+          找不到符合「${query}」的道具。
+      </div>
+    `;
+  }
 };
 
 function addNewItem() {

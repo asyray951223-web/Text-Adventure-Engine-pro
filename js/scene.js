@@ -47,16 +47,39 @@ window.renderScenes = function () {
   const chapterMap = {};
   groupedScenes.forEach((g) => (chapterMap[g.id] = g));
 
+  const query = window.sceneSearchQuery || "";
+
   // 將場景分類至對應的章節群組中
   window.projectData.scenes.forEach((scene) => {
-    if (chapterMap[scene.chapterId]) {
-      chapterMap[scene.chapterId].scenes.push(scene);
-    } else {
-      chapterMap[""].scenes.push(scene); // 若原章節已被刪除，歸類至未歸類
+    let match = true;
+    if (query) {
+      const textToSearch = [
+        scene.name,
+        scene.id,
+        scene.text,
+        ...(scene.options || []).map((o) => o.text),
+        scene.endingName,
+      ]
+        .join(" ")
+        .toLowerCase();
+      match = textToSearch.includes(query);
+    }
+
+    if (match) {
+      if (chapterMap[scene.chapterId]) {
+        chapterMap[scene.chapterId].scenes.push(scene);
+      } else {
+        chapterMap[""].scenes.push(scene); // 若原章節已被刪除，歸類至未歸類
+      }
     }
   });
 
+  let hasRenderedAny = false;
+
   groupedScenes.forEach((group) => {
+    // 搜尋模式下，若群組內無符合場景則隱藏
+    if (query && group.scenes.length === 0) return;
+
     // 如果是「未歸類」且裡面沒有場景，同時存在其他章節，則隱藏不顯示
     if (
       group.id === "" &&
@@ -64,6 +87,8 @@ window.renderScenes = function () {
       window.projectData.chapters.length > 0
     )
       return;
+
+    hasRenderedAny = true;
 
     const groupContainer = document.createElement("div");
     groupContainer.className =
@@ -120,8 +145,8 @@ window.renderScenes = function () {
         ? `<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>`
         : `<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
 
-      const isFirst = sIdx === 0;
-      const isLast = sIdx === group.scenes.length - 1;
+      const isFirst = sIdx === 0 || !!query;
+      const isLast = sIdx === group.scenes.length - 1 || !!query;
 
       headerEl.innerHTML = `
       <div class="flex items-center space-x-3 w-full">
@@ -986,6 +1011,14 @@ window.renderScenes = function () {
     groupContainer.appendChild(sceneList);
     container.appendChild(groupContainer);
   });
+
+  if (query && !hasRenderedAny) {
+    container.innerHTML = `
+      <div class="text-gray-500 italic p-10 text-center border border-dashed border-gray-300 rounded-xl bg-white">
+          找不到符合「${query}」的場景。
+      </div>
+    `;
+  }
 };
 
 function addNewScene(chapterId = "") {

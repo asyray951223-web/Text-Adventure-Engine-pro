@@ -40,7 +40,19 @@ window.renderVariables = function () {
     </div>
   `;
 
+  const query = window.variableSearchQuery || "";
+  let hasRenderedAny = false;
+
   window.projectData.globalVariables.forEach((variable, index) => {
+    if (query) {
+      const textToSearch = [variable.name, variable.id, variable.description]
+        .join(" ")
+        .toLowerCase();
+      if (!textToSearch.includes(query)) return;
+    }
+
+    hasRenderedAny = true;
+
     const varEl = document.createElement("div");
     varEl.className =
       "bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden transition";
@@ -393,6 +405,14 @@ window.renderVariables = function () {
 
     container.appendChild(varEl);
   });
+
+  if (query && !hasRenderedAny) {
+    container.innerHTML += `
+      <div class="text-gray-500 italic p-10 text-center border border-dashed border-gray-300 rounded-xl bg-white">
+          找不到符合「${query}」的變數。
+      </div>
+    `;
+  }
 };
 
 function addNewVariable() {

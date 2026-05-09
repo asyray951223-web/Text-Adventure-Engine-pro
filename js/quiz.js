@@ -22,7 +22,19 @@ window.renderQuizzes = function () {
     return;
   }
 
+  const query = window.quizSearchQuery || "";
+  let hasRenderedAny = false;
+
   window.projectData.quizzes.forEach((quiz, index) => {
+    if (query) {
+      const textToSearch = [quiz.name, quiz.id, quiz.question, quiz.answers]
+        .join(" ")
+        .toLowerCase();
+      if (!textToSearch.includes(query)) return;
+    }
+
+    hasRenderedAny = true;
+
     const quizEl = document.createElement("div");
     quizEl.className =
       "bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden transition";
@@ -134,6 +146,14 @@ window.renderQuizzes = function () {
     }
     container.appendChild(quizEl);
   });
+
+  if (query && !hasRenderedAny) {
+    container.innerHTML = `
+      <div class="text-gray-500 italic p-10 text-center border border-dashed border-gray-300 rounded-xl bg-white">
+          找不到符合「${query}」的測驗。
+      </div>
+    `;
+  }
 };
 
 function addNewQuiz() {

@@ -175,9 +175,17 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         `,
     場景編輯: (data) => `
-            <div class="flex justify-between items-center mb-6">
-                <p class="text-gray-600">編輯遊戲的核心場景、對話文本與選項智慧跳轉邏輯。</p>
-                <button id="add-scene-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition">+ 新增場景</button>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div class="w-full md:w-auto flex-1">
+                  <p class="text-gray-600 mb-3">編輯遊戲的核心場景、對話文本與選項智慧跳轉邏輯。</p>
+                  <div class="relative max-w-md">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="scene-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋場景名稱、ID、內容或選項..." value="${window.sceneSearchQuery || ""}">
+                  </div>
+                </div>
+                <button id="add-scene-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增場景</button>
             </div>
             <div id="scenes-container" class="space-y-4">
                 <!-- 場景列表由 scene.js 動態渲染 -->
@@ -193,18 +201,34 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         `,
     數值系統: (data) => `
-            <div class="flex justify-between items-center mb-6">
-                <p class="text-gray-600">管理遊戲內的全域變數與初始數值，例如體力、金錢等。</p>
-                <button id="add-variable-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition">+ 新增變數</button>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div class="w-full md:w-auto flex-1">
+                  <p class="text-gray-600 mb-3">管理遊戲內的全域變數與初始數值，例如體力、金錢等。</p>
+                  <div class="relative max-w-md">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="variable-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋變數名稱、ID 或描述..." value="${window.variableSearchQuery || ""}">
+                  </div>
+                </div>
+                <button id="add-variable-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增變數</button>
             </div>
             <div id="variables-container" class="space-y-4">
                 <!-- 變數列表由 variables.js 動態渲染 -->
             </div>
         `,
     道具系統: (data) => `
-            <div class="flex justify-between items-center mb-6">
-                <p class="text-gray-600">設計遊戲中的道具，包含消耗品、永久道具與其觸發條件。</p>
-                <button id="add-item-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition">+ 新增道具</button>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div class="w-full md:w-auto flex-1">
+                  <p class="text-gray-600 mb-3">設計遊戲中的道具，包含消耗品、永久道具與其觸發條件。</p>
+                  <div class="relative max-w-md">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="item-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋道具名稱、ID 或描述..." value="${window.itemSearchQuery || ""}">
+                  </div>
+                </div>
+                <button id="add-item-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增道具</button>
             </div>
             <div id="items-container" class="space-y-4">
                 <!-- 道具列表由 item.js 動態渲染 -->
@@ -229,36 +253,68 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         `,
     成就系統: (data) => `
-            <div class="flex justify-between items-center mb-6">
-                <p class="text-gray-600">管理遊戲內的成就，激發玩家收集慾，可設定隱藏成就與解鎖條件。</p>
-                <button id="add-achievement-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition">+ 新增成就</button>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div class="w-full md:w-auto flex-1">
+                  <p class="text-gray-600 mb-3">管理遊戲內的成就，激發玩家收集慾，可設定隱藏成就與解鎖條件。</p>
+                  <div class="relative max-w-md">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="achievement-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋成就名稱、ID 或描述..." value="${window.achievementSearchQuery || ""}">
+                  </div>
+                </div>
+                <button id="add-achievement-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增成就</button>
             </div>
             <div id="achievements-container" class="space-y-4">
                 <!-- 成就列表由 achievement.js 動態渲染 -->
             </div>
         `,
     辭典系統: (data) => `
-            <div class="flex justify-between items-center mb-6">
-                <p class="text-gray-600">管理遊戲內的專有名詞或辭典，供玩家隨時查閱世界觀與設定。</p>
-                <button id="add-dictionary-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition">+ 新增辭條</button>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div class="w-full md:w-auto flex-1">
+                  <p class="text-gray-600 mb-3">管理遊戲內的專有名詞或辭典，供玩家隨時查閱世界觀與設定。</p>
+                  <div class="relative max-w-md">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="dictionary-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋辭條名稱、ID 或內容..." value="${window.dictionarySearchQuery || ""}">
+                  </div>
+                </div>
+                <button id="add-dictionary-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增辭條</button>
             </div>
             <div id="dictionary-container" class="space-y-4">
                 <!-- 辭典列表由 dictionary.js 動態渲染 -->
             </div>
         `,
     商店系統: (data) => `
-            <div class="flex justify-between items-center mb-6">
-                <p class="text-gray-600">建立遊戲內的商店，讓玩家可以消耗變數 (如金幣) 購買道具。</p>
-                <button id="add-shop-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition">+ 新增商店</button>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div class="w-full md:w-auto flex-1">
+                  <p class="text-gray-600 mb-3">建立遊戲內的商店，讓玩家可以消耗變數 (如金幣) 購買道具。</p>
+                  <div class="relative max-w-md">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="shop-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋商店名稱、ID 或描述..." value="${window.shopSearchQuery || ""}">
+                  </div>
+                </div>
+                <button id="add-shop-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增商店</button>
             </div>
             <div id="shops-container" class="space-y-4">
                 <!-- 商店列表由 shop.js 動態渲染 -->
             </div>
         `,
     測驗系統: (data) => `
-            <div class="flex justify-between items-center mb-6">
-                <p class="text-gray-600">建立遊戲內的測驗或密碼鎖，讓玩家輸入文字答案並觸發不同結果。</p>
-                <button id="add-quiz-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition">+ 新增測驗</button>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div class="w-full md:w-auto flex-1">
+                  <p class="text-gray-600 mb-3">建立遊戲內的測驗或密碼鎖，讓玩家輸入文字答案並觸發不同結果。</p>
+                  <div class="relative max-w-md">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="quiz-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋測驗名稱、ID 或題目..." value="${window.quizSearchQuery || ""}">
+                  </div>
+                </div>
+                <button id="add-quiz-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增測驗</button>
             </div>
             <div id="quizzes-container" class="space-y-4">
                 <!-- 測驗列表由 quiz.js 動態渲染 -->
@@ -381,6 +437,15 @@ document.addEventListener("DOMContentLoaded", () => {
       if (typeof window.renderScenes === "function") {
         window.renderScenes();
       }
+      const searchInput = document.getElementById("scene-search-input");
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+          window.sceneSearchQuery = e.target.value.trim().toLowerCase();
+          if (typeof window.renderScenes === "function") {
+            window.renderScenes();
+          }
+        });
+      }
     } else if (tabName === "章節管理") {
       if (typeof window.renderChapters === "function") {
         window.renderChapters();
@@ -389,9 +454,27 @@ document.addEventListener("DOMContentLoaded", () => {
       if (typeof window.renderVariables === "function") {
         window.renderVariables();
       }
+      const searchInput = document.getElementById("variable-search-input");
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+          window.variableSearchQuery = e.target.value.trim().toLowerCase();
+          if (typeof window.renderVariables === "function") {
+            window.renderVariables();
+          }
+        });
+      }
     } else if (tabName === "道具系統") {
       if (typeof window.renderItems === "function") {
         window.renderItems();
+      }
+      const searchInput = document.getElementById("item-search-input");
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+          window.itemSearchQuery = e.target.value.trim().toLowerCase();
+          if (typeof window.renderItems === "function") {
+            window.renderItems();
+          }
+        });
       }
     } else if (tabName === "全域觸發器") {
       if (typeof window.renderTriggers === "function") {
@@ -405,17 +488,53 @@ document.addEventListener("DOMContentLoaded", () => {
       if (typeof window.renderAchievements === "function") {
         window.renderAchievements();
       }
+      const searchInput = document.getElementById("achievement-search-input");
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+          window.achievementSearchQuery = e.target.value.trim().toLowerCase();
+          if (typeof window.renderAchievements === "function") {
+            window.renderAchievements();
+          }
+        });
+      }
     } else if (tabName === "辭典系統") {
       if (typeof window.renderDictionary === "function") {
         window.renderDictionary();
+      }
+      const searchInput = document.getElementById("dictionary-search-input");
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+          window.dictionarySearchQuery = e.target.value.trim().toLowerCase();
+          if (typeof window.renderDictionary === "function") {
+            window.renderDictionary();
+          }
+        });
       }
     } else if (tabName === "商店系統") {
       if (typeof window.renderShops === "function") {
         window.renderShops();
       }
+      const searchInput = document.getElementById("shop-search-input");
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+          window.shopSearchQuery = e.target.value.trim().toLowerCase();
+          if (typeof window.renderShops === "function") {
+            window.renderShops();
+          }
+        });
+      }
     } else if (tabName === "測驗系統") {
       if (typeof window.renderQuizzes === "function") {
         window.renderQuizzes();
+      }
+      const searchInput = document.getElementById("quiz-search-input");
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+          window.quizSearchQuery = e.target.value.trim().toLowerCase();
+          if (typeof window.renderQuizzes === "function") {
+            window.renderQuizzes();
+          }
+        });
       }
     } else if (tabName === "時間系統") {
       if (typeof window.renderTime === "function") {
@@ -463,6 +582,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   navButtons.forEach((btn) => {
     btn.addEventListener("click", function () {
+      // 切換分頁時清除搜尋狀態
+      const currentTab = this.textContent.trim();
+      if (currentTab !== "場景編輯") window.sceneSearchQuery = "";
+      if (currentTab !== "成就系統") window.achievementSearchQuery = "";
+      if (currentTab !== "辭典系統") window.dictionarySearchQuery = "";
+      if (currentTab !== "商店系統") window.shopSearchQuery = "";
+      if (currentTab !== "數值系統") window.variableSearchQuery = "";
+      if (currentTab !== "道具系統") window.itemSearchQuery = "";
+      if (currentTab !== "測驗系統") window.quizSearchQuery = "";
+
       // 切換分頁時自動停止音樂
       if (window.previewAudio && !window.previewAudio.paused) {
         window.previewAudio.pause();

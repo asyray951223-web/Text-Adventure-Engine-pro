@@ -24,7 +24,19 @@ window.renderShops = function () {
     return;
   }
 
+  const query = window.shopSearchQuery || "";
+  let hasRenderedAny = false;
+
   window.projectData.shops.forEach((shop, index) => {
+    if (query) {
+      const textToSearch = [shop.name, shop.id, shop.description]
+        .join(" ")
+        .toLowerCase();
+      if (!textToSearch.includes(query)) return;
+    }
+
+    hasRenderedAny = true;
+
     const shopEl = document.createElement("div");
     shopEl.className =
       "bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden transition";
@@ -190,6 +202,14 @@ window.renderShops = function () {
     }
     container.appendChild(shopEl);
   });
+
+  if (query && !hasRenderedAny) {
+    container.innerHTML = `
+      <div class="text-gray-500 italic p-10 text-center border border-dashed border-gray-300 rounded-xl bg-white">
+          找不到符合「${query}」的商店。
+      </div>
+    `;
+  }
 };
 
 function addNewShop() {

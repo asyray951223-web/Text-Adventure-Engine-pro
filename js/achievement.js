@@ -24,7 +24,23 @@ window.renderAchievements = function () {
     return;
   }
 
+  const query = window.achievementSearchQuery || "";
+  let hasRenderedAny = false;
+
   window.projectData.achievements.forEach((achievement, index) => {
+    if (query) {
+      const textToSearch = [
+        achievement.name,
+        achievement.id,
+        achievement.description,
+      ]
+        .join(" ")
+        .toLowerCase();
+      if (!textToSearch.includes(query)) return;
+    }
+
+    hasRenderedAny = true;
+
     const achievementEl = document.createElement("div");
     achievementEl.className =
       "bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden transition";
@@ -342,6 +358,14 @@ window.renderAchievements = function () {
     }
     container.appendChild(achievementEl);
   });
+
+  if (query && !hasRenderedAny) {
+    container.innerHTML = `
+      <div class="text-gray-500 italic p-10 text-center border border-dashed border-gray-300 rounded-xl bg-white">
+          找不到符合「${query}」的成就。
+      </div>
+    `;
+  }
 };
 
 function addNewAchievement() {

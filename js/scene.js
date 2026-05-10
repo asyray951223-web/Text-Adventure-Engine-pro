@@ -983,7 +983,7 @@ window.renderScenes = function () {
           <h4 class="text-md font-bold text-gray-700 border-b pb-2 mb-4">場景畫面與音樂設定</h4>
           <div class="flex flex-col sm:flex-row gap-4">
             <div class="w-full sm:w-1/3">
-              <img src="${displayBgUrl}" class="w-full h-32 object-cover rounded border border-gray-300 shadow-sm" alt="場景背景預覽" onerror="this.src='https://via.placeholder.com/600x200?text=No+Background+Image'">
+              <img src="${displayBgUrl}" class="w-full h-32 object-cover rounded border border-gray-300 shadow-sm" alt="場景背景預覽" onerror="this.onerror=null; this.src='https://via.placeholder.com/600x200?text=No+Background+Image'">
               <p class="text-xs text-gray-400 mt-1 text-center">背景畫面預覽</p>
             </div>
             <div class="w-full sm:w-2/3 space-y-3">
@@ -1279,6 +1279,7 @@ window.renderScenes = function () {
           select.addEventListener("change", (e) => {
             const idx = e.target.getAttribute("data-idx");
             scene.options[idx].targetSceneId = e.target.value;
+            window.renderScenes();
           });
         });
 

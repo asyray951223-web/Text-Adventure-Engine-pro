@@ -226,7 +226,7 @@ window.renderAchievements = function () {
       contentEl.innerHTML = `
         <div class="flex flex-col sm:flex-row sm:space-x-6 space-y-4 sm:space-y-0">
           <div class="flex flex-col items-center justify-center sm:w-32 flex-shrink-0">
-            <img src="${achievement.iconUrl || defaultIcon}" class="w-20 h-20 object-cover rounded border-2 border-gray-200 shadow-sm" alt="成就圖示預覽" onerror="this.src='${defaultIcon}'">
+            <img src="${achievement.iconUrl || defaultIcon}" class="w-20 h-20 object-cover rounded border-2 border-gray-200 shadow-sm" alt="成就圖示預覽" onerror="this.onerror=null; this.src='${defaultIcon}'">
             <span class="text-xs text-gray-400 mt-2">圖示預覽</span>
           </div>
           <div class="flex-1 space-y-4">

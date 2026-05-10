@@ -232,7 +232,7 @@ window.renderNpcs = function () {
       contentEl.innerHTML = `
         <div class="flex flex-col sm:flex-row sm:space-x-6 space-y-4 sm:space-y-0">
           <div class="flex flex-col items-center justify-center sm:w-32 flex-shrink-0">
-            <img src="${npc.avatarUrl || defaultAvatar}" class="w-24 h-24 object-cover rounded-full border-4 border-gray-100 shadow-md" alt="頭像預覽" onerror="this.src='${defaultAvatar}'">
+            <img src="${npc.avatarUrl || defaultAvatar}" class="w-24 h-24 object-cover rounded-full border-4 border-gray-100 shadow-md" alt="頭像預覽" onerror="this.onerror=null; this.src='${defaultAvatar}'">
             <span class="text-xs text-gray-400 mt-2">頭像預覽</span>
           </div>
           <div class="flex-1 space-y-4">

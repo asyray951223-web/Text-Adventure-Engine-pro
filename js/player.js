@@ -436,6 +436,7 @@ document.addEventListener("DOMContentLoaded", () => {
             updateTopBar();
             showItemPopup(itemData, 1);
             renderShopItems();
+            if (checkGlobalTriggers()) closeShop();
           });
         }
         shopContainer.appendChild(card);
@@ -534,6 +535,7 @@ document.addEventListener("DOMContentLoaded", () => {
           updateTopBar();
           showToast(`售出了 ${itemData.name}`);
           renderShopItems();
+          if (checkGlobalTriggers()) closeShop();
         });
         shopContainer.appendChild(card);
       });
@@ -1471,8 +1473,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getTotalMinutes() {
     if (!gameState.time) return 0;
+    const hoursPerDay =
+      (projectData.timeSettings && projectData.timeSettings.hoursPerDay) || 24;
     return (
-      gameState.time.day * 24 * 60 +
+      gameState.time.day * hoursPerDay * 60 +
       gameState.time.hour * 60 +
       gameState.time.minute
     );
@@ -1649,7 +1653,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
         gameState.triggeredCount[triggerId] = hasTriggered + 1;
 
-        // 更新基準值 (Baseline) 讓下一次變動能夠重新起算
+        // 套用全域觸發器的複合效果
+        applyEffects(
+          trigger.variableId,
+          trigger.variableVal,
+          trigger.targetItemId,
+          trigger.itemAction,
+          trigger.itemVal,
+          trigger.passTime,
+        );
+
+        // 更新基準值 (Baseline) 讓下一次變動能夠重新起算 (必須在 applyEffects 之後執行，防無限迴圈)
         if (!gameState.baselines) gameState.baselines = {};
         if (!gameState.baselines[triggerId])
           gameState.baselines[triggerId] = {};
@@ -1664,16 +1678,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (trigger.conditions.timePassed !== undefined)
           bl["time"] = getTotalMinutes();
-
-        // 套用全域觸發器的複合效果
-        applyEffects(
-          trigger.variableId,
-          trigger.variableVal,
-          trigger.targetItemId,
-          trigger.itemAction,
-          trigger.itemVal,
-          trigger.passTime,
-        );
 
         if (
           gameState.pendingDayChangeJump &&

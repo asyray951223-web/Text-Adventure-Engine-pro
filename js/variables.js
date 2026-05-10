@@ -3,12 +3,26 @@
 window.renderVariables = function () {
   const container = document.getElementById("variables-container");
   const addBtn = document.getElementById("add-variable-btn");
+  const collapseBtn = document.getElementById("collapse-all-var-btn");
   if (!container || !addBtn) return;
 
   // 綁定新增按鈕事件 (使用 cloneNode 避免重複綁定)
   const newAddBtn = addBtn.cloneNode(true);
   addBtn.parentNode.replaceChild(newAddBtn, addBtn);
   newAddBtn.addEventListener("click", addNewVariable);
+
+  if (collapseBtn) {
+    const newCollapseBtn = collapseBtn.cloneNode(true);
+    collapseBtn.parentNode.replaceChild(newCollapseBtn, collapseBtn);
+    newCollapseBtn.addEventListener("click", () => {
+      if (window.projectData.globalVariables) {
+        window.projectData.globalVariables.forEach(
+          (v) => (v.isExpanded = false),
+        );
+        window.renderVariables();
+      }
+    });
+  }
 
   container.innerHTML = "";
 

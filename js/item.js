@@ -27,12 +27,24 @@ window.renderItems = function () {
 
   const container = document.getElementById("items-container");
   const addBtn = document.getElementById("add-item-btn");
+  const collapseBtn = document.getElementById("collapse-all-item-btn");
   if (!container || !addBtn) return;
 
   // 綁定新增按鈕事件 (使用 cloneNode 避免重複綁定)
   const newAddBtn = addBtn.cloneNode(true);
   addBtn.parentNode.replaceChild(newAddBtn, addBtn);
   newAddBtn.addEventListener("click", addNewItem);
+
+  if (collapseBtn) {
+    const newCollapseBtn = collapseBtn.cloneNode(true);
+    collapseBtn.parentNode.replaceChild(newCollapseBtn, collapseBtn);
+    newCollapseBtn.addEventListener("click", () => {
+      if (window.projectData.items) {
+        window.projectData.items.forEach((i) => (i.isExpanded = false));
+        window.renderItems();
+      }
+    });
+  }
 
   container.innerHTML = "";
 

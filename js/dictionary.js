@@ -3,12 +3,24 @@
 window.renderDictionary = function () {
   const container = document.getElementById("dictionary-container");
   const addBtn = document.getElementById("add-dictionary-btn");
+  const collapseBtn = document.getElementById("collapse-all-dictionary-btn");
   if (!container || !addBtn) return;
 
   // 綁定新增按鈕事件 (使用 cloneNode 避免重複綁定)
   const newAddBtn = addBtn.cloneNode(true);
   addBtn.parentNode.replaceChild(newAddBtn, addBtn);
   newAddBtn.addEventListener("click", addNewDictionary);
+
+  if (collapseBtn) {
+    const newCollapseBtn = collapseBtn.cloneNode(true);
+    collapseBtn.parentNode.replaceChild(newCollapseBtn, collapseBtn);
+    newCollapseBtn.addEventListener("click", () => {
+      if (window.projectData.dictionary) {
+        window.projectData.dictionary.forEach((d) => (d.isExpanded = false));
+        window.renderDictionary();
+      }
+    });
+  }
 
   container.innerHTML = "";
 

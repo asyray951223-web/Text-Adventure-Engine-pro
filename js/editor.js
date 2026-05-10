@@ -185,7 +185,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     <input type="text" id="scene-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋場景名稱、ID、內容或選項..." value="${window.sceneSearchQuery || ""}">
                   </div>
                 </div>
-                <button id="add-scene-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增場景</button>
+                <div class="flex space-x-2 shrink-0 mt-2 md:mt-0 w-full md:w-auto">
+                  <button id="collapse-all-scene-btn" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">一鍵收合</button>
+                  <button id="add-scene-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">+ 新增場景</button>
+                </div>
             </div>
             <div id="scenes-container" class="space-y-4">
                 <!-- 場景列表由 scene.js 動態渲染 -->
@@ -202,7 +205,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     <input type="text" id="chapter-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋章節名稱、ID 或描述..." value="${window.chapterSearchQuery || ""}">
                   </div>
                 </div>
-                <button id="add-chapter-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增章節</button>
+                <div class="flex space-x-2 shrink-0 mt-2 md:mt-0 w-full md:w-auto">
+                  <button id="collapse-all-chapter-btn" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">一鍵收合</button>
+                  <button id="add-chapter-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">+ 新增章節</button>
+                </div>
             </div>
             <div id="chapters-container" class="space-y-4">
                 <!-- 章節列表由 chapter.js 動態渲染 -->
@@ -219,7 +225,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     <input type="text" id="variable-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋變數名稱、ID 或描述..." value="${window.variableSearchQuery || ""}">
                   </div>
                 </div>
-                <button id="add-variable-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增變數</button>
+                <div class="flex space-x-2 shrink-0 mt-2 md:mt-0 w-full md:w-auto">
+                  <button id="collapse-all-var-btn" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">一鍵收合</button>
+                  <button id="add-variable-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">+ 新增變數</button>
+                </div>
             </div>
             <div id="variables-container" class="space-y-4">
                 <!-- 變數列表由 variables.js 動態渲染 -->
@@ -236,7 +245,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     <input type="text" id="item-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋道具名稱、ID 或描述..." value="${window.itemSearchQuery || ""}">
                   </div>
                 </div>
-                <button id="add-item-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增道具</button>
+                <div class="flex space-x-2 shrink-0 mt-2 md:mt-0 w-full md:w-auto">
+                  <button id="collapse-all-item-btn" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">一鍵收合</button>
+                  <button id="add-item-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">+ 新增道具</button>
+                </div>
             </div>
             <div id="items-container" class="space-y-4">
                 <!-- 道具列表由 item.js 動態渲染 -->
@@ -253,7 +265,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     <input type="text" id="trigger-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋觸發器名稱或 ID..." value="${window.triggerSearchQuery || ""}">
                   </div>
                 </div>
-                <button id="add-trigger-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增觸發器</button>
+                <div class="flex space-x-2 shrink-0 mt-2 md:mt-0 w-full md:w-auto">
+                  <button id="collapse-all-trigger-btn" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">一鍵收合</button>
+                  <button id="add-trigger-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">+ 新增觸發器</button>
+                </div>
             </div>
             <div id="triggers-container" class="space-y-4">
                 <!-- 觸發器列表由 trigger.js 動態渲染 -->
@@ -270,7 +285,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     <input type="text" id="npc-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋角色名稱、ID 或背景描述..." value="${window.npcSearchQuery || ""}">
                   </div>
                 </div>
-                <button id="add-npc-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增角色</button>
+                <div class="flex space-x-2 shrink-0 mt-2 md:mt-0 w-full md:w-auto">
+                  <button id="collapse-all-npc-btn" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">一鍵收合</button>
+                  <button id="add-npc-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">+ 新增角色</button>
+                </div>
             </div>
             <div id="npcs-container" class="space-y-4">
                 <!-- NPC 列表由 npc.js 動態渲染 -->
@@ -287,7 +305,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     <input type="text" id="achievement-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋成就名稱、ID 或描述..." value="${window.achievementSearchQuery || ""}">
                   </div>
                 </div>
-                <button id="add-achievement-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增成就</button>
+                <div class="flex space-x-2 shrink-0 mt-2 md:mt-0 w-full md:w-auto">
+                  <button id="collapse-all-achievement-btn" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">一鍵收合</button>
+                  <button id="add-achievement-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">+ 新增成就</button>
+                </div>
             </div>
             <div id="achievements-container" class="space-y-4">
                 <!-- 成就列表由 achievement.js 動態渲染 -->
@@ -304,7 +325,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     <input type="text" id="dictionary-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋辭條名稱、ID 或內容..." value="${window.dictionarySearchQuery || ""}">
                   </div>
                 </div>
-                <button id="add-dictionary-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增辭條</button>
+                <div class="flex space-x-2 shrink-0 mt-2 md:mt-0 w-full md:w-auto">
+                  <button id="collapse-all-dictionary-btn" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">一鍵收合</button>
+                  <button id="add-dictionary-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">+ 新增辭條</button>
+                </div>
             </div>
             <div id="dictionary-container" class="space-y-4">
                 <!-- 辭典列表由 dictionary.js 動態渲染 -->
@@ -321,7 +345,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     <input type="text" id="shop-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋商店名稱、ID 或描述..." value="${window.shopSearchQuery || ""}">
                   </div>
                 </div>
-                <button id="add-shop-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增商店</button>
+                <div class="flex space-x-2 shrink-0 mt-2 md:mt-0 w-full md:w-auto">
+                  <button id="collapse-all-shop-btn" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">一鍵收合</button>
+                  <button id="add-shop-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">+ 新增商店</button>
+                </div>
             </div>
             <div id="shops-container" class="space-y-4">
                 <!-- 商店列表由 shop.js 動態渲染 -->
@@ -338,7 +365,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     <input type="text" id="quiz-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋測驗名稱、ID 或題目..." value="${window.quizSearchQuery || ""}">
                   </div>
                 </div>
-                <button id="add-quiz-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增測驗</button>
+                <div class="flex space-x-2 shrink-0 mt-2 md:mt-0 w-full md:w-auto">
+                  <button id="collapse-all-quiz-btn" class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">一鍵收合</button>
+                  <button id="add-quiz-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition flex-1 md:flex-none">+ 新增測驗</button>
+                </div>
             </div>
             <div id="quizzes-container" class="space-y-4">
                 <!-- 測驗列表由 quiz.js 動態渲染 -->

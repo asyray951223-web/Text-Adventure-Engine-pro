@@ -3,12 +3,24 @@
 window.renderNpcs = function () {
   const container = document.getElementById("npcs-container");
   const addBtn = document.getElementById("add-npc-btn");
+  const collapseBtn = document.getElementById("collapse-all-npc-btn");
   if (!container || !addBtn) return;
 
   // 綁定新增按鈕事件 (使用 cloneNode 避免重複綁定)
   const newAddBtn = addBtn.cloneNode(true);
   addBtn.parentNode.replaceChild(newAddBtn, addBtn);
   newAddBtn.addEventListener("click", addNewNpc);
+
+  if (collapseBtn) {
+    const newCollapseBtn = collapseBtn.cloneNode(true);
+    collapseBtn.parentNode.replaceChild(newCollapseBtn, collapseBtn);
+    newCollapseBtn.addEventListener("click", () => {
+      if (window.projectData.npcs) {
+        window.projectData.npcs.forEach((n) => (n.isExpanded = false));
+        window.renderNpcs();
+      }
+    });
+  }
 
   container.innerHTML = "";
 

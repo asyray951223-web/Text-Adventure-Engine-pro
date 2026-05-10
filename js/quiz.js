@@ -3,11 +3,23 @@
 window.renderQuizzes = function () {
   const container = document.getElementById("quizzes-container");
   const addBtn = document.getElementById("add-quiz-btn");
+  const collapseBtn = document.getElementById("collapse-all-quiz-btn");
   if (!container || !addBtn) return;
 
   const newAddBtn = addBtn.cloneNode(true);
   addBtn.parentNode.replaceChild(newAddBtn, addBtn);
   newAddBtn.addEventListener("click", addNewQuiz);
+
+  if (collapseBtn) {
+    const newCollapseBtn = collapseBtn.cloneNode(true);
+    collapseBtn.parentNode.replaceChild(newCollapseBtn, collapseBtn);
+    newCollapseBtn.addEventListener("click", () => {
+      if (window.projectData.quizzes) {
+        window.projectData.quizzes.forEach((q) => (q.isExpanded = false));
+        window.renderQuizzes();
+      }
+    });
+  }
 
   container.innerHTML = "";
 

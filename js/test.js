@@ -434,6 +434,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             renderDebugPanels(); // 更新左側除錯面板
             renderShopItems(); // 重新整理商店介面
+            if (checkGlobalTriggers()) closeShop();
           });
         }
         shopContainer.appendChild(card);
@@ -529,6 +530,7 @@ document.addEventListener("DOMContentLoaded", () => {
             (itemData.sellPrice || 0);
           renderDebugPanels(); // 更新左側除錯面板
           renderShopItems(); // 重新整理商店介面
+          if (checkGlobalTriggers()) closeShop();
         });
         shopContainer.appendChild(card);
       });
@@ -936,8 +938,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getTotalMinutes() {
     if (!gameState.time) return 0;
+    const hoursPerDay =
+      (projectData.timeSettings && projectData.timeSettings.hoursPerDay) || 24;
     return (
-      gameState.time.day * 24 * 60 +
+      gameState.time.day * hoursPerDay * 60 +
       gameState.time.hour * 60 +
       gameState.time.minute
     );
@@ -1108,21 +1112,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         gameState.triggeredCount[triggerId] = hasTriggered + 1;
-
-        if (!gameState.baselines) gameState.baselines = {};
-        if (!gameState.baselines[triggerId])
-          gameState.baselines[triggerId] = {};
-        const bl = gameState.baselines[triggerId];
-        if (trigger.conditions.variables) {
-          for (const varId of Object.keys(trigger.conditions.variables))
-            bl[varId] = gameState.variables[varId] || 0;
-        }
-        if (trigger.conditions.items) {
-          for (const itemId of Object.keys(trigger.conditions.items))
-            bl[itemId] = gameState.items[itemId] || 0;
-        }
-        if (trigger.conditions.timePassed !== undefined)
-          bl["time"] = getTotalMinutes();
 
         applyEffects(
           trigger.variableId,
@@ -1618,6 +1607,21 @@ document.addEventListener("DOMContentLoaded", () => {
         const chapScenes = projectData.scenes.filter(
           (s) => s.chapterId === targetId,
         );
+
+        if (!gameState.baselines) gameState.baselines = {};
+        if (!gameState.baselines[triggerId])
+          gameState.baselines[triggerId] = {};
+        const bl = gameState.baselines[triggerId];
+        if (trigger.conditions.variables) {
+          for (const varId of Object.keys(trigger.conditions.variables))
+            bl[varId] = gameState.variables[varId] || 0;
+        }
+        if (trigger.conditions.items) {
+          for (const itemId of Object.keys(trigger.conditions.items))
+            bl[itemId] = gameState.items[itemId] || 0;
+        }
+        if (trigger.conditions.timePassed !== undefined)
+          bl["time"] = getTotalMinutes();
         if (chapScenes.length > 0) targetId = chapScenes[0].id;
         else targetId = currentId;
       }

@@ -3,12 +3,24 @@
 window.renderChapters = function () {
   const container = document.getElementById("chapters-container");
   const addBtn = document.getElementById("add-chapter-btn");
+  const collapseBtn = document.getElementById("collapse-all-chapter-btn");
   if (!container || !addBtn) return;
 
   // 綁定新增按鈕事件 (使用 cloneNode 避免重複綁定)
   const newAddBtn = addBtn.cloneNode(true);
   addBtn.parentNode.replaceChild(newAddBtn, addBtn);
   newAddBtn.addEventListener("click", addNewChapter);
+
+  if (collapseBtn) {
+    const newCollapseBtn = collapseBtn.cloneNode(true);
+    collapseBtn.parentNode.replaceChild(newCollapseBtn, collapseBtn);
+    newCollapseBtn.addEventListener("click", () => {
+      if (window.projectData.chapters) {
+        window.projectData.chapters.forEach((c) => (c.isExpanded = false));
+        window.renderChapters();
+      }
+    });
+  }
 
   container.innerHTML = "";
 
@@ -43,6 +55,29 @@ window.renderChapters = function () {
     const isFirst = index === 0;
     const isLast = index === window.projectData.chapters.length - 1;
 
+    // 預先取得該章節內的場景，並計算是否有警告/錯誤
+    const chapterScenes = (window.projectData.scenes || []).filter(
+      (s) => s.chapterId === chapter.id,
+    );
+    let chapterHasWarning = false;
+    let chapterHasError = false;
+    chapterScenes.forEach((scene) => {
+      const needsWarning =
+        (!scene.options || scene.options.length === 0) && !scene.isEnding;
+      const hasEmptyTargetOption =
+        scene.options &&
+        scene.options.length > 0 &&
+        scene.options.some((opt) => !opt.targetSceneId);
+      if (hasEmptyTargetOption) chapterHasError = true;
+      else if (needsWarning) chapterHasWarning = true;
+    });
+    let chapterAlertIconSvg = "";
+    if (chapterHasError) {
+      chapterAlertIconSvg = `<svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="錯誤：此章節內有場景的選項未設定跳轉目標"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+    } else if (chapterHasWarning) {
+      chapterAlertIconSvg = `<svg class="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="警告：此章節內有場景缺乏跳轉選項且未標記為結局"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+    }
+
     // 章節標題區塊 (點擊此區塊進行摺疊/展開)
     const headerEl = document.createElement("div");
     headerEl.className =
@@ -62,6 +97,7 @@ window.renderChapters = function () {
     headerEl.innerHTML = `
       <div class="flex items-center space-x-3 w-full">
         <span>${iconSvg}</span>
+        ${chapterAlertIconSvg}
         <input type="text" value="${chapter.name}" placeholder="輸入章節名稱..." 
                class="w-full max-w-[500px] font-bold text-lg text-gray-800 bg-transparent border border-transparent hover:bg-white hover:border-gray-300 hover:shadow-sm focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none rounded px-2 py-1 transition-all cursor-text">
       </div>
@@ -201,20 +237,29 @@ window.renderChapters = function () {
 
     // 展開的內容區域
     if (chapter.isExpanded) {
-      if (!window.projectData.scenes) window.projectData.scenes = [];
-      const chapterScenes = window.projectData.scenes.filter(
-        (s) => s.chapterId === chapter.id,
-      );
-
       let scenesHtml = "";
       if (chapterScenes.length === 0) {
         scenesHtml = `<div class="text-gray-500 italic p-4 text-center border border-dashed border-gray-300 rounded">目前此章節沒有場景。</div>`;
       } else {
         scenesHtml = `<div class="space-y-2">`;
         chapterScenes.forEach((scene, sIdx) => {
+          const needsWarning =
+            (!scene.options || scene.options.length === 0) && !scene.isEnding;
+          const hasEmptyTargetOption =
+            scene.options &&
+            scene.options.length > 0 &&
+            scene.options.some((opt) => !opt.targetSceneId);
+
+          let sceneAlertIconSvg = "";
+          if (hasEmptyTargetOption) {
+            sceneAlertIconSvg = `<svg class="w-4 h-4 text-red-500 ml-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="錯誤：有選項未設定跳轉目標"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+          } else if (needsWarning) {
+            sceneAlertIconSvg = `<svg class="w-4 h-4 text-amber-500 ml-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="警告：此場景缺乏跳轉選項且未標記為結局"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+          }
+
           scenesHtml += `
             <div class="flex items-center justify-between bg-gray-50 p-2 rounded border border-gray-200">
-              <span class="font-bold text-gray-700">${scene.name} <span class="text-xs text-gray-400 font-mono font-normal ml-2 cursor-pointer hover:text-blue-500 transition select-none" onclick="window.copyId(event, '${scene.id}')" title="點擊複製 ID">(${scene.id})</span></span>
+              <span class="font-bold text-gray-700 flex items-center">${scene.name} <span class="text-xs text-gray-400 font-mono font-normal ml-2 cursor-pointer hover:text-blue-500 transition select-none" onclick="window.copyId(event, '${scene.id}')" title="點擊複製 ID">(${scene.id})</span>${sceneAlertIconSvg}</span>
               <div class="flex items-center space-x-1">
                 <button class="edit-scene-btn p-1 text-blue-400 hover:text-blue-600 bg-white hover:bg-blue-50 rounded shadow-sm border border-transparent hover:border-blue-200 transition" data-id="${scene.id}" title="編輯此場景">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>

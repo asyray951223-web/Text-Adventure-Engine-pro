@@ -3,12 +3,24 @@
 window.renderAchievements = function () {
   const container = document.getElementById("achievements-container");
   const addBtn = document.getElementById("add-achievement-btn");
+  const collapseBtn = document.getElementById("collapse-all-achievement-btn");
   if (!container || !addBtn) return;
 
   // 綁定新增按鈕事件 (使用 cloneNode 避免重複綁定)
   const newAddBtn = addBtn.cloneNode(true);
   addBtn.parentNode.replaceChild(newAddBtn, addBtn);
   newAddBtn.addEventListener("click", addNewAchievement);
+
+  if (collapseBtn) {
+    const newCollapseBtn = collapseBtn.cloneNode(true);
+    collapseBtn.parentNode.replaceChild(newCollapseBtn, collapseBtn);
+    newCollapseBtn.addEventListener("click", () => {
+      if (window.projectData.achievements) {
+        window.projectData.achievements.forEach((a) => (a.isExpanded = false));
+        window.renderAchievements();
+      }
+    });
+  }
 
   container.innerHTML = "";
 

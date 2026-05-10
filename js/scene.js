@@ -3,12 +3,205 @@
 window.renderScenes = function () {
   const container = document.getElementById("scenes-container");
   const addBtn = document.getElementById("add-scene-btn");
+  const collapseBtn = document.getElementById("collapse-all-scene-btn");
   if (!container || !addBtn) return;
 
   // 綁定新增按鈕事件 (使用 cloneNode 避免重複綁定)
   const newAddBtn = addBtn.cloneNode(true);
   addBtn.parentNode.replaceChild(newAddBtn, addBtn);
   newAddBtn.addEventListener("click", () => addNewScene(""));
+
+  if (collapseBtn) {
+    const newCollapseBtn = collapseBtn.cloneNode(true);
+    collapseBtn.parentNode.replaceChild(newCollapseBtn, collapseBtn);
+    newCollapseBtn.addEventListener("click", () => {
+      if (window.projectData.scenes) {
+        window.projectData.scenes.forEach((s) => (s.isExpanded = false));
+        window.renderScenes();
+      }
+    });
+  }
+
+  // --- 批次匯入按鈕與 Modal ---
+  let importBtn = document.getElementById("import-scenes-btn");
+  if (!importBtn) {
+    importBtn = document.createElement("button");
+    importBtn.id = "import-scenes-btn";
+    importBtn.className =
+      "bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-bold shadow-sm transition ml-2 flex items-center whitespace-nowrap";
+    importBtn.innerHTML = `<svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> 批次匯入 (Excel)`;
+    newAddBtn.parentNode.insertBefore(importBtn, newAddBtn.nextSibling);
+
+    const modal = document.createElement("div");
+    modal.id = "scene-import-modal";
+    modal.className =
+      "fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm opacity-0 transition-opacity duration-300";
+    modal.innerHTML = `
+      <div class="bg-white w-11/12 max-w-4xl h-5/6 rounded-2xl border border-gray-300 shadow-2xl flex flex-col transform scale-95 translate-y-8 transition-all duration-300 relative">
+        <div class="flex justify-between items-center p-6 border-b border-gray-200">
+          <h2 class="text-2xl font-extrabold text-gray-800 flex items-center">
+            <svg class="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+            批次匯入場景 (從 Excel 貼上)
+          </h2>
+          <button id="close-import-modal-btn" class="text-gray-400 hover:text-gray-600 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div class="p-6 overflow-y-auto flex-1 flex flex-col space-y-4 bg-gray-50">
+          <div class="text-sm text-gray-600 bg-blue-50 border border-blue-200 p-4 rounded-lg">
+            <p class="font-bold text-blue-800 mb-2">使用說明：</p>
+            <ol class="list-decimal pl-5 space-y-1">
+              <li>在 Excel 或 Google Sheets 中建立三個欄位：<strong>場景名稱</strong>、<strong>所屬章節 ID</strong> (選填)、<strong>場景文本</strong>。</li>
+              <li>選取多行資料並複製 (Ctrl+C)。</li>
+              <li>在下方文字框中貼上 (Ctrl+V)。</li>
+              <li>點擊「開始匯入」，系統會自動為這些場景建立新的 ID 並加入專案中。</li>
+            </ol>
+            <p class="mt-2 text-xs text-blue-500 font-bold">※ 注意：為確保編輯器效能，批次匯入後的場景預設會是「收合」狀態。</p>
+          </div>
+          <textarea id="import-tsv-input" class="w-full flex-1 border border-gray-300 rounded-lg p-4 font-mono text-sm focus:ring-green-500 focus:border-green-500 whitespace-pre custom-scrollbar" placeholder="請在此貼上 Excel 複製的資料..."></textarea>
+        </div>
+        <div class="p-6 border-t border-gray-200 flex justify-end">
+          <button id="do-import-btn" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded-lg shadow-sm transition">
+            開始匯入
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    const closeBtn = document.getElementById("close-import-modal-btn");
+    closeBtn.addEventListener("click", () => {
+      modal.classList.remove("opacity-100");
+      modal.classList.add("opacity-0");
+      setTimeout(() => {
+        modal.classList.remove("flex");
+        modal.classList.add("hidden");
+      }, 300);
+    });
+
+    const doImportBtn = document.getElementById("do-import-btn");
+    doImportBtn.addEventListener("click", () => {
+      const input = document.getElementById("import-tsv-input").value;
+      if (!input.trim()) {
+        alert("請先貼上資料！");
+        return;
+      }
+
+      function parseTSV(tsv) {
+        let rows = [];
+        let cols = [];
+        let currentVal = "";
+        let inQuotes = false;
+
+        for (let i = 0; i < tsv.length; i++) {
+          let char = tsv[i];
+          let nextChar = tsv[i + 1];
+
+          if (inQuotes) {
+            if (char === '"') {
+              if (nextChar === '"') {
+                currentVal += '"';
+                i++;
+              } else {
+                inQuotes = false;
+              }
+            } else {
+              currentVal += char;
+            }
+          } else {
+            if (char === '"' && currentVal === "") {
+              inQuotes = true;
+            } else if (char === "\t") {
+              cols.push(currentVal);
+              currentVal = "";
+            } else if (char === "\n") {
+              cols.push(currentVal);
+              rows.push(cols);
+              cols = [];
+              currentVal = "";
+            } else if (char === "\r") {
+              // skip
+            } else {
+              currentVal += char;
+            }
+          }
+        }
+        if (currentVal !== "" || cols.length > 0) {
+          cols.push(currentVal);
+          rows.push(cols);
+        }
+        return rows;
+      }
+
+      const rows = parseTSV(input);
+      let importCount = 0;
+
+      rows.forEach((cols) => {
+        if (cols.length === 0 || (cols.length === 1 && !cols[0].trim())) return;
+
+        let name = "新場景";
+        let chapterId = "";
+        let text = "";
+
+        if (cols.length === 1) {
+          text = cols[0].trim();
+        } else if (cols.length === 2) {
+          name = cols[0].trim() || "新場景";
+          text = cols[1].trim();
+        } else if (cols.length >= 3) {
+          name = cols[0].trim() || "新場景";
+          chapterId = cols[1].trim();
+          text = cols.slice(2).join("\t").trim();
+        }
+
+        if (text || name !== "新場景") {
+          window.projectData.scenes.push({
+            id:
+              "scene_" +
+              Date.now() +
+              "_" +
+              Math.random().toString(36).substr(2, 5),
+            name: name,
+            chapterId: chapterId,
+            npcId: "",
+            skipIfNpcMissing: false,
+            bgUrl: "",
+            bgmUrl: "",
+            transition: "fade",
+            spriteUrl: "",
+            cgVideoUrl: "",
+            isEnding: false,
+            endingName: "",
+            randomWeight: 1,
+            timeLimit: 0,
+            timeOutSceneId: "",
+            text: text,
+            options: [],
+            isExpanded: false,
+          });
+          importCount++;
+        }
+      });
+
+      if (importCount > 0) {
+        alert(`已成功匯入 ${importCount} 個場景！`);
+        document.getElementById("import-tsv-input").value = "";
+        closeBtn.click();
+        window.renderScenes();
+      } else {
+        alert("找不到有效的場景資料，請確認格式是否正確。");
+      }
+    });
+
+    importBtn.addEventListener("click", () => {
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      setTimeout(() => {
+        modal.classList.remove("opacity-0");
+        modal.classList.add("opacity-100");
+      }, 10);
+    });
+  }
 
   container.innerHTML = "";
 
@@ -348,11 +541,26 @@ window.renderScenes = function () {
       const isFirst = sIdx === 0 || !!query;
       const isLast = sIdx === group.scenes.length - 1 || !!query;
 
+      const needsWarning =
+        (!scene.options || scene.options.length === 0) && !scene.isEnding;
+      const hasEmptyTargetOption =
+        scene.options &&
+        scene.options.length > 0 &&
+        scene.options.some((opt) => !opt.targetSceneId);
+
+      let sceneAlertIconSvg = "";
+      if (hasEmptyTargetOption) {
+        sceneAlertIconSvg = `<svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="錯誤：有選項未設定跳轉目標"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+      } else if (needsWarning) {
+        sceneAlertIconSvg = `<svg class="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="警告：此場景缺乏跳轉選項且未標記為結局"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+      }
+
       headerEl.innerHTML = `
       <div class="flex items-center space-x-3 w-full">
         <input type="checkbox" class="scene-select-chk w-4 h-4 text-blue-600 rounded focus:ring-blue-500 cursor-pointer flex-shrink-0" data-id="${scene.id}" ${window.selectedSceneIds.has(scene.id) ? "checked" : ""}>
         <span>${iconSvg}</span>
         <span class="text-sm font-mono text-gray-400 w-24 truncate cursor-pointer hover:text-blue-500 transition select-none" title="點擊複製 ID: ${scene.id}" onclick="window.copyId(event, '${scene.id}')">${scene.id}</span>
+        ${sceneAlertIconSvg}
         <input type="text" value="${scene.name}" placeholder="輸入場景名稱..." 
                class="w-full max-w-[500px] font-bold text-lg text-gray-800 bg-transparent border border-transparent hover:bg-white hover:border-gray-300 hover:shadow-sm focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none rounded px-2 py-1 transition-all cursor-text">
       </div>
@@ -439,8 +647,29 @@ window.renderScenes = function () {
 
         let optionsHtml = "";
         if (scene.options.length === 0) {
-          optionsHtml = `<div class="text-sm text-gray-400 italic bg-gray-50 p-3 rounded border border-dashed border-gray-300 text-center">目前沒有任何選項，玩家將無法從此場景進行選擇跳轉。</div>`;
+          if (!scene.isEnding) {
+            optionsHtml = `
+              <div class="text-sm text-amber-700 bg-amber-50 p-3 rounded border border-amber-200 flex items-start mb-3 shadow-sm">
+                <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <span><strong>注意：</strong>此場景目前沒有任何選項，且未標記為「結局」。<br>當玩家到達此處時，系統會自動產生「繼續」按鈕強制跳轉至清單中的下一個場景。若此處是死路或劇情最後一幕，建議勾選上方的「標記為結局場景」。</span>
+              </div>
+            `;
+          } else {
+            optionsHtml = `<div class="text-sm text-gray-400 italic bg-gray-50 p-3 rounded border border-dashed border-gray-300 text-center mb-3">這是一個結局場景，到達此處後遊戲將自動結束，不需設定選項。</div>`;
+          }
         } else {
+          const hasEmptyTargetOption = scene.options.some(
+            (opt) => !opt.targetSceneId,
+          );
+          if (hasEmptyTargetOption) {
+            optionsHtml += `
+              <div class="text-sm text-red-700 bg-red-50 p-3 rounded border border-red-200 flex items-start mb-3 shadow-sm">
+                <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span><strong>錯誤：</strong>有選項未設定跳轉目標！玩家點擊該選項後將停留在原地。請務必為下方紅框標示的選項指定目標場景。</span>
+              </div>
+            `;
+          }
+
           scene.options.forEach((opt, optIndex) => {
             if (!opt.conditions) {
               opt.conditions = { variables: {}, items: {} };
@@ -600,8 +829,12 @@ window.renderScenes = function () {
               itemOptions += `<option value="${i.id}" ${selected}>${i.name}</option>`;
             });
 
+            const optBoxClass = !opt.targetSceneId
+              ? "bg-red-50/50 border-red-400 hover:border-red-500 shadow-sm"
+              : "bg-gray-50 border-gray-200 hover:border-blue-300";
+
             optionsHtml += `
-            <div class="flex flex-col space-y-2 bg-gray-50 p-3 rounded border border-gray-200 transition hover:border-blue-300">
+            <div class="flex flex-col space-y-2 p-3 rounded border transition ${optBoxClass}">
               <div class="flex items-center space-x-2">
                 <input type="text" class="opt-text w-3/5 border border-gray-300 rounded shadow-sm p-1.5 text-sm focus:ring-blue-500 focus:border-blue-500" placeholder="選項文字 (例如: 進入山洞)" value="${opt.text || ""}" data-idx="${optIndex}">
                 <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>

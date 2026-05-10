@@ -26,12 +26,24 @@ window.renderShops = function () {
 
   const container = document.getElementById("shops-container");
   const addBtn = document.getElementById("add-shop-btn");
+  const collapseBtn = document.getElementById("collapse-all-shop-btn");
   if (!container || !addBtn) return;
 
   // 綁定新增按鈕事件 (使用 cloneNode 避免重複綁定)
   const newAddBtn = addBtn.cloneNode(true);
   addBtn.parentNode.replaceChild(newAddBtn, addBtn);
   newAddBtn.addEventListener("click", addNewShop);
+
+  if (collapseBtn) {
+    const newCollapseBtn = collapseBtn.cloneNode(true);
+    collapseBtn.parentNode.replaceChild(newCollapseBtn, collapseBtn);
+    newCollapseBtn.addEventListener("click", () => {
+      if (window.projectData.shops) {
+        window.projectData.shops.forEach((s) => (s.isExpanded = false));
+        window.renderShops();
+      }
+    });
+  }
 
   container.innerHTML = "";
 

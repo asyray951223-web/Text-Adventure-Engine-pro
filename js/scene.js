@@ -220,6 +220,12 @@ window.renderScenes = function () {
         `確定要刪除選取的 ${window.selectedSceneIds.size} 個場景嗎？\n此操作無法復原！`,
       )
     ) {
+      const clearedCount = cleanupInvalidSceneJumps(window.selectedSceneIds);
+      if (clearedCount > 0) {
+        alert(
+          `已自動清除 ${clearedCount} 個指向這些被刪除場景的無效跳轉設定。`,
+        );
+      }
       window.projectData.scenes = window.projectData.scenes.filter(
         (s) => !window.selectedSceneIds.has(s.id),
       );
@@ -411,6 +417,12 @@ window.renderScenes = function () {
 
       headerEl.querySelector(".delete-btn").addEventListener("click", () => {
         if (confirm(`確定要刪除「${scene.name}」嗎？`)) {
+          const clearedCount = cleanupInvalidSceneJumps(new Set([scene.id]));
+          if (clearedCount > 0) {
+            alert(
+              `已自動清除 ${clearedCount} 個指向此被刪除場景的無效跳轉設定。`,
+            );
+          }
           const realIndex = window.projectData.scenes.findIndex(
             (s) => s.id === scene.id,
           );
@@ -1311,4 +1323,67 @@ function duplicateScene(sceneId) {
   // 插入在原本的場景後方
   scenes.splice(index + 1, 0, newScene);
   window.renderScenes();
+}
+
+function cleanupInvalidSceneJumps(deletedSceneIds) {
+  if (!deletedSceneIds || deletedSceneIds.size === 0) return 0;
+  let clearedCount = 0;
+
+  if (window.projectData.scenes) {
+    window.projectData.scenes.forEach((scene) => {
+      if (deletedSceneIds.has(scene.timeOutSceneId)) {
+        scene.timeOutSceneId = "";
+        clearedCount++;
+      }
+      if (scene.options) {
+        scene.options.forEach((opt) => {
+          if (deletedSceneIds.has(opt.targetSceneId)) {
+            opt.targetSceneId = "";
+            clearedCount++;
+          }
+        });
+      }
+    });
+  }
+
+  if (window.projectData.items) {
+    window.projectData.items.forEach((item) => {
+      if (deletedSceneIds.has(item.targetSceneId)) {
+        item.targetSceneId = "";
+        clearedCount++;
+      }
+    });
+  }
+
+  if (window.projectData.triggers) {
+    window.projectData.triggers.forEach((trigger) => {
+      if (deletedSceneIds.has(trigger.targetSceneId)) {
+        trigger.targetSceneId = "";
+        clearedCount++;
+      }
+    });
+  }
+
+  if (window.projectData.quizzes) {
+    window.projectData.quizzes.forEach((quiz) => {
+      if (deletedSceneIds.has(quiz.successSceneId)) {
+        quiz.successSceneId = "";
+        clearedCount++;
+      }
+      if (deletedSceneIds.has(quiz.failureSceneId)) {
+        quiz.failureSceneId = "";
+        clearedCount++;
+      }
+    });
+  }
+
+  if (
+    window.projectData.timeSettings &&
+    deletedSceneIds.has(window.projectData.timeSettings.dayChangeSceneId)
+  ) {
+    window.projectData.timeSettings.dayChangeSceneId = "";
+    clearedCount++;
+  }
+
+  return clearedCount;
 }

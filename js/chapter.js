@@ -75,7 +75,95 @@ window.renderChapters = function () {
       .querySelector("input")
       .addEventListener("input", (e) => (chapter.name = e.target.value));
     headerEl.querySelector(".delete-btn").addEventListener("click", () => {
-      if (confirm(`確定要刪除「${chapter.name}」嗎？`)) {
+      if (
+        confirm(
+          `確定要刪除「${chapter.name}」嗎？\n注意：此章節底下的所有場景也會一併被刪除！`,
+        )
+      ) {
+        if (window.projectData.scenes) {
+          // 1. 取得即將被刪除的場景 ID 集合
+          const deletedSceneIds = new Set(
+            window.projectData.scenes
+              .filter((s) => s.chapterId === chapter.id)
+              .map((s) => s.id),
+          );
+
+          if (deletedSceneIds.size > 0) {
+            let clearedCount = 0;
+
+            // 2. 清除其他場景的「選項跳轉」與「超時跳轉」
+            window.projectData.scenes.forEach((scene) => {
+              if (deletedSceneIds.has(scene.timeOutSceneId)) {
+                scene.timeOutSceneId = "";
+                clearedCount++;
+              }
+              if (scene.options) {
+                scene.options.forEach((opt) => {
+                  if (deletedSceneIds.has(opt.targetSceneId)) {
+                    opt.targetSceneId = "";
+                    clearedCount++;
+                  }
+                });
+              }
+            });
+
+            // 3. 清除道具的「使用後跳轉」
+            if (window.projectData.items) {
+              window.projectData.items.forEach((item) => {
+                if (deletedSceneIds.has(item.targetSceneId)) {
+                  item.targetSceneId = "";
+                  clearedCount++;
+                }
+              });
+            }
+
+            // 4. 清除全域觸發器的「觸發後跳轉」
+            if (window.projectData.triggers) {
+              window.projectData.triggers.forEach((trigger) => {
+                if (deletedSceneIds.has(trigger.targetSceneId)) {
+                  trigger.targetSceneId = "";
+                  clearedCount++;
+                }
+              });
+            }
+
+            // 5. 清除測驗系統的「成功/失敗跳轉」
+            if (window.projectData.quizzes) {
+              window.projectData.quizzes.forEach((quiz) => {
+                if (deletedSceneIds.has(quiz.successSceneId)) {
+                  quiz.successSceneId = "";
+                  clearedCount++;
+                }
+                if (deletedSceneIds.has(quiz.failureSceneId)) {
+                  quiz.failureSceneId = "";
+                  clearedCount++;
+                }
+              });
+            }
+
+            // 6. 清除時間系統的「跨日結算跳轉」
+            if (
+              window.projectData.timeSettings &&
+              deletedSceneIds.has(
+                window.projectData.timeSettings.dayChangeSceneId,
+              )
+            ) {
+              window.projectData.timeSettings.dayChangeSceneId = "";
+              clearedCount++;
+            }
+
+            if (clearedCount > 0) {
+              alert(
+                `已自動清除 ${clearedCount} 個指向這些被刪除場景的無效跳轉設定。`,
+              );
+            }
+          }
+
+          // 7. 實際刪除底下的場景
+          window.projectData.scenes = window.projectData.scenes.filter(
+            (s) => s.chapterId !== chapter.id,
+          );
+        }
         window.projectData.chapters.splice(index, 1);
         window.renderChapters();
       }

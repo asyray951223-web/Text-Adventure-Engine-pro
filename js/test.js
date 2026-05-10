@@ -1121,6 +1121,22 @@ document.addEventListener("DOMContentLoaded", () => {
           trigger.itemVal,
           trigger.passTime,
         );
+
+        if (!gameState.baselines) gameState.baselines = {};
+        if (!gameState.baselines[triggerId])
+          gameState.baselines[triggerId] = {};
+        const bl = gameState.baselines[triggerId];
+        if (trigger.conditions.variables) {
+          for (const varId of Object.keys(trigger.conditions.variables))
+            bl[varId] = gameState.variables[varId] || 0;
+        }
+        if (trigger.conditions.items) {
+          for (const itemId of Object.keys(trigger.conditions.items))
+            bl[itemId] = gameState.items[itemId] || 0;
+        }
+        if (trigger.conditions.timePassed !== undefined)
+          bl["time"] = getTotalMinutes();
+
         if (
           gameState.pendingDayChangeJump &&
           projectData.timeSettings &&
@@ -1607,21 +1623,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const chapScenes = projectData.scenes.filter(
           (s) => s.chapterId === targetId,
         );
-
-        if (!gameState.baselines) gameState.baselines = {};
-        if (!gameState.baselines[triggerId])
-          gameState.baselines[triggerId] = {};
-        const bl = gameState.baselines[triggerId];
-        if (trigger.conditions.variables) {
-          for (const varId of Object.keys(trigger.conditions.variables))
-            bl[varId] = gameState.variables[varId] || 0;
-        }
-        if (trigger.conditions.items) {
-          for (const itemId of Object.keys(trigger.conditions.items))
-            bl[itemId] = gameState.items[itemId] || 0;
-        }
-        if (trigger.conditions.timePassed !== undefined)
-          bl["time"] = getTotalMinutes();
         if (chapScenes.length > 0) targetId = chapScenes[0].id;
         else targetId = currentId;
       }

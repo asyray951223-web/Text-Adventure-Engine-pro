@@ -3067,15 +3067,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 快速讀檔 (F9)
-    if (e.key === "F9") {
-      e.preventDefault();
-      if (confirm("確定要讀取快速存檔嗎？將會遺失目前未保存的進度。")) {
-        window.location.reload();
-      }
-      return;
-    }
-
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault(); // 防止空白鍵向下捲動網頁
 

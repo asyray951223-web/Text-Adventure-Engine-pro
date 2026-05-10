@@ -32,6 +32,10 @@ window.renderScenes = function () {
     importBtn.innerHTML = `<svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> 批次匯入 (Excel)`;
     newAddBtn.parentNode.insertBefore(importBtn, newAddBtn.nextSibling);
 
+    // 移除舊的 Modal，避免切換分頁時重複注入導致 ID 衝突與事件綁定失效
+    let existingModal = document.getElementById("scene-import-modal");
+    if (existingModal) existingModal.remove();
+
     const modal = document.createElement("div");
     modal.id = "scene-import-modal";
     modal.className =
@@ -69,7 +73,7 @@ window.renderScenes = function () {
     `;
     document.body.appendChild(modal);
 
-    const closeBtn = document.getElementById("close-import-modal-btn");
+    const closeBtn = modal.querySelector("#close-import-modal-btn");
     closeBtn.addEventListener("click", () => {
       modal.classList.remove("opacity-100");
       modal.classList.add("opacity-0");
@@ -79,9 +83,9 @@ window.renderScenes = function () {
       }, 300);
     });
 
-    const doImportBtn = document.getElementById("do-import-btn");
+    const doImportBtn = modal.querySelector("#do-import-btn");
     doImportBtn.addEventListener("click", () => {
-      const input = document.getElementById("import-tsv-input").value;
+      const input = modal.querySelector("#import-tsv-input").value;
       if (!input.trim()) {
         alert("請先貼上資料！");
         return;
@@ -185,7 +189,7 @@ window.renderScenes = function () {
 
       if (importCount > 0) {
         alert(`已成功匯入 ${importCount} 個場景！`);
-        document.getElementById("import-tsv-input").value = "";
+        modal.querySelector("#import-tsv-input").value = "";
         closeBtn.click();
         window.renderScenes();
       } else {

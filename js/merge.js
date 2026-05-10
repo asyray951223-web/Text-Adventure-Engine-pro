@@ -418,17 +418,33 @@ document.addEventListener("DOMContentLoaded", () => {
     const mergedData = window.currentMergedData;
     if (!mergedData) return;
 
-    // 存入當前編輯狀態
-    localStorage.setItem("textAdventureProject", JSON.stringify(mergedData));
+    try {
+      // 存入當前編輯狀態
+      localStorage.setItem("textAdventureProject", JSON.stringify(mergedData));
 
-    // 更新保存至多專案清單庫
-    let projects =
-      JSON.parse(localStorage.getItem("textAdventureProjectsList")) || [];
-    projects.push(mergedData);
-    localStorage.setItem("textAdventureProjectsList", JSON.stringify(projects));
+      // 更新保存至多專案清單庫
+      let projects =
+        JSON.parse(localStorage.getItem("textAdventureProjectsList")) || [];
+      projects.push(mergedData);
+      localStorage.setItem(
+        "textAdventureProjectsList",
+        JSON.stringify(projects),
+      );
 
-    alert("專案合併成功！即將進入編輯器...");
-    window.location.href = "editor.html";
+      alert("專案合併成功！即將進入編輯器...");
+      window.location.href = "editor.html";
+    } catch (e) {
+      if (
+        e.name === "QuotaExceededError" ||
+        e.name === "NS_ERROR_DOM_QUOTA_REACHED"
+      ) {
+        alert(
+          "⚠️ 合併失敗：合併後的專案資料過大，瀏覽器儲存空間已滿！\n請先使用「下載報告與 JSON」將專案下載至電腦，或回到大廳刪除舊專案騰出空間。",
+        );
+      } else {
+        alert("⚠️ 合併存檔發生錯誤：" + e.message);
+      }
+    }
   });
 
   document.getElementById("close-report-btn").addEventListener("click", () => {

@@ -232,7 +232,10 @@ window.renderAchievements = function () {
           <div class="flex-1 space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">圖示網址 (URL)</label>
-              <input type="text" class="icon-input w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="https://..." value="${achievement.iconUrl || ""}">
+              <div class="flex space-x-2">
+                <input type="text" class="icon-input flex-1 border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="https://..." value="${achievement.iconUrl || ""}">
+                <button class="icon-upload-btn bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded text-sm font-bold transition whitespace-nowrap">上傳</button>
+              </div>
             </div>
             <div class="flex items-center mt-2">
               <input type="checkbox" id="hidden-chk-${achievement.id}" class="hidden-chk h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" ${achievement.isHidden ? "checked" : ""}>
@@ -275,6 +278,15 @@ window.renderAchievements = function () {
         achievement.iconUrl = e.target.value;
         window.renderAchievements();
       });
+
+      contentEl
+        .querySelector(".icon-upload-btn")
+        .addEventListener("click", () => {
+          window.promptImageUpload((base64) => {
+            achievement.iconUrl = base64;
+            window.renderAchievements();
+          });
+        });
 
       contentEl.querySelector(".hidden-chk").addEventListener("change", (e) => {
         achievement.isHidden = e.target.checked;

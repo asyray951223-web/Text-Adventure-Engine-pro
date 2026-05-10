@@ -45,6 +45,50 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  // 全域圖片上傳與轉 Base64 處理函式
+  window.promptImageUpload = function (callback) {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+
+          // 設定最大寬高限制 (例如 1920x1920)
+          const MAX_WIDTH = 1920;
+          const MAX_HEIGHT = 1920;
+
+          if (width > height && width > MAX_WIDTH) {
+            height = Math.round(height * (MAX_WIDTH / width));
+            width = MAX_WIDTH;
+          } else if (height > width && height > MAX_HEIGHT) {
+            width = Math.round(width * (MAX_HEIGHT / height));
+            height = MAX_HEIGHT;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // 壓縮並轉為 Base64 (使用 WebP 格式，保留透明度且高壓縮率，品質設定為 0.8)
+          const compressedBase64 = canvas.toDataURL("image/webp", 0.8);
+          callback(compressedBase64);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
+
   // 全域 BGM 預覽功能
   window.previewAudio = new Audio();
   window.previewAudio.loop = true;
@@ -144,7 +188,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">預設背景圖網址 (URL，選填)</label>
-                    <input type="text" id="input-default-bg" value="${data.projectInfo.defaultBgUrl || ""}" class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="https://...">
+                    <div class="flex space-x-2">
+                        <input type="text" id="input-default-bg" value="${data.projectInfo.defaultBgUrl || ""}" class="flex-1 border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="https://...">
+                        <button id="upload-default-bg-btn" class="bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded text-sm font-bold transition whitespace-nowrap">上傳圖片</button>
+                    </div>
                     <p class="text-xs text-gray-500 mt-1">若場景或章節未設定專屬背景圖，將會預設顯示此圖片。</p>
                 </div>
                 <div>
@@ -404,6 +451,19 @@ document.addEventListener("DOMContentLoaded", () => {
         .addEventListener("input", (e) => {
           window.projectData.projectInfo.defaultBgUrl = e.target.value;
         });
+      const uploadDefaultBgBtn = document.getElementById(
+        "upload-default-bg-btn",
+      );
+      if (uploadDefaultBgBtn) {
+        uploadDefaultBgBtn.addEventListener("click", () => {
+          if (window.promptImageUpload) {
+            window.promptImageUpload((base64) => {
+              window.projectData.projectInfo.defaultBgUrl = base64;
+              document.getElementById("input-default-bg").value = base64;
+            });
+          }
+        });
+      }
       document
         .getElementById("input-default-bgm")
         .addEventListener("input", (e) => {
@@ -458,26 +518,40 @@ document.addEventListener("DOMContentLoaded", () => {
                 importedData.projectId = "proj_" + Date.now();
               }
               window.projectData = importedData;
-              localStorage.setItem(
-                "textAdventureProject",
-                JSON.stringify(window.projectData),
-              );
+              try {
+                localStorage.setItem(
+                  "textAdventureProject",
+                  JSON.stringify(window.projectData),
+                );
 
-              let projects =
-                JSON.parse(localStorage.getItem("textAdventureProjectsList")) ||
-                [];
-              const idx = projects.findIndex(
-                (p) => p.projectId === window.projectData.projectId,
-              );
-              if (idx !== -1) projects[idx] = window.projectData;
-              else projects.push(window.projectData);
-              localStorage.setItem(
-                "textAdventureProjectsList",
-                JSON.stringify(projects),
-              );
+                let projects =
+                  JSON.parse(
+                    localStorage.getItem("textAdventureProjectsList"),
+                  ) || [];
+                const idx = projects.findIndex(
+                  (p) => p.projectId === window.projectData.projectId,
+                );
+                if (idx !== -1) projects[idx] = window.projectData;
+                else projects.push(window.projectData);
+                localStorage.setItem(
+                  "textAdventureProjectsList",
+                  JSON.stringify(projects),
+                );
 
-              alert("專案載入成功！");
-              window.location.reload(); // 重新載入頁面以套用所有設定
+                alert("專案載入成功！");
+                window.location.reload(); // 重新載入頁面以套用所有設定
+              } catch (storageErr) {
+                if (
+                  storageErr.name === "QuotaExceededError" ||
+                  storageErr.name === "NS_ERROR_DOM_QUOTA_REACHED"
+                ) {
+                  alert(
+                    "⚠️ 載入失敗：專案過大導致瀏覽器儲存空間不足！\n請先刪除其他不需要的專案。",
+                  );
+                } else {
+                  alert("⚠️ 載入時發生錯誤：" + storageErr.message);
+                }
+              }
             } else {
               alert("無效的專案檔案！");
             }
@@ -708,23 +782,40 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!window.projectData.projectId) {
       window.projectData.projectId = "proj_" + Date.now();
     }
-    localStorage.setItem(
-      "textAdventureProject",
-      JSON.stringify(window.projectData),
-    );
+    try {
+      localStorage.setItem(
+        "textAdventureProject",
+        JSON.stringify(window.projectData),
+      );
 
-    // 同步到專案庫
-    let projects =
-      JSON.parse(localStorage.getItem("textAdventureProjectsList")) || [];
-    const idx = projects.findIndex(
-      (p) => p.projectId === window.projectData.projectId,
-    );
-    if (idx !== -1) projects[idx] = window.projectData;
-    else projects.push(window.projectData);
-    localStorage.setItem("textAdventureProjectsList", JSON.stringify(projects));
+      // 同步到專案庫
+      let projects =
+        JSON.parse(localStorage.getItem("textAdventureProjectsList")) || [];
+      const idx = projects.findIndex(
+        (p) => p.projectId === window.projectData.projectId,
+      );
+      if (idx !== -1) projects[idx] = window.projectData;
+      else projects.push(window.projectData);
+      localStorage.setItem(
+        "textAdventureProjectsList",
+        JSON.stringify(projects),
+      );
 
-    updateLastSaveTime();
-    if (!silent) alert("專案已成功保存至本地！");
+      updateLastSaveTime();
+      if (!silent) alert("專案已成功保存至本地！");
+    } catch (e) {
+      console.error("Save failed:", e);
+      if (
+        e.name === "QuotaExceededError" ||
+        e.name === "NS_ERROR_DOM_QUOTA_REACHED"
+      ) {
+        alert(
+          "⚠️ 儲存失敗：瀏覽器本地儲存空間已滿！\n\n建議處置方式：\n1. 先使用「匯出專案」將目前進度下載備份至電腦\n2. 回到首頁大廳刪除不常用的舊專案\n3. 減少使用本地上傳圖片，改用外部網址 (URL)",
+        );
+      } else {
+        alert("⚠️ 儲存發生未知錯誤：" + e.message);
+      }
+    }
   };
 
   // 點擊儲存按鈕

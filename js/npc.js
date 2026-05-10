@@ -238,7 +238,10 @@ window.renderNpcs = function () {
           <div class="flex-1 space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">頭像圖片網址 (URL)</label>
-              <input type="text" class="avatar-input w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="https://..." value="${npc.avatarUrl || ""}">
+              <div class="flex space-x-2">
+                <input type="text" class="avatar-input flex-1 border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="https://..." value="${npc.avatarUrl || ""}">
+                <button class="avatar-upload-btn bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded text-sm font-bold transition whitespace-nowrap">上傳</button>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">綁定全域變數 (如好感度、怒氣值)</label>
@@ -299,6 +302,16 @@ window.renderNpcs = function () {
           npc.avatarUrl = e.target.value;
           window.renderNpcs();
         });
+
+      const avatarUploadBtn = contentEl.querySelector(".avatar-upload-btn");
+      if (avatarUploadBtn) {
+        avatarUploadBtn.addEventListener("click", () => {
+          window.promptImageUpload((base64) => {
+            npc.avatarUrl = base64;
+            window.renderNpcs();
+          });
+        });
+      }
 
       contentEl
         .querySelector(".bound-var-select")

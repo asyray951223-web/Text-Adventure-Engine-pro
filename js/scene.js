@@ -989,7 +989,10 @@ window.renderScenes = function () {
             <div class="w-full sm:w-2/3 space-y-3">
               <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">場景專屬背景圖 (URL，選填，留空則自動套用預設圖)</label>
-                <input type="text" class="scene-bg-url w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="https://..." value="${scene.bgUrl || ""}">
+                <div class="flex space-x-2">
+                  <input type="text" class="scene-bg-url flex-1 border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="https://..." value="${scene.bgUrl || ""}">
+                  <button class="scene-bg-upload-btn bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded text-sm font-bold transition whitespace-nowrap">上傳</button>
+                </div>
               </div>
               <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">場景專屬音樂 (BGM URL，選填，留空則套用章節或預設音)</label>
@@ -1041,7 +1044,10 @@ window.renderScenes = function () {
         </div>
         <div class="mt-4">
           <label class="block text-sm font-medium text-gray-700 mb-1">場景角色立繪 (Sprite URL，選填)</label>
-          <input type="text" class="scene-sprite-url w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="https://..." value="${scene.spriteUrl || ""}">
+          <div class="flex space-x-2">
+            <input type="text" class="scene-sprite-url flex-1 border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="https://..." value="${scene.spriteUrl || ""}">
+            <button class="scene-sprite-upload-btn bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded text-sm font-bold transition whitespace-nowrap">上傳</button>
+          </div>
           <p class="text-xs text-gray-500 mt-1">立繪將顯示在對話框上方、背景圖之前。</p>
         </div>
         <div class="mt-4">
@@ -1127,6 +1133,15 @@ window.renderScenes = function () {
             window.renderScenes(); // 重新渲染以更新預覽圖片
           });
         }
+        const bgUploadBtn = contentEl.querySelector(".scene-bg-upload-btn");
+        if (bgUploadBtn) {
+          bgUploadBtn.addEventListener("click", () => {
+            window.promptImageUpload((base64) => {
+              scene.bgUrl = base64;
+              window.renderScenes();
+            });
+          });
+        }
 
         // 綁定「專屬背景音樂」輸入框
         const bgmUrlInput = contentEl.querySelector(".scene-bgm-url");
@@ -1191,6 +1206,17 @@ window.renderScenes = function () {
         if (spriteUrlInput) {
           spriteUrlInput.addEventListener("change", (e) => {
             scene.spriteUrl = e.target.value;
+          });
+        }
+        const spriteUploadBtn = contentEl.querySelector(
+          ".scene-sprite-upload-btn",
+        );
+        if (spriteUploadBtn) {
+          spriteUploadBtn.addEventListener("click", () => {
+            window.promptImageUpload((base64) => {
+              scene.spriteUrl = base64;
+              contentEl.querySelector(".scene-sprite-url").value = base64;
+            });
           });
         }
 

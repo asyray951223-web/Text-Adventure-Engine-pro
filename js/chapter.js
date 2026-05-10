@@ -307,7 +307,10 @@ window.renderChapters = function () {
             <div class="w-full sm:w-2/3 space-y-3">
               <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">章節背景圖網址 (URL)</label>
-                <input type="text" class="cover-input w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="https://..." value="${chapter.coverUrl || ""}">
+                <div class="flex space-x-2">
+                  <input type="text" class="cover-input flex-1 border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="https://..." value="${chapter.coverUrl || ""}">
+                  <button class="cover-upload-btn bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded text-sm font-bold transition whitespace-nowrap">上傳</button>
+                </div>
               </div>
               <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">章節背景音樂網址 (BGM URL，選填)</label>
@@ -386,6 +389,17 @@ window.renderChapters = function () {
         .addEventListener("change", (e) => {
           chapter.coverUrl = e.target.value;
           window.renderChapters();
+        });
+
+      contentEl
+        .querySelector(".cover-upload-btn")
+        .addEventListener("click", () => {
+          if (window.promptImageUpload) {
+            window.promptImageUpload((base64) => {
+              chapter.coverUrl = base64;
+              window.renderChapters();
+            });
+          }
         });
 
       contentEl.querySelector(".bgm-input").addEventListener("change", (e) => {

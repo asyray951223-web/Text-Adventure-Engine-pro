@@ -186,24 +186,37 @@ document.addEventListener("DOMContentLoaded", () => {
           if (!importedData.projectId) {
             importedData.projectId = "proj_" + Date.now();
           }
-          localStorage.setItem(
-            "textAdventureProject",
-            JSON.stringify(importedData),
-          );
+          try {
+            localStorage.setItem(
+              "textAdventureProject",
+              JSON.stringify(importedData),
+            );
 
-          let list = getProjectsList();
-          const idx = list.findIndex(
-            (p) => p.projectId === importedData.projectId,
-          );
-          if (idx !== -1) list[idx] = importedData;
-          else list.push(importedData);
-          localStorage.setItem(
-            "textAdventureProjectsList",
-            JSON.stringify(list),
-          );
+            let list = getProjectsList();
+            const idx = list.findIndex(
+              (p) => p.projectId === importedData.projectId,
+            );
+            if (idx !== -1) list[idx] = importedData;
+            else list.push(importedData);
+            localStorage.setItem(
+              "textAdventureProjectsList",
+              JSON.stringify(list),
+            );
 
-          alert("專案載入成功！即將進入編輯器...");
-          window.location.href = "editor.html";
+            alert("專案載入成功！即將進入編輯器...");
+            window.location.href = "editor.html";
+          } catch (storageErr) {
+            if (
+              storageErr.name === "QuotaExceededError" ||
+              storageErr.name === "NS_ERROR_DOM_QUOTA_REACHED"
+            ) {
+              alert(
+                "⚠️ 載入失敗：專案過大導致瀏覽器儲存空間不足！\n請先刪除不需要的專案。",
+              );
+            } else {
+              alert("⚠️ 載入發生錯誤：" + storageErr.message);
+            }
+          }
         } else {
           alert("無效的專案檔案！");
         }
@@ -329,21 +342,34 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         const importedData = JSON.parse(event.target.result);
         if (importedData && importedData.projectInfo) {
-          localStorage.setItem(
-            "textAdventureProject",
-            JSON.stringify(importedData),
-          );
-          if (
-            confirm(
-              "是否同時清空舊遊戲的存檔槽位與成就紀錄？\n(若載入的是同一個遊戲的更新版可選取消，若是全新遊戲建議選確定)",
-            )
-          ) {
-            localStorage.removeItem("textAdventurePlayerSaves");
-            localStorage.removeItem("textAdventureGlobalUnlocks");
+          try {
+            localStorage.setItem(
+              "textAdventureProject",
+              JSON.stringify(importedData),
+            );
+            if (
+              confirm(
+                "是否同時清空舊遊戲的存檔槽位與成就紀錄？\n(若載入的是同一個遊戲的更新版可選取消，若是全新遊戲建議選確定)",
+              )
+            ) {
+              localStorage.removeItem("textAdventurePlayerSaves");
+              localStorage.removeItem("textAdventureGlobalUnlocks");
+            }
+            updateCurrentPlayProjectName();
+            renderSlots();
+            alert("遊戲載入成功！請選擇槽位開始遊玩。");
+          } catch (storageErr) {
+            if (
+              storageErr.name === "QuotaExceededError" ||
+              storageErr.name === "NS_ERROR_DOM_QUOTA_REACHED"
+            ) {
+              alert(
+                "⚠️ 載入失敗：遊戲檔案過大，瀏覽器儲存空間已滿！\n請先清理其他不需要的專案或存檔。",
+              );
+            } else {
+              alert("⚠️ 載入發生錯誤：" + storageErr.message);
+            }
           }
-          updateCurrentPlayProjectName();
-          renderSlots();
-          alert("遊戲載入成功！請選擇槽位開始遊玩。");
         } else {
           alert("無效的遊戲檔案！");
         }
@@ -359,6 +385,118 @@ document.addEventListener("DOMContentLoaded", () => {
     playModal.classList.add("opacity-0", "pointer-events-none");
     playModal.firstElementChild.classList.add("scale-95", "translate-y-4");
   });
+
+  // 匯出遊玩紀錄
+  const saveDataExportBtn = document.getElementById("save-data-export-btn");
+  if (saveDataExportBtn) {
+    saveDataExportBtn.addEventListener("click", () => {
+      const saves = localStorage.getItem("textAdventurePlayerSaves");
+      const globalUnlocks = localStorage.getItem("textAdventureGlobalUnlocks");
+      if (!saves && !globalUnlocks) {
+        alert("目前沒有任何遊玩紀錄可匯出！");
+        return;
+      }
+
+      const exportData = {
+        type: "TextAdventureSaveData",
+        version: 1,
+        saves: JSON.parse(saves || "[]"),
+        globalUnlocks: JSON.parse(
+          globalUnlocks || '{"achievements":[],"endings":[]}',
+        ),
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      // 依據目前載入的遊戲名稱作為存檔檔名
+      let projectName = "PlayerSavesData";
+      try {
+        const projStr = localStorage.getItem("textAdventureProject");
+        if (projStr) {
+          const proj = JSON.parse(projStr);
+          if (proj && proj.projectInfo && proj.projectInfo.title) {
+            projectName = proj.projectInfo.title + "_SaveData";
+          }
+        }
+      } catch (e) {}
+      a.download = projectName + ".json";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  // 匯入遊玩紀錄
+  const saveDataImportBtn = document.getElementById("save-data-import-btn");
+  const saveDataImportJson = document.getElementById("save-data-import-json");
+
+  if (saveDataImportBtn && saveDataImportJson) {
+    saveDataImportBtn.addEventListener("click", () => {
+      saveDataImportJson.click();
+    });
+
+    saveDataImportJson.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const importedData = JSON.parse(event.target.result);
+          if (importedData && importedData.type === "TextAdventureSaveData") {
+            if (
+              confirm(
+                "匯入遊玩紀錄將會覆蓋當前所有的存檔與解鎖進度，確定要繼續嗎？",
+              )
+            ) {
+              localStorage.setItem(
+                "textAdventurePlayerSaves",
+                JSON.stringify(importedData.saves || []),
+              );
+              localStorage.setItem(
+                "textAdventureGlobalUnlocks",
+                JSON.stringify(
+                  importedData.globalUnlocks || {
+                    achievements: [],
+                    endings: [],
+                  },
+                ),
+              );
+              renderSlots();
+              alert("遊玩紀錄匯入成功！");
+            }
+          } else {
+            alert("無效的遊玩紀錄檔案！(請確認您匯入的是存檔而非遊戲專案)");
+          }
+        } catch (err) {
+          alert("載入失敗，檔案格式錯誤或已損壞：" + err);
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    });
+  }
+
+  // 一鍵清空所有存檔與紀錄
+  const clearAllSavesBtn = document.getElementById("clear-all-saves-btn");
+  if (clearAllSavesBtn) {
+    clearAllSavesBtn.addEventListener("click", () => {
+      if (
+        confirm(
+          "確定要清空所有的遊玩存檔與全域解鎖紀錄（包含成就與結局畫廊）嗎？\n(注意：此操作無法復原！)",
+        )
+      ) {
+        localStorage.removeItem("textAdventurePlayerSaves");
+        localStorage.removeItem("textAdventureGlobalUnlocks");
+        localStorage.removeItem("currentPlayerSaveSlot");
+        renderSlots();
+        alert("已成功清空所有存檔與紀錄！");
+      }
+    });
+  }
 
   window.startNewGame = function (slotIndex) {
     if (!localStorage.getItem("textAdventureProject")) {

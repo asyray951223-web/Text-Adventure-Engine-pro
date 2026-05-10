@@ -418,7 +418,7 @@
               class="hidden text-sm text-gray-300 bg-gray-800/60 p-4 rounded-lg border border-gray-700 max-w-3xl mx-auto w-full text-left max-h-32 overflow-y-auto custom-scrollbar leading-relaxed shadow-inner whitespace-pre-wrap"
             ></div>
           </div>
-          <div>
+          <div class="flex flex-col sm:flex-row gap-2 justify-center mb-2">
             <input
               type="file"
               id="play-import-json"
@@ -430,6 +430,32 @@
               class="text-sm bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 transition shadow-sm font-bold"
             >
               自電腦載入其他遊戲專案 (.json)
+            </button>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-2 justify-center mb-4">
+            <input
+              type="file"
+              id="save-data-import-json"
+              accept=".json"
+              class="hidden"
+            />
+            <button
+              id="save-data-export-btn"
+              class="text-sm bg-blue-900/80 hover:bg-blue-800 text-white px-4 py-2 rounded-lg border border-blue-700 transition shadow-sm font-bold"
+            >
+              匯出遊玩紀錄
+            </button>
+            <button
+              id="save-data-import-btn"
+              class="text-sm bg-blue-900/80 hover:bg-blue-800 text-white px-4 py-2 rounded-lg border border-blue-700 transition shadow-sm font-bold"
+            >
+              匯入遊玩紀錄
+            </button>
+            <button
+              id="clear-all-saves-btn"
+              class="text-sm bg-red-900/80 hover:bg-red-800 text-white px-4 py-2 rounded-lg border border-red-700 transition shadow-sm font-bold"
+            >
+              清空所有紀錄
             </button>
           </div>
           <div class="flex items-start">

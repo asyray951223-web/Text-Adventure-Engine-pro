@@ -1184,12 +1184,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const currentScene = projectData.scenes.find(
       (s) => s.id === gameState.currentSceneId,
     );
-    savesList[targetSlotIndex] = {
-      time: new Date().toLocaleString("zh-TW"),
-      sceneName: currentScene ? currentScene.name : "未知進度",
-      gameState: JSON.parse(JSON.stringify(gameState)), // 進行深拷貝
-    };
-    localStorage.setItem("textAdventurePlayerSaves", JSON.stringify(savesList));
+    try {
+      savesList[targetSlotIndex] = {
+        time: new Date().toLocaleString("zh-TW"),
+        sceneName: currentScene ? currentScene.name : "未知進度",
+        gameState: JSON.parse(JSON.stringify(gameState)), // 進行深拷貝
+      };
+      localStorage.setItem(
+        "textAdventurePlayerSaves",
+        JSON.stringify(savesList),
+      );
+    } catch (e) {
+      console.error("Save game failed:", e);
+      if (
+        e.name === "QuotaExceededError" ||
+        e.name === "NS_ERROR_DOM_QUOTA_REACHED"
+      ) {
+        alert(
+          "⚠️ 遊戲存檔失敗：瀏覽器儲存空間已滿！\n請嘗試清理不必要的存檔或刪除不需要的舊專案。",
+        );
+      }
+    }
   }
 
   function autoSave() {

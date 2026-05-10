@@ -242,6 +242,11 @@ window.renderVariables = function () {
             <input type="text" class="desc-input w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="用途說明..." value="${variable.description || ""}">
           </div>
         </div>
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">數值轉文字顯示對照表 (選填)</label>
+          <input type="text" class="mapping-input w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="例如：1:平民, 2:真仙, 3:大帝 (以半形逗號分隔)" value="${variable.displayMapping || ""}">
+          <p class="text-xs text-gray-500 mt-1">若設定此欄位，在遊戲頂部狀態列中將不會顯示數字，而是以「標籤」形式顯示對應的文字（例如稱號、境界、狀態）。</p>
+        </div>
 
         <div class="border-t border-gray-200 pt-4 mt-4 space-y-4">
           <div class="text-sm bg-gray-50 border border-gray-200 rounded-lg">
@@ -289,6 +294,13 @@ window.renderVariables = function () {
       contentEl.querySelector(".desc-input").addEventListener("input", (e) => {
         variable.description = e.target.value;
       });
+
+      const mappingInput = contentEl.querySelector(".mapping-input");
+      if (mappingInput) {
+        mappingInput.addEventListener("input", (e) => {
+          variable.displayMapping = e.target.value;
+        });
+      }
 
       contentEl
         .querySelector(".var-enable-cond-chk")

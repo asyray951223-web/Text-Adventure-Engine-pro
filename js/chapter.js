@@ -24,7 +24,18 @@ window.renderChapters = function () {
     return;
   }
 
+  const query = window.chapterSearchQuery || "";
+  let hasRenderedAny = false;
+
   window.projectData.chapters.forEach((chapter, index) => {
+    if (query) {
+      const textToSearch = [chapter.name, chapter.id, chapter.description]
+        .join(" ")
+        .toLowerCase();
+      if (!textToSearch.includes(query)) return;
+    }
+    hasRenderedAny = true;
+
     const chapterEl = document.createElement("div");
     chapterEl.className =
       "bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden transition";
@@ -434,6 +445,14 @@ window.renderChapters = function () {
     }
     container.appendChild(chapterEl);
   });
+
+  if (query && !hasRenderedAny) {
+    container.innerHTML += `
+      <div class="text-gray-500 italic p-10 text-center border border-dashed border-gray-300 rounded-xl bg-white mt-4">
+          找不到符合「${query}」的章節。
+      </div>
+    `;
+  }
 };
 
 function addNewChapter() {

@@ -1000,6 +1000,9 @@ document.addEventListener("DOMContentLoaded", () => {
     shopStocks: {},
     time: { day: 1, hour: 8, minute: 0 },
     dialogueLog: [], // 歷史對話紀錄
+    triggerLastState: {}, // 追蹤觸發器條件的前一次狀態
+    triggeredCount: {}, // 追蹤觸發器已觸發次數
+    baselines: {}, // 用於追蹤觸發器變動條件的基準值
   };
 
   let slotIndex =
@@ -1026,6 +1029,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!gameState.shopStocks) gameState.shopStocks = {};
     if (!gameState.time) gameState.time = { day: 1, hour: 8, minute: 0 };
     if (!gameState.dialogueLog) gameState.dialogueLog = [];
+    if (!gameState.triggerLastState) gameState.triggerLastState = {};
+    if (!gameState.triggeredCount) gameState.triggeredCount = {};
+    if (!gameState.baselines) gameState.baselines = {};
   } else {
     // 新遊戲初始化
     if (projectData.globalVariables) {
@@ -1404,18 +1410,41 @@ document.addEventListener("DOMContentLoaded", () => {
         : "無特別說明";
       const safeName = v.name.replace(/"/g, "&quot;").replace(/'/g, "\\'");
 
-      topBarVars.innerHTML += `
-        <div class="bg-black/60 text-white px-4 py-2 rounded border border-gray-600 shadow-sm backdrop-blur-sm transition-all duration-300 cursor-pointer hover:border-gray-400" onclick="window.showVarInfo('${safeName}', '${desc}')" title="點擊查看數值說明">
-          <span class="${colorClass} font-bold mr-1">${v.name}</span> <span class="font-mono">${val}</span>
-        </div>
-      `;
+      let displayVal = val;
+      let isBadge = false;
+      if (v.displayMapping) {
+        const mappings = v.displayMapping
+          .split(",")
+          .map((m) => m.trim().split(":"));
+        const match = mappings.find((m) => Number(m[0]) === val);
+        if (match && match[1]) {
+          displayVal = match[1];
+          isBadge = true;
+        }
+      }
+
+      if (isBadge) {
+        topBarVars.innerHTML += `
+          <div class="bg-black/60 text-white px-4 py-2 rounded border border-gray-600 shadow-sm backdrop-blur-sm transition-all duration-300 cursor-pointer hover:border-gray-400 flex items-center" onclick="window.showVarInfo('${safeName}', '${desc}')" title="點擊查看數值說明">
+            <span class="text-gray-400 text-xs mr-2">${v.name}</span>
+            <span class="${colorClass} font-bold text-sm bg-gray-800 px-2 py-0.5 rounded border border-gray-600 shadow-inner">${displayVal}</span>
+          </div>
+        `;
+      } else {
+        topBarVars.innerHTML += `
+          <div class="bg-black/60 text-white px-4 py-2 rounded border border-gray-600 shadow-sm backdrop-blur-sm transition-all duration-300 cursor-pointer hover:border-gray-400" onclick="window.showVarInfo('${safeName}', '${desc}')" title="點擊查看數值說明">
+            <span class="${colorClass} font-bold mr-1">${v.name}</span> <span class="font-mono">${displayVal}</span>
+          </div>
+        `;
+      }
     });
   }
 
   // 4. 條件判定與全域觸發器解析
-  function evaluateCondition(op, currentVal, targetVal) {
+  function evaluateCondition(op, currentVal, targetVal, baselineVal) {
     currentVal = Number(currentVal) || 0;
     targetVal = Number(targetVal) || 0;
+    baselineVal = Number(baselineVal) || 0;
     switch (op) {
       case ">=":
         return currentVal >= targetVal;
@@ -1429,25 +1458,73 @@ document.addEventListener("DOMContentLoaded", () => {
         return currentVal > targetVal;
       case "<":
         return currentVal < targetVal;
+      case "+>=":
+        return currentVal - baselineVal >= targetVal;
+      case "->=":
+        return baselineVal - currentVal >= targetVal;
+      case "chg>=":
+        return Math.abs(currentVal - baselineVal) >= targetVal;
       default:
         return true;
     }
   }
 
-  function checkConditions(conditions) {
+  function getTotalMinutes() {
+    if (!gameState.time) return 0;
+    return (
+      gameState.time.day * 24 * 60 +
+      gameState.time.hour * 60 +
+      gameState.time.minute
+    );
+  }
+
+  function checkConditions(conditions, contextId) {
     if (!conditions) return true;
+
+    // 初始化基準值 (Baselines) 以供變動條件判定使用
+    if (contextId) {
+      if (!gameState.baselines) gameState.baselines = {};
+      if (!gameState.baselines[contextId]) gameState.baselines[contextId] = {};
+      const bl = gameState.baselines[contextId];
+      if (conditions.variables) {
+        for (const varId of Object.keys(conditions.variables)) {
+          if (bl[varId] === undefined)
+            bl[varId] = gameState.variables[varId] || 0;
+        }
+      }
+      if (conditions.items) {
+        for (const itemId of Object.keys(conditions.items)) {
+          if (bl[itemId] === undefined)
+            bl[itemId] = gameState.items[itemId] || 0;
+        }
+      }
+      if (conditions.timePassed !== undefined) {
+        if (bl["time"] === undefined) bl["time"] = getTotalMinutes();
+      }
+    }
+
     // 驗證數值變數
     if (conditions.variables) {
       for (const [varId, cond] of Object.entries(conditions.variables)) {
         const currentVal = gameState.variables[varId] || 0;
-        if (!evaluateCondition(cond.op, currentVal, cond.val)) return false;
+        const baselineVal =
+          contextId && gameState.baselines && gameState.baselines[contextId]
+            ? gameState.baselines[contextId][varId]
+            : currentVal;
+        if (!evaluateCondition(cond.op, currentVal, cond.val, baselineVal))
+          return false;
       }
     }
     // 驗證持有道具
     if (conditions.items) {
       for (const [itemId, cond] of Object.entries(conditions.items)) {
         const currentQty = gameState.items[itemId] || 0;
-        if (!evaluateCondition(cond.op, currentQty, cond.val)) return false;
+        const baselineVal =
+          contextId && gameState.baselines && gameState.baselines[contextId]
+            ? gameState.baselines[contextId][itemId]
+            : currentQty;
+        if (!evaluateCondition(cond.op, currentQty, cond.val, baselineVal))
+          return false;
       }
     }
     // 驗證章節進度
@@ -1475,6 +1552,15 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         if (curHour > maxH && curHour < minH) return false;
       }
+    }
+    // 驗證累積經過時間
+    if (conditions.timePassed !== undefined) {
+      const currentMins = getTotalMinutes();
+      const baselineVal =
+        contextId && gameState.baselines && gameState.baselines[contextId]
+          ? gameState.baselines[contextId]["time"]
+          : currentMins;
+      if (currentMins - baselineVal < conditions.timePassed) return false;
     }
     return true;
   }
@@ -1532,7 +1618,27 @@ document.addEventListener("DOMContentLoaded", () => {
   function checkGlobalTriggers() {
     if (!projectData.triggers) return false;
     for (const trigger of projectData.triggers) {
-      if (checkConditions(trigger.conditions)) {
+      const conditionMet = checkConditions(trigger.conditions, trigger.id);
+      const mode = trigger.mode || "continuous";
+      const triggerId = trigger.id;
+
+      const lastState = gameState.triggerLastState[triggerId] || false;
+      const hasTriggered = gameState.triggeredCount[triggerId] || 0;
+
+      let shouldFire = false;
+      if (conditionMet) {
+        if (mode === "once" && hasTriggered === 0) {
+          shouldFire = true;
+        } else if (mode === "on_change" && !lastState) {
+          shouldFire = true;
+        } else if (mode === "continuous") {
+          shouldFire = true;
+        }
+      }
+
+      gameState.triggerLastState[triggerId] = conditionMet;
+
+      if (shouldFire) {
         // 防止無限死循環觸發，如果已經抵達目標場景就不再執行
         if (
           trigger.targetSceneId &&
@@ -1540,6 +1646,24 @@ document.addEventListener("DOMContentLoaded", () => {
         ) {
           continue;
         }
+
+        gameState.triggeredCount[triggerId] = hasTriggered + 1;
+
+        // 更新基準值 (Baseline) 讓下一次變動能夠重新起算
+        if (!gameState.baselines) gameState.baselines = {};
+        if (!gameState.baselines[triggerId])
+          gameState.baselines[triggerId] = {};
+        const bl = gameState.baselines[triggerId];
+        if (trigger.conditions.variables) {
+          for (const varId of Object.keys(trigger.conditions.variables))
+            bl[varId] = gameState.variables[varId] || 0;
+        }
+        if (trigger.conditions.items) {
+          for (const itemId of Object.keys(trigger.conditions.items))
+            bl[itemId] = gameState.items[itemId] || 0;
+        }
+        if (trigger.conditions.timePassed !== undefined)
+          bl["time"] = getTotalMinutes();
 
         // 套用全域觸發器的複合效果
         applyEffects(
@@ -1573,7 +1697,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!projectData.achievements) return;
     projectData.achievements.forEach((ach) => {
       if (!globalUnlocks.achievements.includes(ach.id)) {
-        if (checkConditions(ach.conditions)) {
+        if (checkConditions(ach.conditions, ach.id)) {
           globalUnlocks.achievements.push(ach.id);
           saveGlobalUnlocks();
           showAchievementPopup(ach);
@@ -1611,7 +1735,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!projectData.dictionary) return;
     projectData.dictionary.forEach((term) => {
       if (!gameState.notifiedDictionary.includes(term.id)) {
-        if (!term.enableCondition || checkConditions(term.conditions)) {
+        if (
+          !term.enableCondition ||
+          checkConditions(term.conditions, term.id)
+        ) {
           gameState.notifiedDictionary.push(term.id);
           // 只有非初始載入、且有條件解鎖時，才顯示通知
           if (!isInitialLoad && term.enableCondition) {
@@ -1878,7 +2005,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 篩選出符合「隱藏選項出現條件」的選項
     const validOptions = (scene.options || []).filter(
-      (opt) => !opt.enableCondition || checkConditions(opt.conditions),
+      (opt, optIndex) =>
+        !opt.enableCondition ||
+        checkConditions(opt.conditions, scene.id + "_opt_" + optIndex),
     );
 
     if (validOptions.length === 0) {
@@ -2277,11 +2406,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (scene.npcId) {
         const npc = projectData.npcs.find((n) => n.id === scene.npcId);
         if (npc) {
-          if (npc.enableCondition && !checkConditions(npc.conditions)) {
+          if (npc.enableCondition && !checkConditions(npc.conditions, npc.id)) {
             if (scene.skipIfNpcMissing) {
               // 自動跳過場景：找第一個可點擊的選項執行
               const validOpt = (scene.options || []).find(
-                (o) => !o.enableCondition || checkConditions(o.conditions),
+                (o, oIdx) =>
+                  !o.enableCondition ||
+                  checkConditions(o.conditions, scene.id + "_opt_" + oIdx),
               );
               if (validOpt) {
                 const prob =
@@ -2483,7 +2614,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const hasEnough =
         itemData.type === "consumable" ? qty >= consumeQty : true;
       const meetsCondition =
-        !itemData.enableCondition || checkConditions(itemData.conditions);
+        !itemData.enableCondition ||
+        checkConditions(itemData.conditions, itemData.id);
       const canUse = meetsCondition && hasEnough;
 
       itemCard.innerHTML = `

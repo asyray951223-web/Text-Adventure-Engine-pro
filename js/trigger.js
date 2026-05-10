@@ -24,7 +24,16 @@ window.renderTriggers = function () {
     return;
   }
 
+  const query = window.triggerSearchQuery || "";
+  let hasRenderedAny = false;
+
   window.projectData.triggers.forEach((trigger, index) => {
+    if (query) {
+      const textToSearch = [trigger.name, trigger.id].join(" ").toLowerCase();
+      if (!textToSearch.includes(query)) return;
+    }
+    hasRenderedAny = true;
+
     const triggerEl = document.createElement("div");
     triggerEl.className =
       "bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden transition";
@@ -109,13 +118,16 @@ window.renderTriggers = function () {
                     <span class="text-sm font-bold ${isChecked ? "text-blue-700" : "text-gray-600"} truncate" title="${v.name}">${v.name}</span>
                 </label>
                 <div class="flex items-center space-x-1 flex-1 transition-opacity duration-200" style="opacity: ${isChecked ? "1" : "0.3"}; pointer-events: ${isChecked ? "auto" : "none"};">
-                    <select class="cond-var-op border border-gray-300 rounded p-1 text-sm w-12 focus:ring-blue-500" data-id="${v.id}">
+                    <select class="cond-var-op border border-gray-300 rounded p-1 text-sm w-[75px] focus:ring-blue-500" data-id="${v.id}">
                         <option value=">=" ${op === ">=" ? "selected" : ""}>&ge;</option>
                         <option value="<=" ${op === "<=" ? "selected" : ""}>&le;</option>
                         <option value="==" ${op === "==" ? "selected" : ""}>==</option>
                         <option value="!=" ${op === "!=" ? "selected" : ""}>!=</option>
                         <option value=">" ${op === ">" ? "selected" : ""}>&gt;</option>
                         <option value="<" ${op === "<" ? "selected" : ""}>&lt;</option>
+                        <option value="+>=" ${op === "+>=" ? "selected" : ""}>+&ge;(增)</option>
+                        <option value="->=" ${op === "->=" ? "selected" : ""}>-&ge;(減)</option>
+                        <option value="chg>=" ${op === "chg>=" ? "selected" : ""}>&Delta;&ge;(變)</option>
                     </select>
                     <input type="number" class="cond-var-val border border-gray-300 rounded p-1 w-full max-w-[80px] text-sm focus:ring-blue-500" placeholder="數值" value="${val}" data-id="${v.id}">
                 </div>
@@ -143,13 +155,16 @@ window.renderTriggers = function () {
                     <span class="text-sm font-bold ${isChecked ? "text-blue-700" : "text-gray-600"} truncate" title="${i.name}">${i.name}</span>
                 </label>
                 <div class="flex items-center space-x-1 flex-1 transition-opacity duration-200" style="opacity: ${isChecked ? "1" : "0.3"}; pointer-events: ${isChecked ? "auto" : "none"};">
-                    <select class="cond-item-op border border-gray-300 rounded p-1 text-sm w-12 focus:ring-blue-500" data-id="${i.id}">
+                    <select class="cond-item-op border border-gray-300 rounded p-1 text-sm w-[75px] focus:ring-blue-500" data-id="${i.id}">
                         <option value=">=" ${op === ">=" ? "selected" : ""}>&ge;</option>
                         <option value="<=" ${op === "<=" ? "selected" : ""}>&le;</option>
                         <option value="==" ${op === "==" ? "selected" : ""}>==</option>
                         <option value="!=" ${op === "!=" ? "selected" : ""}>!=</option>
                         <option value=">" ${op === ">" ? "selected" : ""}>&gt;</option>
                         <option value="<" ${op === "<" ? "selected" : ""}>&lt;</option>
+                        <option value="+>=" ${op === "+>=" ? "selected" : ""}>+&ge;(增)</option>
+                        <option value="->=" ${op === "->=" ? "selected" : ""}>-&ge;(減)</option>
+                        <option value="chg>=" ${op === "chg>=" ? "selected" : ""}>&Delta;&ge;(變)</option>
                     </select>
                     <input type="number" class="cond-item-val border border-gray-300 rounded p-1 w-full max-w-[80px] text-sm focus:ring-blue-500" placeholder="數量" value="${val}" data-id="${i.id}" min="1">
                 </div>
@@ -174,6 +189,22 @@ window.renderTriggers = function () {
                 <input type="number" class="cond-time-min border border-gray-300 rounded p-1 w-full max-w-[50px] text-sm focus:ring-blue-500" value="${startH}" min="0" max="23">
                 <span class="text-sm text-gray-500">~</span>
                 <input type="number" class="cond-time-max border border-gray-300 rounded p-1 w-full max-w-[50px] text-sm focus:ring-blue-500" value="${endH}" min="0" max="23">
+            </div>
+        </div>
+      `;
+
+      const hasTimePassed = trigger.conditions.timePassed !== undefined;
+      const timePassedVal = hasTimePassed ? trigger.conditions.timePassed : 60;
+      timeConditionHtml += `
+        <div class="flex items-center space-x-2 bg-white p-2 rounded border ${hasTimePassed ? "border-blue-400 shadow-sm" : "border-gray-200"} transition mt-2">
+            <label class="flex items-center space-x-2 cursor-pointer w-1/3 min-w-[80px]">
+                <input type="checkbox" class="cond-time-passed-chk h-4 w-4 text-blue-600 rounded focus:ring-blue-500" ${hasTimePassed ? "checked" : ""}>
+                <span class="text-sm font-bold ${hasTimePassed ? "text-blue-700" : "text-gray-600"} truncate">累積經過時間</span>
+            </label>
+            <div class="flex items-center space-x-1 flex-1 transition-opacity duration-200" style="opacity: ${hasTimePassed ? "1" : "0.3"}; pointer-events: ${hasTimePassed ? "auto" : "none"};">
+                <span class="text-sm font-bold text-gray-500">&ge;</span>
+                <input type="number" class="cond-time-passed-val border border-gray-300 rounded p-1 w-full max-w-[80px] text-sm focus:ring-blue-500" value="${timePassedVal}" min="1">
+                <span class="text-sm text-gray-500">分鐘</span>
             </div>
         </div>
       `;
@@ -280,7 +311,17 @@ window.renderTriggers = function () {
         <div class="border-t border-gray-200 pt-4 mt-4 space-y-4">
           
           <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-3">
-            <label class="block text-sm font-bold text-gray-700 border-b border-gray-300 pb-2">狀態監控條件 (請勾選需要的項目)</label>
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center border-b border-gray-300 pb-2 gap-2">
+              <label class="text-sm font-bold text-gray-700">狀態監控條件 (請勾選需要的項目)</label>
+              <div class="flex items-center space-x-2">
+                <span class="text-xs font-bold text-blue-600">觸發模式：</span>
+                <select class="trigger-mode border border-gray-300 rounded shadow-sm p-1 text-xs focus:ring-blue-500 font-bold bg-white text-gray-700">
+                  <option value="continuous" ${trigger.mode === "continuous" || !trigger.mode ? "selected" : ""}>持續觸發 (只要條件達成，隨時觸發)</option>
+                  <option value="on_change" ${trigger.mode === "on_change" ? "selected" : ""}>變動觸發 (條件由未達成變為達成時，觸發一次)</option>
+                  <option value="once" ${trigger.mode === "once" ? "selected" : ""}>單次觸發 (遊戲全程僅觸發一次，觸發後永久失效)</option>
+                </select>
+              </div>
+            </div>
             
             <div class="space-y-2">
               <span class="text-xs font-bold text-gray-500">進度條件：</span>
@@ -356,11 +397,17 @@ window.renderTriggers = function () {
         </div>
         <div class="text-gray-600 bg-blue-50/50 p-4 rounded-lg border border-blue-100 flex items-start mt-4">
           <svg class="w-5 h-5 text-blue-400 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          <p class="text-sm">提示：當玩家操作導致數值或道具改變，並符合您勾選的「監控條件」時，系統將強制中斷當前進度並觸發您所設定的複合效果。非常適合用來處理「死亡結局」或是「隱藏事件」。</p>
+          <p class="text-sm">提示：當玩家操作導致數值、時間或道具改變，並符合您勾選的「監控條件」與「觸發模式」時，系統將強制觸發複合效果與跳轉。非常適合用來處理「死亡結局」或是「狀態變動隱藏事件」。</p>
         </div>
       `;
 
       // 事件綁定 (條件監控)
+      contentEl
+        .querySelector(".trigger-mode")
+        .addEventListener("change", (e) => {
+          trigger.mode = e.target.value;
+        });
+
       contentEl
         .querySelector(".cond-chapter-chk")
         .addEventListener("change", (e) => {
@@ -468,6 +515,20 @@ window.renderTriggers = function () {
         });
 
       contentEl
+        .querySelector(".cond-time-passed-chk")
+        .addEventListener("change", (e) => {
+          if (e.target.checked) trigger.conditions.timePassed = 60;
+          else delete trigger.conditions.timePassed;
+          window.renderTriggers();
+        });
+      contentEl
+        .querySelector(".cond-time-passed-val")
+        .addEventListener("input", (e) => {
+          if (trigger.conditions.timePassed !== undefined)
+            trigger.conditions.timePassed = parseInt(e.target.value, 10) || 1;
+        });
+
+      contentEl
         .querySelector(".trigger-pass-time")
         .addEventListener("input", (e) => {
           const val = parseInt(e.target.value, 10);
@@ -517,12 +578,21 @@ window.renderTriggers = function () {
     }
     container.appendChild(triggerEl);
   });
+
+  if (query && !hasRenderedAny) {
+    container.innerHTML += `
+      <div class="text-gray-500 italic p-10 text-center border border-dashed border-gray-300 rounded-xl bg-white mt-4">
+          找不到符合「${query}」的觸發器。
+      </div>
+    `;
+  }
 };
 
 function addNewTrigger() {
   window.projectData.triggers.push({
     id: "trigger_" + Date.now(),
     name: "新觸發器",
+    mode: "on_change",
     conditions: { variables: {}, items: {} },
     variableId: "",
     variableVal: "",

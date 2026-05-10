@@ -192,9 +192,17 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         `,
     章節管理: (data) => `
-            <div class="flex justify-between items-center mb-6">
-                <p class="text-gray-600">管理遊戲的各個章節段落，方便整理長篇劇情，並支援摺疊顯示。</p>
-                <button id="add-chapter-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition">+ 新增章節</button>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div class="w-full md:w-auto flex-1">
+                  <p class="text-gray-600 mb-3">管理遊戲的各個章節段落，方便整理長篇劇情，並支援摺疊顯示。</p>
+                  <div class="relative max-w-md">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="chapter-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋章節名稱、ID 或描述..." value="${window.chapterSearchQuery || ""}">
+                  </div>
+                </div>
+                <button id="add-chapter-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增章節</button>
             </div>
             <div id="chapters-container" class="space-y-4">
                 <!-- 章節列表由 chapter.js 動態渲染 -->
@@ -235,18 +243,34 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         `,
     全域觸發器: (data) => `
-            <div class="flex justify-between items-center mb-6">
-                <p class="text-gray-600">設定條件達成時自動觸發的全域事件，作為遊戲的後台監控中心。</p>
-                <button id="add-trigger-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition">+ 新增觸發器</button>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div class="w-full md:w-auto flex-1">
+                  <p class="text-gray-600 mb-3">設定條件達成時自動觸發的全域事件，作為遊戲的後台監控中心。</p>
+                  <div class="relative max-w-md">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="trigger-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋觸發器名稱或 ID..." value="${window.triggerSearchQuery || ""}">
+                  </div>
+                </div>
+                <button id="add-trigger-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增觸發器</button>
             </div>
             <div id="triggers-container" class="space-y-4">
                 <!-- 觸發器列表由 trigger.js 動態渲染 -->
             </div>
         `,
     "NPC 角色": (data) => `
-            <div class="flex justify-between items-center mb-6">
-                <p class="text-gray-600">建立遊戲中的角色，並管理專屬數值（如好感度、屬性）。</p>
-                <button id="add-npc-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition">+ 新增角色</button>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div class="w-full md:w-auto flex-1">
+                  <p class="text-gray-600 mb-3">建立遊戲中的角色，並管理專屬數值（如好感度、屬性）。</p>
+                  <div class="relative max-w-md">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="npc-search-input" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="搜尋角色名稱、ID 或背景描述..." value="${window.npcSearchQuery || ""}">
+                  </div>
+                </div>
+                <button id="add-npc-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded shadow transition shrink-0 mt-2 md:mt-0">+ 新增角色</button>
             </div>
             <div id="npcs-container" class="space-y-4">
                 <!-- NPC 列表由 npc.js 動態渲染 -->
@@ -450,6 +474,15 @@ document.addEventListener("DOMContentLoaded", () => {
       if (typeof window.renderChapters === "function") {
         window.renderChapters();
       }
+      const searchInput = document.getElementById("chapter-search-input");
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+          window.chapterSearchQuery = e.target.value.trim().toLowerCase();
+          if (typeof window.renderChapters === "function") {
+            window.renderChapters();
+          }
+        });
+      }
     } else if (tabName === "數值系統") {
       if (typeof window.renderVariables === "function") {
         window.renderVariables();
@@ -480,9 +513,27 @@ document.addEventListener("DOMContentLoaded", () => {
       if (typeof window.renderTriggers === "function") {
         window.renderTriggers();
       }
+      const searchInput = document.getElementById("trigger-search-input");
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+          window.triggerSearchQuery = e.target.value.trim().toLowerCase();
+          if (typeof window.renderTriggers === "function") {
+            window.renderTriggers();
+          }
+        });
+      }
     } else if (tabName === "NPC 角色") {
       if (typeof window.renderNpcs === "function") {
         window.renderNpcs();
+      }
+      const searchInput = document.getElementById("npc-search-input");
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+          window.npcSearchQuery = e.target.value.trim().toLowerCase();
+          if (typeof window.renderNpcs === "function") {
+            window.renderNpcs();
+          }
+        });
       }
     } else if (tabName === "成就系統") {
       if (typeof window.renderAchievements === "function") {
@@ -591,6 +642,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (currentTab !== "數值系統") window.variableSearchQuery = "";
       if (currentTab !== "道具系統") window.itemSearchQuery = "";
       if (currentTab !== "測驗系統") window.quizSearchQuery = "";
+      if (currentTab !== "全域觸發器") window.triggerSearchQuery = "";
+      if (currentTab !== "NPC 角色") window.npcSearchQuery = "";
+      if (currentTab !== "章節管理") window.chapterSearchQuery = "";
 
       // 切換分頁時自動停止音樂
       if (window.previewAudio && !window.previewAudio.paused) {

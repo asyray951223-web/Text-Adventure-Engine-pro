@@ -24,7 +24,18 @@ window.renderNpcs = function () {
     return;
   }
 
+  const query = window.npcSearchQuery || "";
+  let hasRenderedAny = false;
+
   window.projectData.npcs.forEach((npc, index) => {
+    if (query) {
+      const textToSearch = [npc.name, npc.id, npc.description]
+        .join(" ")
+        .toLowerCase();
+      if (!textToSearch.includes(query)) return;
+    }
+    hasRenderedAny = true;
+
     const npcEl = document.createElement("div");
     npcEl.className =
       "bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden transition";
@@ -404,6 +415,14 @@ window.renderNpcs = function () {
     }
     container.appendChild(npcEl);
   });
+
+  if (query && !hasRenderedAny) {
+    container.innerHTML += `
+      <div class="text-gray-500 italic p-10 text-center border border-dashed border-gray-300 rounded-xl bg-white mt-4">
+          找不到符合「${query}」的 NPC 角色。
+      </div>
+    `;
+  }
 };
 
 function addNewNpc() {

@@ -145,6 +145,9 @@ document.addEventListener("DOMContentLoaded", () => {
     visitedScenes: [],
     shopStocks: {},
     time: { day: 1, hour: 8, minute: 0 },
+    triggerLastState: {}, // 追蹤觸發器條件的前一次狀態
+    triggeredCount: {}, // 追蹤觸發器已觸發次數
+    baselines: {}, // 用於追蹤觸發器變動條件的基準值
   };
 
   // 1. 初始化變數狀態
@@ -763,9 +766,20 @@ document.addEventListener("DOMContentLoaded", () => {
               .replace(/\n/g, "&#10;")
           : "無特別說明";
 
+        let mappedStr = "";
+        if (v.displayMapping) {
+          const mappings = v.displayMapping
+            .split(",")
+            .map((m) => m.trim().split(":"));
+          const match = mappings.find((m) => Number(m[0]) === val);
+          if (match && match[1]) {
+            mappedStr = `<span class="text-xs text-gray-500 ml-1">(${match[1]})</span>`;
+          }
+        }
+
         debugVariablesList.innerHTML += `
           <li class="flex justify-between items-center border-b border-gray-800 pb-1 hover:bg-gray-800/80 transition px-1 -mx-1 rounded">
-            <span class="truncate pr-2 cursor-pointer hover:text-white flex-1" onclick="window.setDebugVar('${v.id}')" title="點擊輸入指定數值\n說明：${desc}">${v.name}:</span>
+            <span class="truncate pr-2 cursor-pointer hover:text-white flex-1" onclick="window.setDebugVar('${v.id}')" title="點擊輸入指定數值\n說明：${desc}">${v.name}${mappedStr}:</span>
             <div class="flex items-center space-x-1.5">
               <button onclick="window.adjDebugVar('${v.id}', -1)" class="w-5 h-5 flex items-center justify-center bg-gray-800 hover:bg-red-900/80 text-gray-400 hover:text-red-300 rounded border border-gray-700 hover:border-red-500 transition">-</button>
               <span class="${valColor} font-mono font-bold min-w-[1.5rem] text-center cursor-pointer hover:underline" onclick="window.setDebugVar('${v.id}')" title="點擊輸入指定數值">${val}</span>
@@ -892,9 +906,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 4. 條件判定與觸發器
-  function evaluateCondition(op, currentVal, targetVal) {
+  function evaluateCondition(op, currentVal, targetVal, baselineVal) {
     currentVal = Number(currentVal) || 0;
     targetVal = Number(targetVal) || 0;
+    baselineVal = Number(baselineVal) || 0;
     switch (op) {
       case ">=":
         return currentVal >= targetVal;
@@ -908,23 +923,70 @@ document.addEventListener("DOMContentLoaded", () => {
         return currentVal > targetVal;
       case "<":
         return currentVal < targetVal;
+      case "+>=":
+        return currentVal - baselineVal >= targetVal;
+      case "->=":
+        return baselineVal - currentVal >= targetVal;
+      case "chg>=":
+        return Math.abs(currentVal - baselineVal) >= targetVal;
       default:
         return true;
     }
   }
 
-  function checkConditions(conditions) {
+  function getTotalMinutes() {
+    if (!gameState.time) return 0;
+    return (
+      gameState.time.day * 24 * 60 +
+      gameState.time.hour * 60 +
+      gameState.time.minute
+    );
+  }
+
+  function checkConditions(conditions, contextId) {
     if (!conditions) return true;
+
+    if (contextId) {
+      if (!gameState.baselines) gameState.baselines = {};
+      if (!gameState.baselines[contextId]) gameState.baselines[contextId] = {};
+      const bl = gameState.baselines[contextId];
+      if (conditions.variables) {
+        for (const varId of Object.keys(conditions.variables)) {
+          if (bl[varId] === undefined)
+            bl[varId] = gameState.variables[varId] || 0;
+        }
+      }
+      if (conditions.items) {
+        for (const itemId of Object.keys(conditions.items)) {
+          if (bl[itemId] === undefined)
+            bl[itemId] = gameState.items[itemId] || 0;
+        }
+      }
+      if (conditions.timePassed !== undefined) {
+        if (bl["time"] === undefined) bl["time"] = getTotalMinutes();
+      }
+    }
+
     if (conditions.variables) {
       for (const [varId, cond] of Object.entries(conditions.variables)) {
         const currentVal = gameState.variables[varId] || 0;
-        if (!evaluateCondition(cond.op, currentVal, cond.val)) return false;
+        const baselineVal =
+          contextId && gameState.baselines && gameState.baselines[contextId]
+            ? gameState.baselines[contextId][varId]
+            : currentVal;
+        if (!evaluateCondition(cond.op, currentVal, cond.val, baselineVal))
+          return false;
       }
     }
     if (conditions.items) {
       for (const [itemId, cond] of Object.entries(conditions.items)) {
         const currentQty = gameState.items[itemId] || 0;
-        if (!evaluateCondition(cond.op, currentQty, cond.val)) return false;
+        const baselineVal =
+          contextId && gameState.baselines && gameState.baselines[contextId]
+            ? gameState.baselines[contextId][itemId]
+            : currentQty;
+        if (!evaluateCondition(cond.op, currentQty, cond.val, baselineVal))
+          return false;
       }
     }
     if (conditions.chapter) {
@@ -950,6 +1012,14 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         if (curHour > maxH && curHour < minH) return false;
       }
+    }
+    if (conditions.timePassed !== undefined) {
+      const currentMins = getTotalMinutes();
+      const baselineVal =
+        contextId && gameState.baselines && gameState.baselines[contextId]
+          ? gameState.baselines[contextId]["time"]
+          : currentMins;
+      if (currentMins - baselineVal < conditions.timePassed) return false;
     }
     return true;
   }
@@ -1009,13 +1079,51 @@ document.addEventListener("DOMContentLoaded", () => {
   function checkGlobalTriggers() {
     if (!projectData.triggers) return false;
     for (const trigger of projectData.triggers) {
-      if (checkConditions(trigger.conditions)) {
+      const conditionMet = checkConditions(trigger.conditions, trigger.id);
+      const mode = trigger.mode || "continuous";
+      const triggerId = trigger.id;
+
+      const lastState = gameState.triggerLastState[triggerId] || false;
+      const hasTriggered = gameState.triggeredCount[triggerId] || 0;
+
+      let shouldFire = false;
+      if (conditionMet) {
+        if (mode === "once" && hasTriggered === 0) {
+          shouldFire = true;
+        } else if (mode === "on_change" && !lastState) {
+          shouldFire = true;
+        } else if (mode === "continuous") {
+          shouldFire = true;
+        }
+      }
+
+      gameState.triggerLastState[triggerId] = conditionMet;
+
+      if (shouldFire) {
         if (
           trigger.targetSceneId &&
           trigger.targetSceneId === gameState.currentSceneId
         ) {
           continue;
         }
+
+        gameState.triggeredCount[triggerId] = hasTriggered + 1;
+
+        if (!gameState.baselines) gameState.baselines = {};
+        if (!gameState.baselines[triggerId])
+          gameState.baselines[triggerId] = {};
+        const bl = gameState.baselines[triggerId];
+        if (trigger.conditions.variables) {
+          for (const varId of Object.keys(trigger.conditions.variables))
+            bl[varId] = gameState.variables[varId] || 0;
+        }
+        if (trigger.conditions.items) {
+          for (const itemId of Object.keys(trigger.conditions.items))
+            bl[itemId] = gameState.items[itemId] || 0;
+        }
+        if (trigger.conditions.timePassed !== undefined)
+          bl["time"] = getTotalMinutes();
+
         applyEffects(
           trigger.variableId,
           trigger.variableVal,
@@ -1254,10 +1362,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (scene.npcId && projectData.npcs) {
       const npc = projectData.npcs.find((n) => n.id === scene.npcId);
       if (npc) {
-        if (npc.enableCondition && !checkConditions(npc.conditions)) {
+        if (npc.enableCondition && !checkConditions(npc.conditions, npc.id)) {
           if (scene.skipIfNpcMissing) {
             const validOpt = (scene.options || []).find(
-              (o) => !o.enableCondition || checkConditions(o.conditions),
+              (o, oIdx) =>
+                !o.enableCondition ||
+                checkConditions(o.conditions, scene.id + "_opt_" + oIdx),
             );
             if (validOpt) {
               const prob =
@@ -1337,7 +1447,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const validOptions = (scene.options || []).filter(
-      (opt) => !opt.enableCondition || checkConditions(opt.conditions),
+      (opt, optIndex) =>
+        !opt.enableCondition ||
+        checkConditions(opt.conditions, scene.id + "_opt_" + optIndex),
     );
 
     if (validOptions.length > 0) {

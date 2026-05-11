@@ -86,6 +86,56 @@ document.addEventListener("DOMContentLoaded", () => {
   const dialogueText = document.getElementById("test-dialogue-text");
   const optionsContainer = document.getElementById("test-options-container");
 
+  // --- 測試模式成就解鎖相關設定 ---
+  let sessionUnlockedAchievements = []; // 測試專用的紀錄，重整頁面即重置
+  let achievementPopupContainer = document.getElementById(
+    "achievement-popup-container",
+  );
+  if (!achievementPopupContainer) {
+    achievementPopupContainer = document.createElement("div");
+    achievementPopupContainer.id = "achievement-popup-container";
+    // 設置在右上角避免擋住畫面元素
+    achievementPopupContainer.className =
+      "fixed top-20 right-8 z-[100] flex flex-col gap-3 pointer-events-none overflow-visible";
+    document.body.appendChild(achievementPopupContainer);
+  }
+
+  function checkAchievements() {
+    if (!projectData.achievements) return;
+    projectData.achievements.forEach((ach) => {
+      if (!sessionUnlockedAchievements.includes(ach.id)) {
+        if (checkConditions(ach.conditions, ach.id)) {
+          sessionUnlockedAchievements.push(ach.id);
+          showAchievementPopup(ach);
+        }
+      }
+    });
+  }
+
+  function showAchievementPopup(achievement) {
+    if (!achievementPopupContainer) return;
+    const popup = document.createElement("div");
+    popup.className =
+      "bg-gray-900 border-l-4 border-yellow-500 rounded shadow-xl p-4 flex items-center gap-4 text-white transform transition-all duration-500 translate-x-full opacity-0 pointer-events-auto";
+    const icon =
+      achievement.iconUrl || "https://via.placeholder.com/150?text=Achieved";
+    popup.innerHTML = `
+        <img src="${icon}" class="w-12 h-12 object-cover rounded border border-gray-700">
+        <div>
+            <p class="text-xs text-yellow-500 font-bold mb-1">成就解鎖 (測試)！</p>
+            <p class="text-sm font-bold truncate max-w-[200px]">${achievement.name}</p>
+        </div>
+    `;
+    achievementPopupContainer.appendChild(popup);
+    requestAnimationFrame(() =>
+      popup.classList.remove("translate-x-full", "opacity-0"),
+    );
+    setTimeout(() => {
+      popup.classList.add("translate-x-full", "opacity-0");
+      setTimeout(() => popup.remove(), 500);
+    }, 4000);
+  }
+
   // 設定面板元素
   const settingsModal = document.getElementById("settings-modal");
   const closeSettingsBtn = document.getElementById("close-settings-btn");
@@ -111,6 +161,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (testTimerContainer) {
       testTimerContainer.classList.add("hidden");
     }
+
+    checkAchievements();
   }
 
   function startSceneTimer(scene) {
@@ -708,15 +760,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  document.body.addEventListener(
-    "click",
-    () => {
-      if (testBgmPlayer && testBgmPlayer.paused && currentBgmUrl) {
-        testBgmPlayer.play().catch((e) => console.warn("播放音樂失敗", e));
-      }
-    },
-    { once: true },
-  );
+  document.body.addEventListener("click", () => {
+    if (testBgmPlayer && testBgmPlayer.paused && currentBgmUrl) {
+      testBgmPlayer.play().catch((e) => console.warn("播放音樂失敗", e));
+    }
+  });
 
   // 2. 渲染左側變數與道具監控面板
   function renderDebugPanels() {
@@ -1204,6 +1252,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (checkGlobalTriggers()) return;
 
+    checkAchievements();
+
     // 處理背景音樂 (優先抓取場景設定，再抓取章節設定，最後預設背景音樂)
     let bgmToPlay = scene.bgmUrl;
     if (!bgmToPlay) {
@@ -1264,67 +1314,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 處理事件 CG 影片
     if (testCgVideo) {
-      let ytIframe = document.getElementById("yt-test-cg-iframe");
-      if (!ytIframe) {
-        ytIframe = document.createElement("iframe");
-        ytIframe.id = "yt-test-cg-iframe";
-        ytIframe.className = testCgVideo.className.replace("object-cover", "");
-        ytIframe.style.pointerEvents = "none";
-        ytIframe.setAttribute("frameborder", "0");
-        ytIframe.setAttribute("allow", "autoplay; encrypted-media");
-        testCgVideo.parentNode.insertBefore(ytIframe, testCgVideo.nextSibling);
-      }
-
       if (scene.cgVideoUrl) {
-        const ytMatch = scene.cgVideoUrl.match(
-          /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i,
-        );
-
-        if (ytMatch) {
-          const videoId = ytMatch[1];
-          const isMuted = gameSettings.volume === 0 ? "&mute=1" : "";
-          const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&disablekb=1&fs=0&modestbranding=1&rel=0&showinfo=0&playsinline=1&loop=1&playlist=${videoId}${isMuted}`;
-
-          testCgVideo.classList.add("hidden");
-          testCgVideo.pause();
-
-          if (ytIframe.getAttribute("src") !== embedUrl) {
-            ytIframe.setAttribute("src", embedUrl);
-          }
-          ytIframe.classList.remove("hidden");
-          setTimeout(() => {
-            ytIframe.classList.remove("opacity-0");
-            ytIframe.classList.add("opacity-100");
-          }, 10);
-        } else {
-          ytIframe.classList.add("hidden");
-          ytIframe.removeAttribute("src");
-
-          if (testCgVideo.src !== scene.cgVideoUrl) {
-            testCgVideo.src = scene.cgVideoUrl;
-          }
-          testCgVideo.volume = gameSettings.volume / 100;
-          testCgVideo.classList.remove("hidden");
-          testCgVideo.play().catch((e) => console.warn("CG 影片播放失敗", e));
-          setTimeout(() => {
-            testCgVideo.classList.remove("opacity-0");
-            testCgVideo.classList.add("opacity-100");
-          }, 10);
+        if (testCgVideo.src !== scene.cgVideoUrl) {
+          testCgVideo.src = scene.cgVideoUrl;
         }
+        testCgVideo.volume = gameSettings.volume / 100;
+        testCgVideo.classList.remove("hidden");
+        testCgVideo.play().catch((e) => console.warn("CG 影片播放失敗", e));
+        setTimeout(() => {
+          testCgVideo.classList.remove("opacity-0");
+          testCgVideo.classList.add("opacity-100");
+        }, 10);
       } else {
         testCgVideo.classList.remove("opacity-100");
         testCgVideo.classList.add("opacity-0");
-        ytIframe.classList.remove("opacity-100");
-        ytIframe.classList.add("opacity-0");
         setTimeout(() => {
           if (testCgVideo.classList.contains("opacity-0")) {
             testCgVideo.classList.add("hidden");
             testCgVideo.pause();
             testCgVideo.removeAttribute("src");
-          }
-          if (ytIframe.classList.contains("opacity-0")) {
-            ytIframe.classList.add("hidden");
-            ytIframe.removeAttribute("src");
           }
         }, 500);
       }
@@ -1646,12 +1654,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
-      if (optionsContainer && optionsContainer.children.length > 0) {
-        const firstBtn = optionsContainer.querySelector("button");
-        if (firstBtn && !firstBtn.disabled) {
-          firstBtn.click();
-        }
-      }
     }
   });
 

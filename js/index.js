@@ -30,6 +30,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // --- 滑鼠視差特效 (Parallax) ---
+  const parallaxLayers = document.querySelectorAll(".parallax-layer");
+  if (parallaxLayers.length > 0) {
+    document.addEventListener("mousemove", (e) => {
+      // 計算相對於螢幕中心的滑鼠偏移量
+      const x = (e.clientX - window.innerWidth / 2) * 0.02;
+      const y = (e.clientY - window.innerHeight / 2) * 0.02;
+
+      parallaxLayers.forEach((layer) => {
+        const speed = parseFloat(layer.getAttribute("data-speed")) || 1;
+        layer.style.transform = `translate(${x * speed}px, ${y * speed}px)`;
+      });
+    });
+  }
+
+  // 輔助函式：檔案大小格式化
+  function formatBytes(bytes, decimals = 2) {
+    if (!bytes || bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+  }
+
   // 專案管理邏輯
   const projectModal = document.getElementById("project-modal");
   const loadSaveBtn = document.getElementById("load-save-btn");
@@ -87,12 +112,24 @@ document.addEventListener("DOMContentLoaded", () => {
       const title = project.projectInfo.title || "未命名專案";
       const lastSaved = project.projectInfo.lastSaved || "無紀錄";
       const projId = project.projectId;
+      const sceneCount = project.scenes ? project.scenes.length : 0;
+      const projectSize = formatBytes(new Blob([JSON.stringify(project)]).size);
 
       container.innerHTML += `
             <div class="bg-gray-900 border border-gray-700 rounded-lg p-4 flex flex-col md:flex-row justify-between md:items-center gap-4 hover:border-blue-500 transition shadow-sm">
               <div>
                 <p class="font-bold text-blue-300 text-lg">${title}</p>
-                <p class="text-xs text-gray-500 mt-1">最後保存：${lastSaved}</p>
+                <div class="mt-2 flex items-center space-x-4 text-xs text-gray-400">
+                  <span class="flex items-center">
+                    <svg class="w-4 h-4 mr-1.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V8m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5"></path></svg>
+                    場景數: <strong class="text-gray-300 font-bold ml-1">${sceneCount}</strong>
+                  </span>
+                  <span class="flex items-center">
+                    <svg class="w-4 h-4 mr-1.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4M4 7s0 0 0 0m16 0s0 0 0 0"></path></svg>
+                    檔案大小: <strong class="text-gray-300 font-bold ml-1">${projectSize}</strong>
+                  </span>
+                </div>
+                <p class="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-800">最後保存：${lastSaved}</p>
               </div>
               <div class="flex space-x-2">
                 <button onclick="window.editProject('${projId}')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-sm font-bold transition shadow-sm">編輯</button>
@@ -645,39 +682,39 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // 說明 Modal 邏輯
-  const editorHelpModal = document.getElementById("editor-help-modal");
-  const openEditorHelpBtn = document.getElementById("open-editor-help-btn");
-  const closeEditorHelpBtn = document.getElementById("close-editor-help-btn");
-  const playerHelpModal = document.getElementById("player-help-modal");
-  const openPlayerHelpBtn = document.getElementById("open-player-help-btn");
-  const closePlayerHelpBtn = document.getElementById("close-player-help-btn");
+  const reportModal = document.getElementById("report-modal");
+  const openReportBtn = document.getElementById("open-report-btn");
+  const closeReportBtn = document.getElementById("close-report-btn");
+  const copyEmailBtn = document.getElementById("copy-email-btn");
+  const reportEmailText = document.getElementById("report-email-text");
 
-  openEditorHelpBtn.addEventListener("click", () => {
-    editorHelpModal.classList.remove("opacity-0", "pointer-events-none");
-    editorHelpModal.firstElementChild.classList.remove(
-      "scale-95",
-      "translate-y-4",
-    );
+  openReportBtn.addEventListener("click", () => {
+    reportModal.classList.remove("opacity-0", "pointer-events-none");
+    reportModal.firstElementChild.classList.remove("scale-95", "translate-y-4");
   });
-  closeEditorHelpBtn.addEventListener("click", () => {
-    editorHelpModal.classList.add("opacity-0", "pointer-events-none");
-    editorHelpModal.firstElementChild.classList.add(
-      "scale-95",
-      "translate-y-4",
-    );
+  closeReportBtn.addEventListener("click", () => {
+    reportModal.classList.add("opacity-0", "pointer-events-none");
+    reportModal.firstElementChild.classList.add("scale-95", "translate-y-4");
   });
-  openPlayerHelpBtn.addEventListener("click", () => {
-    playerHelpModal.classList.remove("opacity-0", "pointer-events-none");
-    playerHelpModal.firstElementChild.classList.remove(
-      "scale-95",
-      "translate-y-4",
-    );
-  });
-  closePlayerHelpBtn.addEventListener("click", () => {
-    playerHelpModal.classList.add("opacity-0", "pointer-events-none");
-    playerHelpModal.firstElementChild.classList.add(
-      "scale-95",
-      "translate-y-4",
-    );
+
+  copyEmailBtn.addEventListener("click", () => {
+    const email = reportEmailText.textContent;
+    navigator.clipboard
+      .writeText(email)
+      .then(() => {
+        const originalText = copyEmailBtn.textContent;
+        copyEmailBtn.textContent = "已複製!";
+        copyEmailBtn.classList.remove("bg-orange-600", "hover:bg-orange-500");
+        copyEmailBtn.classList.add("bg-emerald-600", "hover:bg-emerald-500");
+        setTimeout(() => {
+          copyEmailBtn.textContent = originalText;
+          copyEmailBtn.classList.remove(
+            "bg-emerald-600",
+            "hover:bg-emerald-500",
+          );
+          copyEmailBtn.classList.add("bg-orange-600", "hover:bg-orange-500");
+        }, 2000);
+      })
+      .catch((err) => alert("複製失敗：" + err));
   });
 });

@@ -111,13 +111,101 @@
           </div>
         </div>
 
-        <div
-          class="flex flex-col md:flex-row gap-4 border-t border-gray-700 pt-6"
-        >
+        <div class="flex flex-col gap-4 border-t border-gray-700 pt-6">
           <button
             id="execute-merge-btn"
             class="flex-1 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white py-3 rounded-xl font-bold transition shadow-[0_0_15px_rgba(249,115,22,0.4)] flex justify-center items-center opacity-50 cursor-not-allowed"
             disabled
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
+            選擇合併內容
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 選擇合併內容 Modal -->
+    <div
+      id="merge-selection-modal"
+      class="fixed inset-0 bg-black/80 hidden flex-col items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300 opacity-0"
+    >
+      <div
+        class="bg-gray-900 border border-gray-600 rounded-xl w-11/12 max-w-2xl flex flex-col shadow-2xl relative transform scale-95 translate-y-4 transition-all duration-300"
+        id="merge-selection-panel"
+      >
+        <div
+          class="p-6 border-b border-gray-700 flex justify-between items-center bg-gray-800 rounded-t-xl"
+        >
+          <h2 class="text-2xl font-bold text-orange-400 flex items-center">
+            <svg
+              class="w-6 h-6 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+              ></path>
+            </svg>
+            選擇合併內容
+          </h2>
+          <button
+            id="close-selection-btn"
+            class="text-gray-400 hover:text-white transition"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </button>
+        </div>
+        <div class="p-6 space-y-4">
+          <p class="text-gray-300 text-sm mb-2">
+            以下是本次合併中發現的
+            <strong class="text-red-400">ID 衝突</strong>
+            項目。請勾選您想要「視為同一個並合併 (略過新增)」的項目：
+          </p>
+          <p class="text-gray-500 text-xs mb-4">
+            （未勾選的項目將會建立帶有新 ID 的衝突備份）
+          </p>
+
+          <div
+            class="flex flex-col gap-3 max-h-[50vh] overflow-y-auto custom-scrollbar pr-2"
+            id="merge-categories-container"
+          >
+            <!-- 動態生成分類 Checkboxes -->
+          </div>
+        </div>
+        <div
+          class="p-6 border-t border-gray-700 bg-gray-800 rounded-b-xl flex gap-4"
+        >
+          <button
+            id="confirm-merge-btn"
+            class="flex-1 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white py-3 rounded-xl font-bold transition shadow-[0_0_15px_rgba(249,115,22,0.4)] flex justify-center items-center"
           >
             <svg
               class="w-5 h-5 mr-2"

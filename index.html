@@ -7,6 +7,70 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/index.css" />
     <link rel="stylesheet" href="css/mobile.css" />
+    <style>
+      /* 動態科技網格背景 */
+      @keyframes grid-pan {
+        0% {
+          transform: translateY(0);
+        }
+        100% {
+          transform: translateY(64px);
+        }
+      }
+      .animate-grid {
+        animation: grid-pan 4s linear infinite;
+      }
+
+      /* 流星/光軌特效 */
+      @keyframes meteor-shower {
+        0% {
+          transform: rotate(-45deg) translateX(300px);
+          opacity: 0;
+        }
+        5% {
+          opacity: 1;
+        }
+        15% {
+          transform: rotate(-45deg) translateX(-1000px);
+          opacity: 0;
+        }
+        100% {
+          transform: rotate(-45deg) translateX(-1000px);
+          opacity: 0;
+        }
+      }
+      .meteor {
+        position: absolute;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0),
+          currentColor
+        );
+        filter: drop-shadow(0 0 8px currentColor);
+        animation: meteor-shower linear infinite;
+        opacity: 0;
+        border-radius: 999px;
+      }
+      .meteor::before {
+        content: "";
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background-color: white;
+        box-shadow: 0 0 10px currentColor;
+      }
+
+      /* 視差層平滑過渡 */
+      .parallax-layer {
+        transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        will-change: transform;
+      }
+    </style>
   </head>
   <body
     class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4 relative"
@@ -22,49 +86,112 @@
     >
       <!-- 裝飾用環境光球 -->
       <div
-        class="absolute top-[10%] left-[20%] w-72 h-72 bg-blue-600/20 rounded-full blur-[100px] animate-float pointer-events-none"
-      ></div>
+        class="parallax-layer absolute inset-0 pointer-events-none"
+        data-speed="1.5"
+      >
+        <div
+          class="absolute top-[10%] left-[20%] w-72 h-72 bg-blue-600/20 rounded-full blur-[100px] animate-float"
+        ></div>
+      </div>
       <div
-        class="absolute bottom-[10%] right-[20%] w-96 h-96 bg-emerald-600/20 rounded-full blur-[120px] animate-float-reverse pointer-events-none"
-      ></div>
+        class="parallax-layer absolute inset-0 pointer-events-none"
+        data-speed="-2"
+      >
+        <div
+          class="absolute bottom-[10%] right-[20%] w-96 h-96 bg-emerald-600/20 rounded-full blur-[120px] animate-float-reverse"
+        ></div>
+      </div>
       <div
-        class="absolute top-[40%] left-[60%] w-64 h-64 bg-purple-600/20 rounded-full blur-[90px] animate-float pointer-events-none"
-      ></div>
+        class="parallax-layer absolute inset-0 pointer-events-none"
+        data-speed="2.5"
+      >
+        <div
+          class="absolute top-[40%] left-[60%] w-64 h-64 bg-purple-600/20 rounded-full blur-[90px] animate-float"
+        ></div>
+      </div>
 
       <!-- 網點紋理裝飾 -->
       <div
-        class="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[length:32px_32px] pointer-events-none"
-      ></div>
+        class="parallax-layer absolute inset-0 pointer-events-none"
+        data-speed="0.5"
+      >
+        <div
+          class="absolute -inset-[100px] bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[length:32px_32px] opacity-60"
+        ></div>
+        <div
+          class="absolute -inset-[100px] bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[length:64px_64px] animate-grid"
+          style="
+            mask-image: radial-gradient(
+              circle at center,
+              black 0%,
+              transparent 70%
+            );
+            -webkit-mask-image: radial-gradient(
+              circle at center,
+              black 0%,
+              transparent 70%
+            );
+          "
+        ></div>
+      </div>
+
+      <!-- 流星特效 -->
+      <div
+        class="parallax-layer absolute inset-0 pointer-events-none"
+        data-speed="1.2"
+      >
+        <div
+          class="meteor top-[15%] right-[10%] w-[120px] text-blue-300"
+          style="animation-duration: 7s; animation-delay: 1s"
+        ></div>
+        <div
+          class="meteor top-[30%] right-[20%] w-[150px] text-emerald-300"
+          style="animation-duration: 9s; animation-delay: 5s"
+        ></div>
+        <div
+          class="meteor top-[50%] right-[5%] w-[80px] text-purple-300"
+          style="animation-duration: 6s; animation-delay: 3s"
+        ></div>
+        <div
+          class="meteor top-[5%] right-[40%] w-[100px] text-indigo-300"
+          style="animation-duration: 8s; animation-delay: 7s"
+        ></div>
+      </div>
 
       <!-- 漂浮發光粒子 -->
       <div
-        class="particle bg-blue-300 w-1.5 h-1.5 shadow-[0_0_10px_rgba(147,197,253,1)] left-[15%]"
-        style="animation-duration: 12s; animation-delay: 0s"
-      ></div>
-      <div
-        class="particle bg-emerald-300 w-1 h-1 shadow-[0_0_8px_rgba(110,231,183,1)] left-[80%]"
-        style="animation-duration: 18s; animation-delay: 4s"
-      ></div>
-      <div
-        class="particle bg-purple-300 w-2 h-2 shadow-[0_0_12px_rgba(192,132,252,1)] left-[35%]"
-        style="animation-duration: 15s; animation-delay: 2s"
-      ></div>
-      <div
-        class="particle bg-indigo-300 w-1.5 h-1.5 shadow-[0_0_10px_rgba(165,180,252,1)] left-[65%]"
-        style="animation-duration: 20s; animation-delay: 7s"
-      ></div>
-      <div
-        class="particle bg-blue-200 w-1 h-1 shadow-[0_0_8px_rgba(191,219,254,1)] left-[90%]"
-        style="animation-duration: 14s; animation-delay: 9s"
-      ></div>
-      <div
-        class="particle bg-emerald-200 w-2 h-2 shadow-[0_0_12px_rgba(167,243,208,1)] left-[5%]"
-        style="animation-duration: 16s; animation-delay: 5s"
-      ></div>
-      <div
-        class="particle bg-purple-200 w-1 h-1 shadow-[0_0_8px_rgba(233,213,255,1)] left-[50%]"
-        style="animation-duration: 19s; animation-delay: 12s"
-      ></div>
+        class="parallax-layer absolute inset-0 pointer-events-none"
+        data-speed="3"
+      >
+        <div
+          class="particle bg-blue-300 w-1.5 h-1.5 shadow-[0_0_10px_rgba(147,197,253,1)] left-[15%]"
+          style="animation-duration: 12s; animation-delay: 0s"
+        ></div>
+        <div
+          class="particle bg-emerald-300 w-1 h-1 shadow-[0_0_8px_rgba(110,231,183,1)] left-[80%]"
+          style="animation-duration: 18s; animation-delay: 4s"
+        ></div>
+        <div
+          class="particle bg-purple-300 w-2 h-2 shadow-[0_0_12px_rgba(192,132,252,1)] left-[35%]"
+          style="animation-duration: 15s; animation-delay: 2s"
+        ></div>
+        <div
+          class="particle bg-indigo-300 w-1.5 h-1.5 shadow-[0_0_10px_rgba(165,180,252,1)] left-[65%]"
+          style="animation-duration: 20s; animation-delay: 7s"
+        ></div>
+        <div
+          class="particle bg-blue-200 w-1 h-1 shadow-[0_0_8px_rgba(191,219,254,1)] left-[90%]"
+          style="animation-duration: 14s; animation-delay: 9s"
+        ></div>
+        <div
+          class="particle bg-emerald-200 w-2 h-2 shadow-[0_0_12px_rgba(167,243,208,1)] left-[5%]"
+          style="animation-duration: 16s; animation-delay: 5s"
+        ></div>
+        <div
+          class="particle bg-purple-200 w-1 h-1 shadow-[0_0_8px_rgba(233,213,255,1)] left-[50%]"
+          style="animation-duration: 19s; animation-delay: 12s"
+        ></div>
+      </div>
     </div>
 
     <!-- 主要面板 -->
@@ -246,10 +373,12 @@
       </div>
 
       <!-- 說明按鈕 -->
-      <div class="mt-8 flex justify-center gap-8">
-        <button
+      <div class="mt-8 flex flex-wrap justify-center gap-4 md:gap-8">
+        <a
+          href="manual.html#ch-intro"
           id="open-editor-help-btn"
           class="text-gray-400 hover:text-blue-400 hover:bg-blue-900/20 px-4 py-2 rounded-full transition-all duration-300 flex items-center text-sm font-bold border border-transparent hover:border-blue-500/30"
+          target="_blank"
         >
           <svg
             class="w-5 h-5 mr-1.5"
@@ -265,10 +394,12 @@
             ></path>
           </svg>
           編輯使用說明
-        </button>
-        <button
+        </a>
+        <a
+          href="manual.html#player-controls"
           id="open-player-help-btn"
           class="text-gray-400 hover:text-emerald-400 hover:bg-emerald-900/20 px-4 py-2 rounded-full transition-all duration-300 flex items-center text-sm font-bold border border-transparent hover:border-emerald-500/30"
+          target="_blank"
         >
           <svg
             class="w-5 h-5 mr-1.5"
@@ -284,7 +415,101 @@
             ></path>
           </svg>
           遊玩操作說明
+        </a>
+        <button
+          id="open-report-btn"
+          class="text-gray-400 hover:text-orange-400 hover:bg-orange-900/20 px-4 py-2 rounded-full transition-all duration-300 flex items-center text-sm font-bold border border-transparent hover:border-orange-500/30"
+        >
+          <svg
+            class="w-5 h-5 mr-1.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            ></path>
+          </svg>
+          回報問題
         </button>
+      </div>
+    </div>
+
+    <!-- 回報問題 Modal -->
+    <div
+      id="report-modal"
+      class="fixed inset-0 bg-black/90 flex flex-col items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none"
+    >
+      <div
+        class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-md flex flex-col relative transform transition-all duration-300 scale-95 translate-y-4"
+      >
+        <button
+          id="close-report-btn"
+          class="absolute top-4 right-4 text-gray-400 hover:text-white transition z-10"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+        <div
+          class="p-6 border-b border-gray-700 bg-gray-800 rounded-t-xl text-center"
+        >
+          <h2 class="text-3xl font-extrabold text-orange-400">問題回報</h2>
+          <p class="text-sm text-gray-400 mt-2">
+            如果您遇到任何錯誤或有建議，歡迎來信告訴我！
+          </p>
+        </div>
+        <div class="p-6 flex flex-col items-center gap-4">
+          <div
+            class="bg-gray-800 border border-gray-700 p-4 rounded-lg w-full flex justify-between items-center"
+          >
+            <span
+              id="report-email-text"
+              class="text-gray-200 font-mono select-all"
+              >asyray951223@gmail.com</span
+            >
+            <button
+              id="copy-email-btn"
+              class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded font-bold transition shadow-sm text-sm ml-2 shrink-0"
+            >
+              複製
+            </button>
+          </div>
+          <a
+            href="https://workspace.google.com/intl/zh-TW/gmail/"
+            class="w-full bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg font-bold transition shadow-sm border border-gray-600 flex justify-center items-center"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              ></path>
+            </svg>
+            開啟 Gmail 網頁版
+          </a>
+        </div>
       </div>
     </div>
 
@@ -603,249 +828,6 @@
             class="hidden grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             <!-- 成就將由 JS 動態產生 -->
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 編輯使用說明 Modal -->
-    <div
-      id="editor-help-modal"
-      class="fixed inset-0 bg-black/90 flex flex-col items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none"
-    >
-      <div
-        class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col relative transform transition-all duration-300 scale-95 translate-y-4"
-      >
-        <button
-          id="close-editor-help-btn"
-          class="absolute top-6 right-6 text-gray-400 hover:text-white transition z-10"
-        >
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            ></path>
-          </svg>
-        </button>
-        <div
-          class="p-6 border-b border-gray-700 bg-gray-800 rounded-t-xl text-center"
-        >
-          <h2 class="text-3xl font-extrabold text-blue-400">編輯使用說明</h2>
-          <p class="text-sm text-gray-400 mt-2">
-            了解如何使用引擎的各項強大模組
-          </p>
-        </div>
-        <div
-          class="p-6 overflow-y-auto flex-1 bg-gray-800/30 text-gray-300 space-y-5 text-sm md:text-base leading-relaxed"
-        >
-          <div class="flex items-start">
-            <strong class="text-blue-300 w-24 flex-shrink-0">基本資訊</strong
-            ><span
-              >設定遊戲名稱、簡介，並可在此匯入/匯出 JSON 專案備份檔。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-blue-300 w-24 flex-shrink-0">章節管理</strong
-            ><span
-              >建立遊戲的章節，可為每個章節設定專屬全螢幕背景與
-              BGM，並管理底下的場景排序。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-blue-300 w-24 flex-shrink-0">場景編輯</strong
-            ><span
-              >編寫故事文本、設計對話選項。可設定專屬背景、BGM、駐紮
-              NPC，以及選項的顯示條件與複合效果 (如：增減金幣、獲得道具)。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-blue-300 w-24 flex-shrink-0">數值系統</strong
-            ><span
-              >自訂遊戲內的全域變數
-              (如：HP、金幣)，可作為條件判斷或選項獎勵。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-blue-300 w-24 flex-shrink-0">道具系統</strong
-            ><span
-              >建立消耗品或永久道具，並可設定道具的使用前提條件與複合效果。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-blue-300 w-24 flex-shrink-0">全域觸發器</strong
-            ><span
-              >遊戲的後台監控中心，當滿足特定條件 (如 HP <= 0)
-              時，將自動強制介入並跳轉至指定場景 (例如：死亡結局)。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-blue-300 w-24 flex-shrink-0">NPC 角色</strong
-            ><span
-              >建立角色並綁定專屬數值
-              (如好感度)，可設定登場條件。登場時對話框會顯示頭像與姓名。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-blue-300 w-24 flex-shrink-0">成就系統</strong
-            ><span
-              >設計公開或隱藏成就，設定解鎖條件。解鎖後將跨存檔全域保存於畫廊中。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-blue-300 w-24 flex-shrink-0">辭典系統</strong
-            ><span
-              >管理遊戲內的專有名詞或辭典，供玩家隨時查閱世界觀與設定，可設定解鎖條件。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-blue-300 w-24 flex-shrink-0">商店系統</strong
-            ><span
-              >建立遊戲內的商店，讓玩家可以消耗變數 (如金幣) 購買道具。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-blue-300 w-24 flex-shrink-0">測驗系統</strong
-            ><span
-              >建立遊戲內的測驗或密碼鎖，讓玩家輸入文字答案並觸發不同結果。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-blue-300 w-24 flex-shrink-0">時間系統</strong
-            ><span
-              >管理遊戲內的時間系統，設定初始天數與時制，並在場景或事件中推進時間，或設定跨日自動跳轉。</span
-            >
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 遊玩操作說明 Modal -->
-    <div
-      id="player-help-modal"
-      class="fixed inset-0 bg-black/90 flex flex-col items-center justify-center z-50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none"
-    >
-      <div
-        class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col relative transform transition-all duration-300 scale-95 translate-y-4"
-      >
-        <button
-          id="close-player-help-btn"
-          class="absolute top-6 right-6 text-gray-400 hover:text-white transition z-10"
-        >
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            ></path>
-          </svg>
-        </button>
-        <div
-          class="p-6 border-b border-gray-700 bg-gray-800 rounded-t-xl text-center"
-        >
-          <h2 class="text-3xl font-extrabold text-emerald-400">遊玩操作說明</h2>
-          <p class="text-sm text-gray-400 mt-2">
-            掌握快捷鍵與功能，享受最佳沉浸體驗
-          </p>
-        </div>
-        <div
-          class="p-6 overflow-y-auto flex-1 bg-gray-800/30 text-gray-300 space-y-5 text-sm md:text-base leading-relaxed"
-        >
-          <div class="flex items-start">
-            <strong class="text-emerald-300 w-28 flex-shrink-0">對話推進</strong
-            ><span
-              >除了滑鼠點擊，您可以使用
-              <kbd
-                class="bg-gray-700 px-1.5 py-0.5 rounded text-white font-mono"
-                >空白鍵</kbd
-              >
-              或
-              <kbd
-                class="bg-gray-700 px-1.5 py-0.5 rounded text-white font-mono"
-                >Enter</kbd
-              >
-              快速跳過打字動畫或自動選擇單一選項以推進劇情。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-emerald-300 w-28 flex-shrink-0">進度存取</strong
-            ><span
-              >點擊上方「存檔」按鈕可手動選擇槽位保存。遊戲中按下
-              <kbd
-                class="bg-gray-700 px-1.5 py-0.5 rounded text-white font-mono"
-                >F5</kbd
-              >
-              可快速覆蓋當前槽位，按下
-              <kbd
-                class="bg-gray-700 px-1.5 py-0.5 rounded text-white font-mono"
-                >F9</kbd
-              >
-              可快速讀取最後一次的進度。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-emerald-300 w-28 flex-shrink-0">主題切換</strong
-            ><span
-              >在遊戲大廳選擇「載入存檔」時，您可以自由切換「現代科幻
-              (預設深色)」與「古典武俠
-              (中國風)」兩種截然不同的沉浸式視覺主題。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-emerald-300 w-28 flex-shrink-0">冒險背包</strong
-            ><span
-              >點擊右下角背包圖示，可檢視目前持有的道具。當符合前提條件時，可直接點擊使用並觸發對應效果。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-emerald-300 w-28 flex-shrink-0">辭典查閱</strong
-            ><span
-              >點擊左下角的辭典圖示，可隨時查閱已解鎖的專有名詞、世界觀設定與角色背景故事。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-emerald-300 w-28 flex-shrink-0">遊戲設定</strong
-            ><span
-              >點擊上方「設定」，可自由調整文字顯示速度
-              (拉到最右側可即時顯示文字，關閉打字動畫)，以及背景音樂與打字音效的音量。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-emerald-300 w-28 flex-shrink-0">隱藏介面</strong
-            ><span
-              >點擊上方「隱藏介面」可暫時收起所有對話框、狀態列與按鈕，方便您完整欣賞當前的背景圖片。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-emerald-300 w-28 flex-shrink-0"
-              >全螢幕模式</strong
-            ><span
-              >強烈建議點擊「全螢幕」按鈕，或是按下鍵盤的
-              <kbd
-                class="bg-gray-700 px-1.5 py-0.5 rounded text-white font-mono"
-                >F11</kbd
-              >
-              進入全螢幕，以獲得最無干擾的電影級視覺小說體驗。</span
-            >
-          </div>
-          <div class="flex items-start">
-            <strong class="text-emerald-300 w-28 flex-shrink-0">歷史紀錄</strong
-            ><span
-              >點擊上方的「前塵 /
-              歷史紀錄」按鈕，可隨時回顧先前的對話與劇情，不用擔心不小心點太快而錯過任何細節。</span
-            >
           </div>
         </div>
       </div>

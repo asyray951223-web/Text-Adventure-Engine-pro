@@ -89,6 +89,64 @@ document.addEventListener("DOMContentLoaded", () => {
     input.click();
   };
 
+  // 全域音樂上傳與轉 Base64 處理函式
+  window.promptAudioUpload = function (callback) {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "audio/*";
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // 音檔大小警告防呆機制 (大於 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        if (
+          !confirm(
+            `⚠️ 警告：您選擇的音檔大小為 ${(file.size / 1024 / 1024).toFixed(2)} MB。\n\n音檔過大非常容易導致瀏覽器儲存空間爆滿並造成專案存檔失敗！\n強烈建議使用外部網址，或將檔案壓縮後再上傳。\n\n確定要強制上傳嗎？`,
+          )
+        ) {
+          return;
+        }
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        callback(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
+
+  // 全域影片上傳與轉 Base64 處理函式
+  window.promptVideoUpload = function (callback) {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "video/*";
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // 影片大小警告防呆機制 (大於 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        if (
+          !confirm(
+            `⚠️ 警告：您選擇的影片大小為 ${(file.size / 1024 / 1024).toFixed(2)} MB。\n\n影片檔通常極大，直接上傳非常容易導致瀏覽器儲存空間爆滿並造成專案存檔失敗！\n強烈建議將影片上傳至外部空間後，直接貼上外部網址 (URL)。\n\n確定要強制上傳此影片嗎？`,
+          )
+        ) {
+          return;
+        }
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        callback(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
+
   // 全域 BGM 預覽功能
   window.previewAudio = new Audio();
   window.previewAudio.loop = true;
@@ -133,6 +191,121 @@ document.addEventListener("DOMContentLoaded", () => {
           );
         });
     }
+  };
+
+  // 全域無效關聯清除功能 (處理變數與道具刪除時的連動防護)
+  window.cleanupInvalidReferences = function (type, deletedIds) {
+    if (!deletedIds || deletedIds.size === 0) return 0;
+    let clearedCount = 0;
+
+    const checkAndDelete = (obj, key) => {
+      if (obj && obj[key] !== undefined && deletedIds.has(obj[key])) {
+        obj[key] = "";
+        clearedCount++;
+      }
+    };
+
+    const checkConditions = (conditions) => {
+      if (!conditions) return;
+      if (type === "variable" && conditions.variables) {
+        for (const vid of Object.keys(conditions.variables)) {
+          if (deletedIds.has(vid)) {
+            delete conditions.variables[vid];
+            clearedCount++;
+          }
+        }
+      }
+      if (type === "item" && conditions.items) {
+        for (const iid of Object.keys(conditions.items)) {
+          if (deletedIds.has(iid)) {
+            delete conditions.items[iid];
+            clearedCount++;
+          }
+        }
+      }
+    };
+
+    // 1. 清理場景與選項
+    if (window.projectData.scenes) {
+      window.projectData.scenes.forEach((scene) => {
+        if (scene.options) {
+          scene.options.forEach((opt) => {
+            if (type === "variable") checkAndDelete(opt, "variableId");
+            else if (type === "item") {
+              checkAndDelete(opt, "itemId");
+              checkAndDelete(opt, "targetItemId");
+            }
+            checkConditions(opt.conditions);
+          });
+        }
+      });
+    }
+
+    // 2. 清理觸發器
+    if (window.projectData.triggers) {
+      window.projectData.triggers.forEach((trigger) => {
+        if (type === "variable") checkAndDelete(trigger, "variableId");
+        else if (type === "item") checkAndDelete(trigger, "targetItemId");
+        checkConditions(trigger.conditions);
+      });
+    }
+
+    // 3. 清理成就與辭典
+    if (window.projectData.achievements) {
+      window.projectData.achievements.forEach((ach) =>
+        checkConditions(ach.conditions),
+      );
+    }
+    if (window.projectData.dictionary) {
+      window.projectData.dictionary.forEach((term) =>
+        checkConditions(term.conditions),
+      );
+    }
+
+    // 4. 清理商店商品
+    if (window.projectData.shops) {
+      window.projectData.shops.forEach((shop) => {
+        if (shop.goods) {
+          for (let i = shop.goods.length - 1; i >= 0; i--) {
+            const good = shop.goods[i];
+            // 若商品道具被刪除，直接將該商品下架
+            if (type === "item" && deletedIds.has(good.itemId)) {
+              shop.goods.splice(i, 1);
+              clearedCount++;
+            } else if (
+              type === "variable" &&
+              deletedIds.has(good.costVariableId)
+            ) {
+              good.costVariableId = "";
+              clearedCount++;
+            }
+          }
+        }
+      });
+    }
+
+    // 5. 清理 NPC 綁定
+    if (window.projectData.npcs) {
+      window.projectData.npcs.forEach((npc) => {
+        if (type === "variable") checkAndDelete(npc, "boundVariableId");
+        checkConditions(npc.conditions);
+      });
+    }
+
+    // 6. 清理道具本身的複合效果與條件
+    if (window.projectData.items) {
+      window.projectData.items.forEach((item) => {
+        if (type === "variable") {
+          checkAndDelete(item, "variableId");
+          checkAndDelete(item, "sellVariableId");
+        } else if (type === "item") {
+          checkAndDelete(item, "targetItemId");
+        }
+        checkConditions(item.conditions);
+      });
+    }
+
+    return clearedCount;
   };
 
   // 1. 初始化或讀取核心資料結構 (JSON)
@@ -198,9 +371,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     <label class="block text-sm font-medium text-gray-700 mb-1">預設背景音樂網址 (BGM URL，選填)</label>
                     <div class="flex space-x-2">
                         <input type="text" id="input-default-bgm" value="${data.projectInfo.defaultBgmUrl || ""}" class="flex-1 border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="https://... (如 mp3)">
+                        <button id="upload-default-bgm-btn" class="bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded text-sm font-bold transition whitespace-nowrap">上傳</button>
                         <button id="test-default-bgm-btn" class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-3 py-1 rounded text-sm font-bold transition whitespace-nowrap">▶ 試聽</button>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1">若場景或章節未設定專屬音樂，將會預設播放此音樂。</p>
+                    <p class="text-xs text-gray-500 mt-1">若場景或章節未設定專屬音樂，將會預設播放此音樂。建議使用外部網址避免專案過大。</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">遊戲簡介</label>
@@ -460,6 +634,19 @@ document.addEventListener("DOMContentLoaded", () => {
             window.promptImageUpload((base64) => {
               window.projectData.projectInfo.defaultBgUrl = base64;
               document.getElementById("input-default-bg").value = base64;
+            });
+          }
+        });
+      }
+      const uploadDefaultBgmBtn = document.getElementById(
+        "upload-default-bgm-btn",
+      );
+      if (uploadDefaultBgmBtn) {
+        uploadDefaultBgmBtn.addEventListener("click", () => {
+          if (window.promptAudioUpload) {
+            window.promptAudioUpload((base64) => {
+              window.projectData.projectInfo.defaultBgmUrl = base64;
+              document.getElementById("input-default-bgm").value = base64;
             });
           }
         });

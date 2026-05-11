@@ -998,6 +998,7 @@ window.renderScenes = function () {
                 <label class="block text-xs font-bold text-gray-700 mb-1">場景專屬音樂 (BGM URL，選填，留空則套用章節或預設音)</label>
                 <div class="flex space-x-2">
                   <input type="text" class="scene-bgm-url flex-1 border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="https://... (如 mp3)" value="${scene.bgmUrl || ""}">
+                  <button class="scene-bgm-upload-btn bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded text-sm font-bold transition whitespace-nowrap">上傳</button>
                   <button class="scene-bgm-test-btn bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-3 py-1 rounded text-sm font-bold transition whitespace-nowrap">▶ 試聽</button>
                 </div>
               </div>
@@ -1051,9 +1052,12 @@ window.renderScenes = function () {
           <p class="text-xs text-gray-500 mt-1">立繪將顯示在對話框上方、背景圖之前。</p>
         </div>
         <div class="mt-4">
-          <label class="block text-sm font-medium text-gray-700 mb-1">全螢幕事件 CG (影片或 YouTube URL，選填)</label>
-          <input type="text" class="scene-cg-video-url w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="支援直連 mp4 或 YouTube 網址" value="${scene.cgVideoUrl || ""}">
-          <p class="text-xs text-gray-500 mt-1">進入場景時將自動循環播放並覆蓋背景，支援 YouTube 影片嵌入。</p>
+          <label class="block text-sm font-medium text-gray-700 mb-1">全螢幕事件 CG (影片 URL，選填)</label>
+          <div class="flex space-x-2">
+            <input type="text" class="scene-cg-video-url flex-1 border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="支援直連 mp4 網址" value="${scene.cgVideoUrl || ""}">
+            <button class="scene-cg-video-upload-btn bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded text-sm font-bold transition whitespace-nowrap">上傳</button>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">進入場景時將自動循環播放並覆蓋背景。建議使用外部網址避免專案過大。</p>
         </div>
         <div class="mt-4">
           <div class="flex items-center justify-between mb-1">
@@ -1116,6 +1120,19 @@ window.renderScenes = function () {
             scene.npcId = e.target.value;
           });
         }
+        const cgVideoUploadBtn = contentEl.querySelector(
+          ".scene-cg-video-upload-btn",
+        );
+        if (cgVideoUploadBtn) {
+          cgVideoUploadBtn.addEventListener("click", () => {
+            if (window.promptVideoUpload) {
+              window.promptVideoUpload((base64) => {
+                scene.cgVideoUrl = base64;
+                if (cgVideoUrlInput) cgVideoUrlInput.value = base64;
+              });
+            }
+          });
+        }
 
         // 綁定「跳過場景」勾選框
         const npcSkipChkEl = contentEl.querySelector(".npc-skip-chk");
@@ -1148,6 +1165,19 @@ window.renderScenes = function () {
         if (bgmUrlInput) {
           bgmUrlInput.addEventListener("change", (e) => {
             scene.bgmUrl = e.target.value;
+          });
+        }
+
+        // 綁定「專屬背景音樂上傳」按鈕
+        const bgmUploadBtn = contentEl.querySelector(".scene-bgm-upload-btn");
+        if (bgmUploadBtn) {
+          bgmUploadBtn.addEventListener("click", () => {
+            if (window.promptAudioUpload) {
+              window.promptAudioUpload((base64) => {
+                scene.bgmUrl = base64;
+                if (bgmUrlInput) bgmUrlInput.value = base64;
+              });
+            }
           });
         }
 

@@ -1,0 +1,1888 @@
+<!doctype html>
+<html lang="zh-TW" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>完整使用手冊 - 文字冒險遊戲引擎</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/mobile.css" />
+    <style>
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(17, 24, 39, 0.4);
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(75, 85, 99, 0.8);
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(59, 130, 246, 0.8);
+      }
+      .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(75, 85, 99, 0.8) transparent;
+      }
+
+      /* 全域等比例放大 (透過修改 root font-size) */
+      html {
+        font-size: 17px; /* 手機版微幅放大 (預設為 16px) */
+      }
+      @media (min-width: 768px) {
+        html {
+          font-size: 18.5px; /* 電腦/平板版等比例放大 */
+        }
+      }
+      @media (min-width: 1280px) {
+        html {
+          font-size: 20px; /* 大螢幕進一步放大，讓閱讀更舒適 */
+        }
+      }
+
+      /* 說明書特定的排版優化 */
+      .manual-section {
+        scroll-margin-top: 6rem; /* 確保錨點跳轉時不會被頂部導覽列遮住 */
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gray-950 text-gray-300 font-sans antialiased selection:bg-blue-500 selection:text-white custom-scrollbar h-screen flex flex-col overflow-hidden"
+  >
+    <!-- 頂部導覽列 -->
+    <nav
+      class="shrink-0 w-full bg-gray-900/90 backdrop-blur-md border-b border-gray-800 z-50 sticky top-0 px-6 py-4 flex justify-between items-center shadow-lg"
+    >
+      <div class="flex items-center space-x-3">
+        <svg
+          class="w-8 h-8 text-blue-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+          ></path>
+        </svg>
+        <h1
+          class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 tracking-wider"
+        >
+          完整使用手冊
+        </h1>
+      </div>
+      <a
+        href="index.html"
+        class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-bold border border-gray-600 transition shadow-sm flex items-center"
+      >
+        <svg
+          class="w-4 h-4 mr-2"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          ></path>
+        </svg>
+        返回大廳
+      </a>
+    </nav>
+
+    <div class="flex-1 flex overflow-hidden">
+      <!-- 側邊目錄 (電腦版顯示) -->
+      <aside
+        class="hidden md:block w-64 bg-gray-900 border-r border-gray-800 overflow-y-auto custom-scrollbar p-6 shrink-0"
+      >
+        <h3
+          class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-2 text-blue-500/60"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+            ></path>
+          </svg>
+          開發者：編輯器教學
+        </h3>
+        <ul class="space-y-1 mb-8 border-l-2 border-gray-800 ml-2">
+          <li>
+            <a
+              href="#ch-intro"
+              class="block text-gray-400 hover:text-blue-300 hover:bg-blue-900/10 transition-all duration-300 text-sm font-medium py-2 pl-4 -ml-[2px] border-l-2 border-transparent hover:border-blue-500 rounded-r-lg"
+              data-theme="blue"
+              >1. 核心概念與基本資訊</a
+            >
+          </li>
+          <li>
+            <a
+              href="#ch-scene"
+              class="block text-gray-400 hover:text-blue-300 hover:bg-blue-900/10 transition-all duration-300 text-sm font-medium py-2 pl-4 -ml-[2px] border-l-2 border-transparent hover:border-blue-500 rounded-r-lg"
+              data-theme="blue"
+              >2. 章節與場景建構</a
+            >
+          </li>
+          <li>
+            <a
+              href="#ch-logic"
+              class="block text-gray-400 hover:text-blue-300 hover:bg-blue-900/10 transition-all duration-300 text-sm font-medium py-2 pl-4 -ml-[2px] border-l-2 border-transparent hover:border-blue-500 rounded-r-lg"
+              data-theme="blue"
+              >3. 條件分支與選項跳轉</a
+            >
+          </li>
+          <li>
+            <a
+              href="#ch-vars"
+              class="block text-gray-400 hover:text-blue-300 hover:bg-blue-900/10 transition-all duration-300 text-sm font-medium py-2 pl-4 -ml-[2px] border-l-2 border-transparent hover:border-blue-500 rounded-r-lg"
+              data-theme="blue"
+              >4. 數值與道具系統</a
+            >
+          </li>
+          <li>
+            <a
+              href="#ch-trigger"
+              class="block text-gray-400 hover:text-blue-300 hover:bg-blue-900/10 transition-all duration-300 text-sm font-medium py-2 pl-4 -ml-[2px] border-l-2 border-transparent hover:border-blue-500 rounded-r-lg"
+              data-theme="blue"
+              >5. 全域觸發器 (背景監控)</a
+            >
+          </li>
+          <li>
+            <a
+              href="#ch-immersion"
+              class="block text-gray-400 hover:text-blue-300 hover:bg-blue-900/10 transition-all duration-300 text-sm font-medium py-2 pl-4 -ml-[2px] border-l-2 border-transparent hover:border-blue-500 rounded-r-lg"
+              data-theme="blue"
+              >6. NPC、成就與辭典</a
+            >
+          </li>
+          <li>
+            <a
+              href="#ch-mechanics"
+              class="block text-gray-400 hover:text-blue-300 hover:bg-blue-900/10 transition-all duration-300 text-sm font-medium py-2 pl-4 -ml-[2px] border-l-2 border-transparent hover:border-blue-500 rounded-r-lg"
+              data-theme="blue"
+              >7. 商店、測驗與時間</a
+            >
+          </li>
+        </ul>
+
+        <h3
+          class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-2 text-emerald-500/60"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+            ></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+          玩家：遊玩操作指南
+        </h3>
+        <ul class="space-y-1 mb-8 border-l-2 border-gray-800 ml-2">
+          <li>
+            <a
+              href="#player-controls"
+              class="block text-gray-400 hover:text-emerald-300 hover:bg-emerald-900/10 transition-all duration-300 text-sm font-medium py-2 pl-4 -ml-[2px] border-l-2 border-transparent hover:border-emerald-500 rounded-r-lg"
+              data-theme="emerald"
+              >快捷鍵與介面操作</a
+            >
+          </li>
+          <li>
+            <a
+              href="#player-saves"
+              class="block text-gray-400 hover:text-emerald-300 hover:bg-emerald-900/10 transition-all duration-300 text-sm font-medium py-2 pl-4 -ml-[2px] border-l-2 border-transparent hover:border-emerald-500 rounded-r-lg"
+              data-theme="emerald"
+              >存檔與畫廊系統</a
+            >
+          </li>
+        </ul>
+
+        <h3
+          class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-2 text-yellow-500/60"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+            ></path>
+          </svg>
+          進階技巧與問答
+        </h3>
+        <ul class="space-y-1 border-l-2 border-gray-800 ml-2">
+          <li>
+            <a
+              href="#ch-tips"
+              class="block text-gray-400 hover:text-yellow-300 hover:bg-yellow-900/10 transition-all duration-300 text-sm font-medium py-2 pl-4 -ml-[2px] border-l-2 border-transparent hover:border-yellow-500 rounded-r-lg"
+              data-theme="yellow"
+              >實戰小技巧 (Tips)</a
+            >
+          </li>
+          <li>
+            <a
+              href="#ch-faq"
+              class="block text-gray-400 hover:text-yellow-300 hover:bg-yellow-900/10 transition-all duration-300 text-sm font-medium py-2 pl-4 -ml-[2px] border-l-2 border-transparent hover:border-yellow-500 rounded-r-lg"
+              data-theme="yellow"
+              >常見問答 (FAQ)</a
+            >
+          </li>
+        </ul>
+      </aside>
+
+      <!-- 主要內容區 -->
+      <main
+        class="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-12 lg:px-24 scroll-smooth"
+      >
+        <div class="max-w-4xl mx-auto space-y-16 pb-24">
+          <!-- 序言 -->
+          <div class="text-center space-y-4 mb-12">
+            <h2
+              class="text-4xl md:text-5xl font-extrabold text-white tracking-tight"
+            >
+              歡迎來到創造者的世界
+            </h2>
+            <p class="text-lg text-gray-400 leading-relaxed max-w-2xl mx-auto">
+              這是一套無須編寫任何程式碼，即可打造出具備「複雜數值邏輯、背包道具、多重結局與動態背景」的專業文字冒險遊戲引擎。
+            </p>
+          </div>
+
+          <!-- 開發者指南區塊 -->
+          <div class="space-y-16">
+            <!-- CH1 -->
+            <section id="ch-intro" class="manual-section">
+              <div class="flex items-center space-x-3 mb-6">
+                <span
+                  class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-500/30"
+                  >1</span
+                >
+                <h2 class="text-3xl font-bold text-gray-100">
+                  核心概念與基本資訊
+                </h2>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 space-y-6 text-gray-300 leading-relaxed"
+              >
+                <p>
+                  在開始創作前，我們需要理解引擎的三大核心支柱：<strong
+                    class="text-white"
+                    >專案</strong
+                  >、<strong class="text-white">保存機制</strong> 與
+                  <strong class="text-white">協作模式</strong>。
+                </p>
+
+                <!-- 專案 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-blue-300 mb-2 border-b border-blue-800/50 pb-2"
+                  >
+                    1. 專案 (Project)：您故事的宇宙
+                  </h4>
+                  <p class="text-sm">
+                    一個「專案」就是一個完整的遊戲世界。您所有的章節、場景、角色與變數都將存於其中。在編輯器的<strong
+                      class="text-white"
+                      >「基本資訊」</strong
+                    >分頁，您可以定義這個世界的基礎樣貌：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 mt-3 text-sm">
+                    <li>
+                      <strong class="text-white">遊戲名稱 & 作者：</strong
+                      >將會顯示在大廳與讀取畫面，是您作品的署名。
+                    </li>
+                    <li>
+                      <strong class="text-white">預設背景圖 & BGM：</strong
+                      >這是您遊戲的「安全網」。當特定場景或章節沒有指定背景或音樂時，系統會自動採用這裡的設定，確保遊戲氛圍不中斷，省去您為每個場景重複設定的麻煩。
+                    </li>
+                    <li>
+                      <strong class="text-white">遊戲簡介：</strong
+                      >當玩家準備載入您的遊戲時，這段文字會成為他們的第一印象，是吸引他們進入故事的絕佳機會。
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 保存機制 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-blue-300 mb-2 border-b border-blue-800/50 pb-2"
+                  >
+                    2. 保存機制：守護您的心血
+                  </h4>
+                  <p class="text-sm">
+                    我們深知創作不易，因此設計了多層次的保護機制：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 mt-3 text-sm">
+                    <li>
+                      <strong class="text-emerald-400">自動保存：</strong
+                      >編輯器每 5
+                      分鐘會在背景將您當前的進度「暫存」至瀏覽器。即使不小心關閉分頁，也能從大廳的「繼續編輯」按鈕找回進度。
+                    </li>
+                    <li>
+                      <strong class="text-blue-400">手動保存：</strong
+                      >左下角的<strong class="text-white">「保存專案」</strong
+                      >按鈕是您的好朋友。點擊它會將當前暫存的進度正式寫入「本地專案庫」，方便您管理多個專案。
+                    </li>
+                    <li>
+                      <strong class="text-amber-400"
+                        >匯出備份 (極度重要)：</strong
+                      >在「基本資訊」頁面點擊<strong class="text-white"
+                        >「匯出專案 (JSON)」</strong
+                      >，會將您的整個專案打包成一個檔案下載到電腦。這是<strong
+                        class="text-white"
+                        >最安全的備份方式</strong
+                      >，能有效防止因瀏覽器清除資料或更換電腦導致的心血白費。這也是與他人協作的基礎。
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 協作模式 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-blue-300 mb-2 border-b border-blue-800/50 pb-2"
+                  >
+                    3. 多專案協作：團隊創作的利器
+                  </h4>
+                  <p class="text-sm">
+                    您可以和朋友分工，各自負責不同章節或系統，最後透過大廳的<strong
+                      class="text-white"
+                      >「專案合併工具」</strong
+                    >將所有人的成果無縫整合。
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 mt-3 text-sm">
+                    <li>
+                      <strong class="text-white">主專案基底：</strong
+                      >在合併工具中，被放在清單最上方的專案將作為「主體」，其遊戲名稱、作者與預設設定會被保留。
+                    </li>
+                    <li>
+                      <strong class="text-white">智慧合併與衝突處理：</strong
+                      >工具會自動合併所有人的場景、變數、道具等。當遇到 ID
+                      相同的項目時 (例如兩邊都有一個叫 `key`
+                      的道具)，系統會彈出視窗讓您決定要「視為同一個並合併」，還是「保留兩者，並為匯入的項目建立衝突備份」。這個機制能確保任何人的創作都不會被意外覆蓋。
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <!-- CH2 -->
+            <section id="ch-scene" class="manual-section">
+              <div class="flex items-center space-x-3 mb-6">
+                <span
+                  class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-500/30"
+                  >2</span
+                >
+                <h2 class="text-3xl font-bold text-gray-100">章節與場景建構</h2>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 space-y-6 text-gray-300 leading-relaxed"
+              >
+                <p>
+                  如果您把遊戲想像成一本小說，那麼「章節」就是書中的每一個段落分類，而「場景」則是書頁上的一句句話語與互動畫面。
+                </p>
+                <div
+                  class="bg-blue-900/20 border-l-4 border-blue-500 p-4 my-4 rounded-r"
+                >
+                  <strong class="text-blue-400 block mb-1"
+                    >💡 最佳實踐流程：</strong
+                  >
+                  建議您先在<strong class="text-white">「章節管理」</strong
+                  >建立好一個章節的骨架，設定好該段落專屬的背景與音樂；接著再進入<strong
+                    class="text-white"
+                    >「場景編輯」</strong
+                  >，像填寫骨肉般大量建立場景，並將它們歸屬於剛剛建好的章節下。
+                </div>
+
+                <!-- 章節 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-blue-300 mb-2 border-b border-blue-800/50 pb-2"
+                  >
+                    1. 章節 (Chapters)：故事的資料夾與開場預設
+                  </h4>
+                  <p class="text-sm mb-3">
+                    章節不僅僅是用來分類場景的標籤，它還具備控制大範圍遊戲氛圍的功能：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-white">專屬背景與音樂：</strong
+                      >當一個場景沒有設定自己的背景圖或音樂時，系統會自動往上尋找該場景所屬的「章節」，並套用章節的設定。這對於同一個地點的多段劇情開發非常方便。
+                    </li>
+                    <li>
+                      <strong class="text-white">章節開場動畫：</strong
+                      >您可以為章節設定「章節標題」與「描述」。當玩家遊玩時，只要跨入一個新的章節，系統就會自動播放一段宛如電影般的字卡淡入動畫！
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 場景視覺與演出 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-blue-300 mb-2 border-b border-blue-800/50 pb-2"
+                  >
+                    2. 場景視聽演出：打造沉浸式體驗
+                  </h4>
+                  <p class="text-sm mb-3">
+                    場景是玩家直接互動的介面，您可以為每一個場景設定豐富的演出效果：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-emerald-400"
+                        >背景圖與角色立繪：</strong
+                      >貼上圖片網址，即可瞬間改變遊戲的視覺。角色立繪會固定在畫面左側，建議使用去背的
+                      PNG 圖片。
+                    </li>
+                    <li>
+                      <strong class="text-red-400"
+                        >動態 CG 影片：</strong
+                      >您可以貼上直連的影片網址 (.mp4 等)，系統會自動在背景靜音循環播放該影片（玩家可透過設定調整音量）。這能為您的遊戲帶來極致的「動態桌布」視覺震撼！
+                    </li>
+                    <li>
+                      <strong class="text-blue-400">豐富的轉場特效：</strong
+                      >從經典的「淡入淡出」、「推軌滑動」，到強調動作場面的「震動閃爍」或「旋轉放大」，善用轉場動畫可以讓靜態文字充滿張力。
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 優先級覆蓋機制 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-blue-300 mb-2 border-b border-blue-800/50 pb-2"
+                  >
+                    3. 智慧繼承機制 (Fallback Priority)
+                  </h4>
+                  <p class="text-sm mb-2">
+                    引擎對於「背景圖片」與「背景音樂
+                    (BGM)」採用了三層級的智慧繼承系統。尋找設定的優先順序為：
+                  </p>
+                  <div
+                    class="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-3 text-sm font-bold my-4 bg-gray-900 py-4 rounded-lg border border-gray-700"
+                  >
+                    <span
+                      class="text-emerald-400 bg-emerald-900/30 px-3 py-1 rounded border border-emerald-800"
+                      >① 當前場景設定</span
+                    >
+                    <svg
+                      class="w-4 h-4 text-gray-500 rotate-90 sm:rotate-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 5l7 7-7 7M5 5l7 7-7 7"
+                      ></path>
+                    </svg>
+                    <span
+                      class="text-blue-400 bg-blue-900/30 px-3 py-1 rounded border border-blue-800"
+                      >② 所屬章節設定</span
+                    >
+                    <svg
+                      class="w-4 h-4 text-gray-500 rotate-90 sm:rotate-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 5l7 7-7 7M5 5l7 7-7 7"
+                      ></path>
+                    </svg>
+                    <span
+                      class="text-gray-300 bg-gray-800 px-3 py-1 rounded border border-gray-600"
+                      >③ 專案基本資訊預設</span
+                    >
+                  </div>
+                  <p class="text-sm text-gray-400">
+                    也就是說，除非場景發生特殊變化，否則您只需要在「章節」或「基本資訊」中設定一次，之後建立的幾十個場景都不用再重複填寫網址了！
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <!-- CH3 -->
+            <section id="ch-logic" class="manual-section">
+              <div class="flex items-center space-x-3 mb-6">
+                <span
+                  class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-500/30"
+                  >3</span
+                >
+                <h2 class="text-3xl font-bold text-gray-100">
+                  條件分支與選項跳轉
+                </h2>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 space-y-6 text-gray-300 leading-relaxed"
+              >
+                <p>
+                  文字冒險遊戲的靈魂在於「選擇」。透過強大的選項系統，您可以輕易打造出具備多重分支、隱藏路線與隨機事件的複雜遊戲網。
+                </p>
+
+                <div
+                  class="bg-blue-900/20 border-l-4 border-blue-500 p-4 my-4 rounded-r"
+                >
+                  <strong class="text-blue-400 block mb-1"
+                    >💡 智慧「繼續」按鈕：</strong
+                  >
+                  如果一個場景沒有設定任何選項，且在編輯器清單的下方還有其他場景，系統會在玩家遊玩時自動產生一個「繼續」按鈕，引導至清單中的下一個場景。這非常適合用來切分過長的純對話段落！
+                </div>
+
+                <!-- 目標跳轉 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-blue-300 mb-2 border-b border-blue-800/50 pb-2"
+                  >
+                    1. 核心跳轉與特殊指令
+                  </h4>
+                  <p class="text-sm mb-3">
+                    每個選項最基本的功能就是「跳轉」。除了單純指定前往另一個場景外，引擎還支援強大的動態指令：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-emerald-400">常規跳轉：</strong
+                      >選擇目標場景 ID，點擊後畫面切換至該處。
+                    </li>
+                    <li>
+                      <strong class="text-purple-400">開啟系統面板：</strong
+                      >您可以將選項跳轉目標設定為某個<strong class="text-white"
+                        >商店</strong
+                      >或<strong class="text-white">測驗</strong
+                      >，玩家點擊後會彈出對應的互動介面。
+                    </li>
+                    <li>
+                      <strong class="text-amber-400">隨機與動態指令：</strong
+                      >支援如
+                      <code class="text-pink-300 px-1">__RANDOM_IN_CHAP__</code>
+                      (同章節內隨機跳轉) 或是
+                      <code class="text-pink-300 px-1">__PREVIOUS__</code>
+                      (返回上個場景) 的特殊玩法。
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 條件判定 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-blue-300 mb-2 border-b border-blue-800/50 pb-2"
+                  >
+                    2. 隱藏與解鎖：選項出現條件
+                  </h4>
+                  <p class="text-sm mb-3">
+                    您可以讓某些選項只對特定的玩家開放，這能極大增加遊戲的重玩價值：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-white">多重條件檢定：</strong
+                      >例如設定「必須持有『古代鑰匙』 >= 1」且「『勇氣值』 >=
+                      50」，該隱藏選項才會顯示在畫面上。
+                    </li>
+                    <li>
+                      <strong class="text-white">時間限制：</strong
+                      >配合時間系統，設定某些秘密交易選項「只能在半夜 23
+                      點到清晨 4 點之間」出現。
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 附加效果 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-blue-300 mb-2 border-b border-blue-800/50 pb-2"
+                  >
+                    3. 複合附加效果與機率判定 (RNG)
+                  </h4>
+                  <p class="text-sm mb-3">
+                    選項不只是切換畫面，它本身就可以是一個「事件」。玩家點擊的瞬間，可以在背景處理複雜的數值運算：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-yellow-400">發放獎勵與懲罰：</strong
+                      >設定選項被點擊後，同時「獲得 1 把鐵劍」、「減少 10
+                      點體力」並「消耗 30 分鐘時間」。
+                    </li>
+                    <li>
+                      <strong class="text-red-400">機率觸發 (RNG)：</strong>覺得
+                      100% 發生的事太無聊？您可以將選項效果的機率設為
+                      30%。例如：「嘗試偷竊」，30%
+                      機率獲得金幣，失敗則什麼都沒有，甚至可搭配「全域觸發器」讓失敗時直接跳轉進監獄場景。
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <!-- CH4 -->
+            <section id="ch-vars" class="manual-section">
+              <div class="flex items-center space-x-3 mb-6">
+                <span
+                  class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-500/30"
+                  >4</span
+                >
+                <h2 class="text-3xl font-bold text-gray-100">數值與道具系統</h2>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 space-y-6 text-gray-300 leading-relaxed"
+              >
+                <p>
+                  這兩個系統是讓文字冒險遊戲昇華為 RPG (角色扮演遊戲)
+                  的關鍵，讓您的故事具備深度的資源管理與收集要素。
+                </p>
+
+                <div
+                  class="bg-blue-900/20 border-l-4 border-blue-500 p-4 my-4 rounded-r"
+                >
+                  <strong class="text-blue-400 block mb-1"
+                    >💡 最佳實踐設計：</strong
+                  >
+                  建議您把「無形的狀態」寫成數值（例如：好感度、理智值、剩餘行動點數），而把「具體的實體」做成道具（例如：療傷藥、房間鑰匙、神秘筆記）。兩者可以互相連動，例如玩家可以在背包使用「療傷藥」道具，進而增加「HP」數值！
+                </div>
+
+                <!-- 數值系統 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-blue-300 mb-2 border-b border-blue-800/50 pb-2"
+                  >
+                    1. 數值系統 (Variables)：無形的狀態與資源
+                  </h4>
+                  <p class="text-sm mb-3">
+                    您可以建立無限個全域變數，並在遊戲介面的頂部隨時讓玩家監控它們的變化：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-emerald-400">基礎應用：</strong
+                      >像是最常見的「金幣」、「主角血量(HP)」，或是戀愛遊戲中的「角色好感度」。
+                    </li>
+                    <li>
+                      <strong class="text-purple-400"
+                        >文字映射 (Display Mapping)：</strong
+                      >這是非常強大的功能！您可以不直接顯示冷冰冰的數字，而是將數字對應為文字狀態。例如設定
+                      <code class="text-pink-300 px-1"
+                        >0:重傷, 1:虛弱, 2:健康</code
+                      >，玩家畫面上看到的就會是文字，大幅增加沉浸感。
+                    </li>
+                    <li>
+                      <strong class="text-white">條件檢定：</strong
+                      >在「選項」或「全域觸發器」中，您可以檢查特定變數是否達標（例如：好感度
+                      >= 100 才能進入真結局）。
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 道具系統 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-blue-300 mb-2 border-b border-blue-800/50 pb-2"
+                  >
+                    2. 道具系統 (Items)：實體的收集與互動
+                  </h4>
+                  <p class="text-sm mb-3">
+                    道具會存放在玩家的「冒險背包」中。您可以為每一個道具設定精美的稀有度光效（從普通白、精良綠，到閃爍的傳說金與彩虹特效）。道具主要分為兩大類：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-orange-400"
+                        >消耗品 (Consumable)：</strong
+                      >玩家在背包中點擊使用後，會扣除 1 個數量。通常用來<strong
+                        class="text-white"
+                        >綁定數值增減</strong
+                      >
+                      (如吃蘋果回血)，或是<strong class="text-white"
+                        >綁定場景跳轉</strong
+                      >
+                      (如點擊「泛黃的信件」後跳轉到一個專門顯示信件內容的場景)。
+                    </li>
+                    <li>
+                      <strong class="text-blue-400"
+                        >永久道具 (Permanent)：</strong
+                      >獲得後不會消失，可無限次點擊使用。常被當作裝備、特殊法寶，或是開啟某扇密室門的「鑰匙」（僅作為條件檢定，不需點擊）。
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 經濟聯動 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-blue-300 mb-2 border-b border-blue-800/50 pb-2"
+                  >
+                    3. 經濟聯動：打造交易循環
+                  </h4>
+                  <p class="text-sm">
+                    道具與數值之間可以形成完美的經濟體系。在道具設定中只要勾選<strong
+                      class="text-white"
+                      >「可販賣」</strong
+                    >並設定售價，玩家就可以在「商店」中把打怪掉落的素材（道具）賣掉，換取金錢（變數數值），再用這些金錢去購買更好的裝備！
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <!-- CH5 -->
+            <section id="ch-trigger" class="manual-section">
+              <div class="flex items-center space-x-3 mb-6">
+                <span
+                  class="bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg shadow-lg shadow-red-500/30"
+                  >5</span
+                >
+                <h2 class="text-3xl font-bold text-gray-100">
+                  全域觸發器 (進階)
+                </h2>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-red-900/30 space-y-6 text-gray-300 leading-relaxed relative overflow-hidden"
+              >
+                <div
+                  class="absolute top-0 right-0 bg-red-600 text-xs font-bold px-3 py-1 rounded-bl-lg text-white"
+                >
+                  核心大腦
+                </div>
+                <p>
+                  「全域觸發器」是文字冒險引擎中最具威力的進階功能。它是隱藏在遊戲背景的監視器，會在玩家進行<strong
+                    class="text-white"
+                    >任何操作</strong
+                  >
+                  (包含點擊選項、使用道具、切換場景、時間流逝)
+                  時，默默在幕後進行條件判定。
+                </p>
+
+                <div
+                  class="bg-red-900/20 border-l-4 border-red-500 p-4 my-4 rounded-r"
+                >
+                  <strong class="text-red-400 block mb-1"
+                    >💡 安全警告與最佳實踐：</strong
+                  >
+                  強烈建議您優先使用「每次變動時觸發」。如果您設定了「持續觸發」並讓玩家跳轉至「受傷場景」，但該場景的玩家血量依然
+                  <= 0，系統就會不斷重複觸發跳轉，導致遊戲陷入無限死迴圈卡死！
+                </div>
+
+                <!-- 核心概念 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-red-400 mb-2 border-b border-red-900/50 pb-2"
+                  >
+                    1. 基礎應用：強制中斷與跳轉
+                  </h4>
+                  <p class="text-sm mb-3">
+                    觸發器最常見的用法是「死亡判定」或「全域事件攔截」。
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-white">死亡結局：</strong
+                      >建立一個觸發器，條件設定為「HP <=
+                      0」，動作設定為「跳轉到死亡場景」。如此一來，不管玩家是在戰鬥中被打死、吃毒蘋果毒死，還是因為選項事件扣血，只要血量歸零，就會被系統強制拉去死亡結局！
+                    </li>
+                    <li>
+                      <strong class="text-white">劇情攔截：</strong>當玩家收集齊
+                      3
+                      把神器時，無論他身處哪個城鎮，立刻觸發跳轉至「魔王降臨」的過場動畫。
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 觸發模式 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-red-400 mb-2 border-b border-red-900/50 pb-2"
+                  >
+                    2. 觸發頻率控制 (觸發模式)
+                  </h4>
+                  <p class="text-sm mb-3">
+                    為了應對不同的劇情需求，引擎提供了三種觸發頻率：
+                  </p>
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                    <div
+                      class="bg-gray-900 p-4 rounded-lg border border-gray-700 hover:border-blue-500 transition"
+                    >
+                      <h5 class="text-blue-400 font-bold mb-1">
+                        觸發一次 (Once)
+                      </h5>
+                      <p class="text-xs text-gray-400">
+                        整個遊戲過程中，只要條件滿足就執行一次，之後便永久失效。<br /><br />👉
+                        適合：首次抵達新城市時的迎賓劇情、首次獲得某稀有道具時的提示。
+                      </p>
+                    </div>
+                    <div
+                      class="bg-gray-900 p-4 rounded-lg border border-gray-700 hover:border-emerald-500 transition"
+                    >
+                      <h5 class="text-emerald-400 font-bold mb-1">
+                        每次變動時觸發 (On Change)
+                      </h5>
+                      <p class="text-xs text-gray-400">
+                        只有當條件從「不滿足」變成「滿足」的那一個瞬間才會觸發一次。<br /><br />👉
+                        適合：狀態切換的被動技能 (例如：當血量低於 30
+                        時獲得一個持續 10 回合的護盾，血量補回來後下次低於 30
+                        會再次觸發)。
+                      </p>
+                    </div>
+                    <div
+                      class="bg-gray-900 p-4 rounded-lg border border-gray-700 hover:border-red-500 transition"
+                    >
+                      <h5 class="text-red-400 font-bold mb-1">
+                        持續觸發 (Continuous)
+                      </h5>
+                      <p class="text-xs text-gray-400">
+                        只要條件成立，就會在玩家每一次動作後強制攔截並執行。<br /><br />👉
+                        適合：極端懲罰區域。只要玩家身上帶有「詛咒」，每切換一次場景就會強制扣
+                        10 滴血！
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 靜默背景執行 -->
+                <div class="mt-2">
+                  <h4
+                    class="text-xl font-bold text-red-400 mb-2 border-b border-red-900/50 pb-2"
+                  >
+                    3. 靜默執行：不跳轉的背景自動化機制
+                  </h4>
+                  <p class="text-sm">
+                    觸發器<strong class="text-white"
+                      >不一定要設定跳轉場景</strong
+                    >！如果您將跳轉目標留空，只設定「附加效果
+                    (如：增減變數或道具)」，它就會變成一個強大的背景自動化腳本。例如：設定「每經過
+                    10 分鐘，自動扣除 5
+                    點飽食度（生存遊戲機制）」；或是只要持有「回復戒指」，每走一步就自動回復
+                    1 點 HP。
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <!-- CH6 -->
+            <section id="ch-immersion" class="manual-section">
+              <div class="flex items-center space-x-3 mb-6">
+                <span
+                  class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-500/30"
+                  >6</span
+                >
+                <h2 class="text-3xl font-bold text-gray-100">
+                  NPC、成就與辭典
+                </h2>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 space-y-6 text-gray-300 leading-relaxed"
+              >
+                <p>
+                  這三個系統負責加深遊戲的沉浸感與玩家的收集慾望，讓您的世界觀更具立體感：
+                </p>
+
+                <div
+                  class="bg-blue-900/20 border-l-4 border-blue-500 p-4 my-4 rounded-r"
+                >
+                  <strong class="text-blue-400 block mb-1"
+                    >💡 敘事小建議：</strong
+                  >
+                  不要把所有世界觀設定一次塞進對話裡！您可以善用「辭典」系統，讓對背景故事感興趣的玩家自行查閱；並透過「成就」系統來引導玩家去探索那些隱藏的劇情分支。
+                </div>
+
+                <!-- NPC 系統 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-pink-400 mb-2 border-b border-pink-900/50 pb-2"
+                  >
+                    1. NPC 角色系統：有血有肉的互動
+                  </h4>
+                  <p class="text-sm mb-3">
+                    不再只是單調的「旁白」，您可以為遊戲建立專屬的角色庫：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-white">場景駐紮與對話：</strong
+                      >在「場景編輯」中指定該場景的講話者為某個
+                      NPC，遊玩時對話框上方就會顯示該角色的專屬名字與頭像。
+                    </li>
+                    <li>
+                      <strong class="text-white">綁定好感度變數：</strong
+                      >您可以將 NPC
+                      綁定某個全域變數（例如：A角色好感度）。綁定後，玩家在畫面上除了名字，還能直接看到對應的好感度數值變化。
+                    </li>
+                    <li>
+                      <strong class="text-white">互動式簡介：</strong
+                      >玩家在遊玩時若對該角色感興趣，可以直接<strong
+                        class="text-pink-300"
+                        >點擊他的頭像</strong
+                      >，系統會彈出精美的角色背景介紹與當前狀態，極大增加角色魅力！
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 成就系統 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-yellow-400 mb-2 border-b border-yellow-900/50 pb-2"
+                  >
+                    2. 成就系統：跨越時空的榮耀
+                  </h4>
+                  <p class="text-sm mb-3">
+                    成就是獨立於單一存檔之外的「全域紀錄」，能夠極大增加遊戲的重玩價值：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-white">即時解鎖彈窗：</strong
+                      >您可以設定嚴苛的解鎖條件（如：收集滿三件神器，且體力低於
+                      10）。一旦玩家在遊戲中達成，畫面右上角會立刻彈出帶有提示音的精美解鎖通知。
+                    </li>
+                    <li>
+                      <strong class="text-white">隱藏成就：</strong
+                      >如果您在設定時勾選「隱藏」，玩家在未解鎖前只能看到「???」，這能有效防雷，並勾起他們探索隱藏路線的好奇心。
+                    </li>
+                    <li>
+                      <strong class="text-white">大廳收集畫廊：</strong
+                      >所有解鎖的成就與「結局」，都會永久保存在遊戲大廳的<strong
+                        class="text-yellow-300"
+                        >「結局與成就畫廊」</strong
+                      >中，成為玩家最自豪的戰利品展示櫃。
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 辭典系統 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-indigo-400 mb-2 border-b border-indigo-900/50 pb-2"
+                  >
+                    3. 辭典系統：龐大世界觀的載體
+                  </h4>
+                  <p class="text-sm mb-3">
+                    如果您撰寫的是奇幻或科幻題材，辭典是您最好的設定集：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-white">動態解鎖：</strong
+                      >玩家一開始的辭典是空的。您可以設定「抵達精靈首都」或「獲得古老卷軸」為條件，當條件滿足時，該辭條才會默默加入玩家的辭典清單中。
+                    </li>
+                    <li>
+                      <strong class="text-white">隨時查閱不中斷：</strong
+                      >玩家可以隨時點開介面左方的「歷史紀錄 / 辭典 /
+                      存檔」選單查閱辭典。這讓玩家能沉浸在您精心構建的歷史、地理與魔法設定中，而不會打斷主線故事的推進節奏。
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <!-- CH7 -->
+            <section id="ch-mechanics" class="manual-section">
+              <div class="flex items-center space-x-3 mb-6">
+                <span
+                  class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-500/30"
+                  >7</span
+                >
+                <h2 class="text-3xl font-bold text-gray-100">
+                  商店、測驗與時間系統
+                </h2>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 space-y-6 text-gray-300 leading-relaxed"
+              >
+                <p>
+                  這三個系統是為遊戲增添「互動玩法」的關鍵，讓您的作品不再僅限於閱讀與選擇：
+                </p>
+
+                <!-- 商店系統 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-teal-400 mb-2 border-b border-teal-900/50 pb-2"
+                  >
+                    1. 商店系統：建立遊戲經濟
+                  </h4>
+                  <p class="text-sm mb-3">
+                    您可以建立多個商店，並在其中上架各種道具，打造完整的交易循環：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-white">設定商品：</strong
+                      >您可以上架任何已建立的道具，並指定需要花費的「變數」(金幣、靈石...任您決定)
+                      與售價。
+                    </li>
+                    <li>
+                      <strong class="text-white">限量庫存：</strong
+                      >為稀有商品設定「限量庫存」，賣完即止，增加玩家的收集緊迫感。
+                    </li>
+                    <li>
+                      <strong class="text-white">開啟商店：</strong
+                      >要讓玩家進入商店，只需在場景的選項中，將「目標跳轉」設定為您建立的商店即可。
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 測驗系統 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-purple-400 mb-2 border-b border-purple-900/50 pb-2"
+                  >
+                    2. 測驗與密碼鎖：考驗玩家智慧
+                  </h4>
+                  <p class="text-sm mb-3">
+                    您可以設計需要玩家動腦的謎題，為遊戲增加挑戰性：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-white">多重正確答案：</strong
+                      >您可以設計一道題目，並設定多個正確解答（用逗號分隔）。例如，當謎底是「太陽」時，您可以將「太陽,sun,日」都設為正確答案。
+                    </li>
+                    <li>
+                      <strong class="text-white">成功/失敗跳轉：</strong
+                      >玩家輸入正確時會跳轉到「成功場景」，輸入錯誤則跳轉到「失敗場景」。非常適合用來製作解謎、密碼門或是法庭辯論等橋段。
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 時間系統 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-orange-400 mb-2 border-b border-orange-900/50 pb-2"
+                  >
+                    3. 時間系統：驅動世界運轉
+                  </h4>
+                  <p class="text-sm mb-3">
+                    啟用後，遊戲會擁有一套獨立的日/時/分曆法，讓您的世界變得更加生動：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-white">消耗時間：</strong
+                      >在選項或觸發器中設定「消耗時間 (分鐘)」，例如「花費 30
+                      分鐘煉製丹藥」。
+                    </li>
+                    <li>
+                      <strong class="text-white">時段限定事件：</strong
+                      >限制某些選項「只能在半夜 23 點到清晨 4
+                      點」出現，打造晝夜變化的真實感。
+                    </li>
+                    <li>
+                      <strong class="text-white">定時炸彈 (限時選項)：</strong
+                      >在場景中設定「時間限制 (秒)」，玩家如果在 X
+                      秒內沒做出選擇，就會被強制踢到您指定的「超時懲罰場景」！
+                    </li>
+                    <li>
+                      <strong class="text-white">跨日自動跳轉：</strong
+                      >您可以設定一個特殊場景，當遊戲時間跨日時，系統會自動跳轉至該場景，適合用來製作「每日結算」或「第二天清晨」的劇情。
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <hr class="border-gray-800 my-16" />
+
+          <!-- 玩家指南區塊 -->
+          <div class="space-y-16">
+            <div class="text-center space-y-4 mb-12">
+              <h2
+                class="text-3xl md:text-4xl font-extrabold text-emerald-400 tracking-tight"
+              >
+                玩家：遊玩操作指南
+              </h2>
+              <p
+                class="text-lg text-gray-400 leading-relaxed max-w-2xl mx-auto"
+              >
+                掌握這些快捷鍵與功能，享受最無干擾、流暢的電影級視覺小說體驗。
+              </p>
+            </div>
+
+            <section id="player-controls" class="manual-section">
+              <div class="flex items-center space-x-3 mb-6">
+                <span
+                  class="bg-emerald-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg shadow-lg shadow-emerald-500/30"
+                  >1</span
+                >
+                <h2 class="text-2xl font-bold text-gray-100">
+                  快捷鍵與介面操作
+                </h2>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 space-y-6 text-gray-300 leading-relaxed"
+              >
+                <p>
+                  掌握這些快捷鍵與操作技巧，能讓您的遊玩體驗更加順暢，如同閱讀一本互動式有聲書：
+                </p>
+
+                <!-- 基礎對話 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-emerald-300 mb-2 border-b border-emerald-800/50 pb-2"
+                  >
+                    1. 對話推進與跳過
+                  </h4>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm mt-3">
+                    <li>
+                      <strong class="text-white">滑鼠點擊：</strong
+                      >點擊對話框任何一處即可快速顯示完整句子，再次點擊則進入下一句。
+                    </li>
+                    <li>
+                      <strong class="text-white">鍵盤快捷鍵 (推薦)：</strong
+                      >您可以使用
+                      <kbd
+                        class="bg-gray-700 border border-gray-600 px-2 py-1 rounded-md text-white font-mono shadow-sm mx-1"
+                        >空白鍵 (Space)</kbd
+                      >
+                      或
+                      <kbd
+                        class="bg-gray-700 border border-gray-600 px-2 py-1 rounded-md text-white font-mono shadow-sm mx-1"
+                        >Enter</kbd
+                      >
+                      來快速跳過打字動畫。但為了避免誤觸，所有的選項（包含單一選項）都必須由您手動點擊才能選擇。
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 介面控制 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-emerald-300 mb-2 border-b border-emerald-800/50 pb-2"
+                  >
+                    2. 畫面與選單控制
+                  </h4>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm mt-3">
+                    <li>
+                      <strong class="text-white">隱藏介面：</strong
+                      >想截圖或欣賞精美的背景與動態 CG
+                      嗎？點擊右上角選單的「隱藏介面」，即可暫時收起所有對話框與按鈕。再次點擊畫面即可恢復。
+                    </li>
+                    <li>
+                      <strong class="text-white">全螢幕模式：</strong>按下
+                      <kbd
+                        class="bg-gray-700 border border-gray-600 px-1.5 py-0.5 rounded text-white font-mono mx-1"
+                        >F11</kbd
+                      >
+                      或選單中的全螢幕按鈕，享受最高沉浸感的視覺小說體驗。
+                    </li>
+                    <li>
+                      <strong class="text-white">歷史紀錄 (前塵)：</strong
+                      >不小心點太快錯過劇情？隨時點擊右上角的「歷史紀錄」，即可回顧先前的對話與事件文本。
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 系統面板 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-emerald-300 mb-2 border-b border-emerald-800/50 pb-2"
+                  >
+                    3. 互動面板 (背包、辭典、設定)
+                  </h4>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm mt-3">
+                    <li>
+                      <strong class="text-white">冒險背包：</strong
+                      >點擊畫面右下角的「背包圖示」，可以隨時檢視您目前收集到的道具。若道具滿足使用條件，您可以直接在此點擊使用。
+                    </li>
+                    <li>
+                      <strong class="text-white">辭典與世界觀：</strong
+                      >若遊戲有啟用辭典系統，您可以在左側的系統選單中隨時查閱已解鎖的專有名詞。
+                    </li>
+                    <li>
+                      <strong class="text-white">文字速度與音量：</strong
+                      >在「設定」中，您可以自由調整文字浮現的速度。若您不喜歡等待，可將其拉到最右側來「關閉打字動畫，即時顯示」。
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <section id="player-saves" class="manual-section">
+              <div class="flex items-center space-x-3 mb-6">
+                <span
+                  class="bg-emerald-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg shadow-lg shadow-emerald-500/30"
+                  >2</span
+                >
+                <h2 class="text-2xl font-bold text-gray-100">存檔與畫廊系統</h2>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 space-y-6 text-gray-300 leading-relaxed"
+              >
+                <p>
+                  遊戲提供了非常完整的進度保存機制，幫助您探索所有分支與收集隱藏要素：
+                </p>
+
+                <!-- 存檔機制 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-emerald-300 mb-2 border-b border-emerald-800/50 pb-2"
+                  >
+                    1. 多重存檔機制
+                  </h4>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm mt-3">
+                    <li>
+                      <strong class="text-blue-400">系統自動存檔：</strong
+                      >不用擔心忘記存檔！每次切換場景時，系統都會自動將您的進度保存在最上方的「系統保留槽位」中。
+                    </li>
+                    <li>
+                      <strong class="text-emerald-400">手動選擇槽位：</strong
+                      >點擊右上角的「存檔」按鈕，您可以將進度保存在剩餘的自訂槽位中，方便在重要分歧點前做保留。
+                    </li>
+                    <li>
+                      <strong class="text-yellow-400"
+                        >一鍵快速存取 (極度方便)：</strong
+                      ><br />
+                      <span class="inline-block mt-1"
+                        >👉 按下
+                        <kbd
+                          class="bg-gray-700 border border-gray-600 px-1.5 py-0.5 rounded text-white font-mono mx-1"
+                          >F5</kbd
+                        >：立刻將當前進度無縫覆蓋至「快速存檔」槽位，畫面上方會閃爍提示。</span
+                      ><br />
+                      <span class="inline-block mt-1"
+                        >👉 按下
+                        <kbd
+                          class="bg-gray-700 border border-gray-600 px-1.5 py-0.5 rounded text-white font-mono mx-1"
+                          >F9</kbd
+                        >：遇到死亡結局？一秒內直接切換回您最後一次保存的進度點！</span
+                      >
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 畫廊系統 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-emerald-300 mb-2 border-b border-emerald-800/50 pb-2"
+                  >
+                    2. 跨存檔的收集畫廊
+                  </h4>
+                  <p class="text-sm mb-3">
+                    您的努力不會因為讀檔或重玩而白費。遊戲具有強大的「全域紀錄」機制：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-purple-400">結局與成就保留：</strong
+                      >當您達成特定條件解鎖了「成就」或打出了某個「結局」，這些榮耀將會<strong
+                        class="text-white"
+                        >永遠保存</strong
+                      >。即使您清除存檔重新開始，解鎖狀態依然存在。
+                    </li>
+                    <li>
+                      <strong class="text-purple-400">畫廊展示間：</strong
+                      >退出至「遊戲大廳」後，點擊首頁的<strong
+                        class="text-white"
+                        >「結局與成就畫廊」</strong
+                      >，您可以在這裡查看所有已解鎖的結局名稱、成就圖示與說明，滿足您的全收集強迫症！
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <hr class="border-gray-800 my-16" />
+
+        <!-- 進階技巧與問答 -->
+        <div class="space-y-16">
+          <div class="text-center space-y-4 mb-12">
+            <h2
+              class="text-3xl md:text-4xl font-extrabold text-yellow-400 tracking-tight"
+            >
+              進階技巧與問答
+            </h2>
+            <p class="text-lg text-gray-400 leading-relaxed max-w-2xl mx-auto">
+              彙整了一些能讓您的作品更上一層樓的實用技巧，以及開發者最常遇到的問題。
+            </p>
+          </div>
+
+          <section id="ch-tips" class="manual-section">
+            <div class="flex items-center space-x-3 mb-6">
+              <span
+                class="bg-yellow-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg shadow-lg shadow-yellow-500/30"
+                >💡</span
+              >
+              <h2 class="text-2xl font-bold text-gray-100">
+                實戰小技巧 (Tips)
+              </h2>
+            </div>
+            <div class="space-y-6">
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700"
+              >
+                <h4 class="font-bold text-white mb-2 text-lg">
+                  如何製作「隱藏結局」或「真結局」？
+                </h4>
+                <p class="text-gray-300 text-sm leading-relaxed">
+                  您可以建立一個隱藏的全域變數，例如
+                  `true_ending_flag`。在遊戲過程中，當玩家達成某些非常特殊的隱藏條件時，透過選項的附加效果將這個變數設為
+                  1。最後在通往結局的關鍵選項上，設定「出現條件」為
+                  `true_ending_flag ==
+                  1`，這樣只有滿足條件的玩家才能看到通往真結局的選項！
+                </p>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700"
+              >
+                <h4 class="font-bold text-white mb-2 text-lg">
+                  如何讓 NPC 根據好感度說出不同對話？
+                </h4>
+                <p class="text-gray-300 text-sm leading-relaxed">
+                  這需要拆分成多個場景來實現。例如，您可以建立「A_好感度低」、「A_好感度中」、「A_好感度高」三個場景，內容分別是
+                  NPC
+                  在不同好感度下會說的話。接著在觸發這段對話的選項上，不要直接跳轉到單一場景，而是建立三個「全域觸發器」，分別設定條件為「好感度
+                  < 30」、「好感度 >= 30 且 < 70」、「好感度 >=
+                  70」，並讓它們各自跳轉到對應的場景。
+                </p>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700"
+              >
+                <h4 class="font-bold text-white mb-2 text-lg">
+                  如何最佳化專案大小，避免存檔失敗？
+                </h4>
+                <p class="text-gray-300 text-sm leading-relaxed">
+                  瀏覽器的儲存空間有限。最大的效能殺手是「圖片」與「音樂」。編輯器內建的「上傳」功能會將檔案轉為
+                  Base64
+                  編碼儲存在專案檔中，導致檔案極速膨脹。強烈建議您將圖片與音樂上傳至免費的圖床或雲端空間，然後在編輯器中直接貼上<strong
+                    class="text-white"
+                    >外部網址 (URL)</strong
+                  >
+                  來使用，這能讓您的專案檔保持在非常小的尺寸。
+                </p>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700"
+              >
+                <h4 class="font-bold text-white mb-2 text-lg">
+                  如何製作「行動點數 (AP)」或「體力限制」？
+                </h4>
+                <p class="text-gray-300 text-sm leading-relaxed">
+                  建立一個全域變數「行動點數」，初始值設為 100。在所有探索或戰鬥選項上，設定出現條件為「行動點數 >= 10」，並在點擊的附加效果設定「行動點數 -10」。接著，建立一個「客棧休息」的場景或選項，點擊後讓行動點數 +100，這樣就能完美重現經典的體力限制玩法了！
+                </p>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700"
+              >
+                <h4 class="font-bold text-white mb-2 text-lg">
+                  如何製作「道具合成」或「煉金系統」？
+                </h4>
+                <p class="text-gray-300 text-sm leading-relaxed">
+                  不需要寫複雜的腳本，您可以利用「選項的複合效果」來達成！建立一個「煉金爐」場景，裡面放一個「合成鐵劍」的選項。將該選項的出現條件設為「鐵礦 >= 3」且「木材 >= 1」。然後在點擊效果中設定：扣除 3 個鐵礦、扣除 1 個木材，並<strong class="text-white">發放 1 把鐵劍</strong>。玩家點擊後就會直接完成合成！
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section id="ch-faq" class="manual-section">
+            <div class="flex items-center space-x-3 mb-6">
+              <span
+                class="bg-yellow-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg shadow-lg shadow-yellow-500/30"
+                >❓</span
+              >
+              <h2 class="text-2xl font-bold text-gray-100">常見問答 (FAQ)</h2>
+            </div>
+            <div class="space-y-4">
+              <details
+                class="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden transition hover:border-yellow-500/50 group"
+              >
+                <summary
+                  class="flex justify-between items-center p-5 cursor-pointer group-hover:bg-gray-800"
+                >
+                  <span class="font-bold text-gray-200"
+                    >Q: 我設定的選項為什麼沒有出現？</span
+                  >
+                  <svg
+                    class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </summary>
+                <div
+                  class="p-5 border-t border-gray-700 text-gray-300 text-sm leading-relaxed"
+                >
+                  <p>
+                    A:
+                    最常見的原因是該選項的「出現條件」沒有被滿足。請進入「測試模式」，在左側的除錯面板中即時監控您設定的變數或道具數量是否正確。另一個可能是您設定了「限制時段」，但當前的遊戲時間不符合條件。
+                  </p>
+                </div>
+              </details>
+              <details
+                class="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden transition hover:border-yellow-500/50 group"
+              >
+                <summary
+                  class="flex justify-between items-center p-5 cursor-pointer group-hover:bg-gray-800"
+                >
+                  <span class="font-bold text-gray-200"
+                    >Q: 如何跟朋友分工合作，最後再把專案合在一起？</span
+                  >
+                  <svg
+                    class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </summary>
+                <div
+                  class="p-5 border-t border-gray-700 text-gray-300 text-sm leading-relaxed"
+                >
+                  <p>
+                    A:
+                    請善用大廳的「專案合併工具」。您可以和朋友各自在自己的電腦上創作，完成後分別「匯出專案
+                    (JSON)」。最後由一人開啟合併工具，將所有人的 `.json`
+                    檔案上傳。系統會以清單中第一個專案為主體，智慧合併所有人的場景、變數與道具，並自動處理
+                    ID 衝突。
+                  </p>
+                </div>
+              </details>
+              <details
+                class="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden transition hover:border-yellow-500/50 group"
+              >
+                <summary
+                  class="flex justify-between items-center p-5 cursor-pointer group-hover:bg-gray-800"
+                >
+                  <span class="font-bold text-gray-200"
+                    >Q: 「持續觸發」跟「變動觸發」的全域觸發器有什麼不同？</span
+                  >
+                  <svg
+                    class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </summary>
+                <div
+                  class="p-5 border-t border-gray-700 text-gray-300 text-sm leading-relaxed"
+                >
+                  <p>
+                    A: 「持續觸發」非常危險，只要條件滿足，它會<strong
+                      class="text-white"
+                      >在每一次玩家操作後</strong
+                    >都嘗試觸發一次。如果您的跳轉目標場景依然滿足觸發條件，就會造成無限死迴圈！<br /><br />「變動觸發」則安全許多，它只在條件<strong
+                      class="text-white"
+                      >從「不滿足」變成「滿足」的那一瞬間</strong
+                    >觸發一次。例如，當玩家血量從 10 降到 0
+                    的那一刻觸發死亡，之後即使血量維持在 0
+                    也不會重複觸發。絕大多數情況下，建議您優先使用「變動觸發」。
+                  </p>
+                </div>
+              </details>
+              <details
+                class="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden transition hover:border-yellow-500/50 group"
+              >
+                <summary
+                  class="flex justify-between items-center p-5 cursor-pointer group-hover:bg-gray-800"
+                >
+                  <span class="font-bold text-gray-200"
+                    >Q: 我可以製作需要輸入密碼的門嗎？</span
+                  >
+                  <svg
+                    class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </summary>
+                <div
+                  class="p-5 border-t border-gray-700 text-gray-300 text-sm leading-relaxed"
+                >
+                  <p>
+                    A:
+                    當然可以！請使用「測驗系統」。建立一個測驗，在「正確答案」欄位填入您的密碼，然後分別設定「答對時跳轉」與「答錯時跳轉」的目標場景。最後在您的密碼門場景中，建立一個選項，將其「目標跳轉」設定為您剛剛建立的測驗即可。
+                  </p>
+                </div>
+              </details>
+              <details
+                class="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden transition hover:border-yellow-500/50 group"
+              >
+                <summary
+                  class="flex justify-between items-center p-5 cursor-pointer group-hover:bg-gray-800"
+                >
+                  <span class="font-bold text-gray-200"
+                    >Q: 為什麼我貼上的圖片網址或音樂無法播放（破圖/無聲）？</span
+                  >
+                  <svg
+                    class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </summary>
+                <div
+                  class="p-5 border-t border-gray-700 text-gray-300 text-sm leading-relaxed"
+                >
+                  <p>
+                    A: 這通常是因為該網址的伺服器開啟了「防盜鏈 (Hotlink Protection)」，或者網址不是「直接指向圖片/音樂的原始檔」。<br><br>
+                    <strong class="text-white">解決方法：</strong>確保您的圖片網址結尾是 <code>.png</code> 或 <code>.jpg</code> 等格式。建議將圖片上傳至 <strong class="text-blue-300">Imgur</strong>，並複製其「直接圖片連結 (Direct Link)」；音樂則建議上傳至自己的雲端伺服器並取得直連網址。
+                  </p>
+                </div>
+              </details>
+              <details
+                class="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden transition hover:border-yellow-500/50 group"
+              >
+                <summary
+                  class="flex justify-between items-center p-5 cursor-pointer group-hover:bg-gray-800"
+                >
+                  <span class="font-bold text-gray-200"
+                    >Q: 瀏覽器跳出「儲存空間不足」，無法存檔該怎麼辦？</span
+                  >
+                  <svg
+                    class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </summary>
+                <div
+                  class="p-5 border-t border-gray-700 text-gray-300 text-sm leading-relaxed"
+                >
+                  <p>
+                    A: 網頁瀏覽器的 LocalStorage 儲存上限通常在 5MB ~ 10MB 之間。如果您在編輯器內大量使用「上傳圖片」功能（會將圖片轉為龐大的文字編碼塞入專案檔），很快就會爆滿。<br><br>
+                    <strong class="text-white">解決方法：</strong>
+                    <ol class="list-decimal list-inside mt-2 space-y-1">
+                      <li>請先點擊編輯器內的<strong class="text-emerald-400">「匯出專案 (JSON)」</strong>，將目前進度安全下載到電腦。</li>
+                      <li>回到大廳，點擊「專案管理」，刪除舊的或不必要的專案以騰出空間。</li>
+                      <li>未來建議使用「貼上外部網址」的方式來設定圖片，取代直接上傳，您的專案檔大小就會縮小 90% 以上。</li>
+                    </ol>
+                  </p>
+                </div>
+              </details>
+              <details
+                class="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden transition hover:border-yellow-500/50 group"
+              >
+                <summary
+                  class="flex justify-between items-center p-5 cursor-pointer group-hover:bg-gray-800"
+                >
+                  <span class="font-bold text-gray-200"
+                    >Q: 為什麼遊戲剛載入時沒有背景音樂？</span
+                  >
+                  <svg
+                    class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </summary>
+                <div
+                  class="p-5 border-t border-gray-700 text-gray-300 text-sm leading-relaxed"
+                >
+                  <p>
+                    A: 這並不是 Bug！現代網頁瀏覽器有嚴格的「自動播放限制 (Autoplay Policy)」，不允許網頁在玩家還沒進行任何點擊互動前就擅自播放聲音。只要玩家<strong class="text-white">點擊了畫面的任何一處</strong>（或開始點擊選項），背景音樂就會立刻正常播放囉！
+                  </p>
+                </div>
+              </details>
+              <details
+                class="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden transition hover:border-yellow-500/50 group"
+              >
+                <summary
+                  class="flex justify-between items-center p-5 cursor-pointer group-hover:bg-gray-800"
+                >
+                  <span class="font-bold text-gray-200"
+                    >Q: 遊戲的介面風格 (UI) 可以更換嗎？</span
+                  >
+                  <svg
+                    class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </summary>
+                <div
+                  class="p-5 border-t border-gray-700 text-gray-300 text-sm leading-relaxed"
+                >
+                  <p>
+                    A: 可以的！在首頁大廳選擇<strong class="text-white">「進入遊玩模式」</strong>時，您可以透過存檔面板上方的下拉選單，選擇不同的「UI 介面主題」。目前引擎內建了現代俐落的「現代科幻 (預設深色)」與古色古香的「古典武俠 (中國風)」供您依據故事題材自由切換。
+                  </p>
+                </div>
+              </details>
+              <details
+                class="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden transition hover:border-yellow-500/50 group"
+              >
+                <summary
+                  class="flex justify-between items-center p-5 cursor-pointer group-hover:bg-gray-800"
+                >
+                  <span class="font-bold text-gray-200"
+                    >Q: 覺得文字慢慢浮現的速度太慢了，可以加速或關閉嗎？</span
+                  >
+                  <svg
+                    class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </summary>
+                <div
+                  class="p-5 border-t border-gray-700 text-gray-300 text-sm leading-relaxed"
+                >
+                  <p>
+                    A: 沒問題。請在遊玩畫面點開右上角的「設定（設置）」，將「文字顯示速度」的滑桿直接拉到<strong class="text-white">最右側</strong>，就能徹底關閉打字機動畫，讓所有文字瞬間顯示。您也可以隨時在閱讀時按下 <kbd class="bg-gray-700 border border-gray-600 px-1.5 py-0.5 rounded-md text-white font-mono shadow-sm mx-1">空白鍵</kbd> 或點擊畫面來一鍵跳過當前的打字動畫。
+                  </p>
+                </div>
+              </details>
+              <details
+                class="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden transition hover:border-yellow-500/50 group"
+              >
+                <summary
+                  class="flex justify-between items-center p-5 cursor-pointer group-hover:bg-gray-800"
+                >
+                  <span class="font-bold text-gray-200"
+                    >Q: 如何徹底清除我的成就與結局等全域收集紀錄？</span
+                  >
+                  <svg
+                    class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </summary>
+                <div
+                  class="p-5 border-t border-gray-700 text-gray-300 text-sm leading-relaxed"
+                >
+                  <p>
+                    A: 由於成就與結局畫廊是跨存檔永久保留的，如果您希望完全重置收集進度體驗全新的一輪，請回到大廳點擊「進入遊玩模式」，並在存檔面板中點擊紅色的<strong class="text-red-400">「清空所有紀錄」</strong>按鈕。請注意，此操作將會刪除所有進度且無法復原！
+                  </p>
+                </div>
+              </details>
+            </div>
+          </section>
+        </div>
+
+        <!-- 頁尾 -->
+        <footer
+          class="mt-12 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm pb-8"
+        >
+          <p>享受創作的樂趣吧！ —— 文字冒險遊戲引擎開發團隊</p>
+        </footer>
+      </main>
+    </div>
+
+    <!-- 返回頂部按鈕 -->
+    <button
+      id="back-to-top-btn"
+      class="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-50 bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 border border-gray-600 hover:border-gray-400 p-3 md:p-4 rounded-full shadow-xl transition-all duration-300 transform scale-0 opacity-0 focus:outline-none group"
+      title="返回頂部"
+    >
+      <svg
+        class="w-6 h-6 group-hover:-translate-y-1 transition-transform"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M5 15l7-7 7 7"
+        ></path>
+      </svg>
+    </button>
+
+    <!-- Scrollspy 導覽列高亮腳本 -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const main = document.querySelector("main");
+        const sections = document.querySelectorAll(".manual-section");
+        const navLinks = document.querySelectorAll("aside a[href^='#']");
+        const backToTopBtn = document.getElementById("back-to-top-btn");
+
+        // --- 淺色/深色模式切換邏輯 ---
+        const themeToggleBtn = document.getElementById("theme-toggle-btn");
+        const themeIconSun = document.getElementById("theme-icon-sun");
+        const themeIconMoon = document.getElementById("theme-icon-moon");
+
+        if (document.documentElement.classList.contains("light-mode")) {
+          themeIconSun.classList.add("hidden");
+          themeIconMoon.classList.remove("hidden");
+        }
+        themeToggleBtn.addEventListener("click", () => {
+          document.documentElement.classList.toggle("light-mode");
+          const isLight =
+            document.documentElement.classList.contains("light-mode");
+          localStorage.setItem("manualTheme", isLight ? "light" : "dark");
+
+          themeIconSun.classList.toggle("hidden", isLight);
+          themeIconMoon.classList.toggle("hidden", !isLight);
+
+          updateScrollspy(); // 確保切換主題時高亮顏色能更新
+        });
+
+        // 定義各個分類啟用/未啟用時的 Tailwind 樣式
+        const themes = {
+          blue: {
+            active: ["text-blue-300", "bg-blue-900/10", "border-blue-500"],
+            inactive: ["text-gray-400", "border-transparent"],
+          },
+          emerald: {
+            active: [
+              "text-emerald-300",
+              "bg-emerald-900/10",
+              "border-emerald-500",
+            ],
+            inactive: ["text-gray-400", "border-transparent"],
+          },
+          yellow: {
+            active: [
+              "text-yellow-300",
+              "bg-yellow-900/10",
+              "border-yellow-500",
+            ],
+            inactive: ["text-gray-400", "border-transparent"],
+          },
+        };
+
+        function updateScrollspy() {
+          let currentSectionId = "";
+
+          // 1. 尋找當前進入畫面視角的 Section
+          for (const section of sections) {
+            const rect = section.getBoundingClientRect();
+            // 判定基準線：距離視窗頂部 250px 以內 (涵蓋頂部導覽列高度與預留緩衝)
+            if (rect.top <= 250) {
+              currentSectionId = section.id;
+            } else {
+              break;
+            }
+          }
+
+          // 2. 如果已經捲動到最底，強制高亮最後一個區塊 (避免最後一塊高度太短無法觸發)
+          if (main.scrollHeight - main.scrollTop <= main.clientHeight + 10) {
+            currentSectionId = sections[sections.length - 1].id;
+          }
+
+          // 預設高亮第一個
+          if (!currentSectionId && sections.length > 0) {
+            currentSectionId = sections[0].id;
+          }
+
+          // 3. 更新左側選單狀態
+          navLinks.forEach((link) => {
+            const theme = link.getAttribute("data-theme");
+            if (!theme) return;
+
+            if (link.getAttribute("href") === `#${currentSectionId}`) {
+              link.classList.remove(...themes[theme].inactive);
+              link.classList.add(...themes[theme].active);
+
+              // 確保高亮的選項在側邊欄可見範圍內 (平滑捲動側邊欄)
+              const aside = document.querySelector("aside");
+              const asideRect = aside.getBoundingClientRect();
+              const linkRect = link.getBoundingClientRect();
+              if (
+                linkRect.top < asideRect.top ||
+                linkRect.bottom > asideRect.bottom
+              ) {
+                link.scrollIntoView({ behavior: "smooth", block: "nearest" });
+              }
+            } else {
+              link.classList.remove(...themes[theme].active);
+              link.classList.add(...themes[theme].inactive);
+            }
+          });
+
+          // 4. 返回頂部按鈕顯示邏輯 (向下捲動超過 400px 時顯示)
+          if (main.scrollTop > 400) {
+            backToTopBtn.classList.remove("scale-0", "opacity-0");
+            backToTopBtn.classList.add("scale-100", "opacity-100");
+          } else {
+            backToTopBtn.classList.remove("scale-100", "opacity-100");
+            backToTopBtn.classList.add("scale-0", "opacity-0");
+          }
+        }
+
+        main.addEventListener("scroll", updateScrollspy);
+        window.addEventListener("resize", updateScrollspy);
+        updateScrollspy(); // 初始載入時執行一次
+
+        backToTopBtn.addEventListener("click", () => {
+          main.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      });
+    </script>
+  </body>
+</html>

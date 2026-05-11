@@ -316,6 +316,7 @@ window.renderChapters = function () {
                 <label class="block text-xs font-bold text-gray-700 mb-1">章節背景音樂網址 (BGM URL，選填)</label>
                 <div class="flex space-x-2">
                   <input type="text" class="bgm-input flex-1 border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="https://... (如 mp3)" value="${chapter.bgmUrl || ""}">
+                  <button class="bgm-upload-btn bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 px-3 py-1 rounded text-sm font-bold transition whitespace-nowrap">上傳</button>
                   <button class="bgm-test-btn bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-3 py-1 rounded text-sm font-bold transition whitespace-nowrap">▶ 試聽</button>
                 </div>
               </div>
@@ -405,6 +406,17 @@ window.renderChapters = function () {
       contentEl.querySelector(".bgm-input").addEventListener("change", (e) => {
         chapter.bgmUrl = e.target.value;
       });
+
+      contentEl
+        .querySelector(".bgm-upload-btn")
+        .addEventListener("click", () => {
+          if (window.promptAudioUpload) {
+            window.promptAudioUpload((base64) => {
+              chapter.bgmUrl = base64;
+              contentEl.querySelector(".bgm-input").value = base64;
+            });
+          }
+        });
 
       contentEl
         .querySelector(".bgm-test-btn")

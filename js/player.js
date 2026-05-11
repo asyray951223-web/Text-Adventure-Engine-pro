@@ -1166,15 +1166,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 處理瀏覽器自動播放限制 (點擊畫面任意處會觸發播放)
-  document.body.addEventListener(
-    "click",
-    () => {
-      if (bgmPlayer && bgmPlayer.paused && currentBgmUrl) {
-        bgmPlayer.play().catch((e) => console.warn("播放音樂失敗", e));
-      }
-    },
-    { once: true },
-  );
+  document.body.addEventListener("click", () => {
+    if (bgmPlayer && bgmPlayer.paused && currentBgmUrl) {
+      bgmPlayer.play().catch((e) => console.warn("播放音樂失敗", e));
+    }
+  });
 
   // 2. 儲存遊戲進度
   function saveGameToSlot(targetSlotIndex) {
@@ -2312,77 +2308,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // 處理事件 CG 影片
       if (cgVideo) {
-        let ytIframe = document.getElementById("yt-cg-iframe");
-        if (!ytIframe) {
-          ytIframe = document.createElement("iframe");
-          ytIframe.id = "yt-cg-iframe";
-          ytIframe.className = cgVideo.className.replace("object-cover", "");
-          ytIframe.style.pointerEvents = "none"; // 防止阻擋點擊事件
-          ytIframe.setAttribute("frameborder", "0");
-          ytIframe.setAttribute("allow", "autoplay; encrypted-media");
-          cgVideo.parentNode.insertBefore(ytIframe, cgVideo.nextSibling);
-        }
-
         if (scene.cgVideoUrl) {
-          const ytMatch = scene.cgVideoUrl.match(
-            /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i,
-          );
+          const isNewCg = cgVideo.getAttribute("src") !== scene.cgVideoUrl;
+          if (isNewCg) {
+            cgVideo.setAttribute("src", scene.cgVideoUrl);
+          }
+          cgVideo.volume = gameSettings.volume / 100;
+          cgVideo.classList.remove("hidden");
+          cgVideo.play().catch((e) => console.warn("CG 影片播放失敗", e));
+          setTimeout(() => {
+            cgVideo.classList.remove("opacity-0");
+            cgVideo.classList.add("opacity-100");
+          }, 10);
 
-          if (ytMatch) {
-            const videoId = ytMatch[1];
-            const isMuted = gameSettings.volume === 0 ? "&mute=1" : "";
-            const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&disablekb=1&fs=0&modestbranding=1&rel=0&showinfo=0&playsinline=1&loop=1&playlist=${videoId}${isMuted}`;
-
-            cgVideo.classList.add("hidden");
-            cgVideo.pause();
-
-            const isNewCg = ytIframe.getAttribute("src") !== embedUrl;
-            if (isNewCg) {
-              ytIframe.setAttribute("src", embedUrl);
-            }
-            ytIframe.classList.remove("hidden");
-            setTimeout(() => {
-              ytIframe.classList.remove("opacity-0");
-              ytIframe.classList.add("opacity-100");
-            }, 10);
-
-            if (isNewCg && typeof toggleUI === "function" && !uiHidden) {
-              toggleUI();
-            }
-          } else {
-            ytIframe.classList.add("hidden");
-            ytIframe.removeAttribute("src");
-
-            const isNewCg = cgVideo.getAttribute("src") !== scene.cgVideoUrl;
-            if (isNewCg) {
-              cgVideo.setAttribute("src", scene.cgVideoUrl);
-            }
-            cgVideo.volume = gameSettings.volume / 100;
-            cgVideo.classList.remove("hidden");
-            cgVideo.play().catch((e) => console.warn("CG 影片播放失敗", e));
-            setTimeout(() => {
-              cgVideo.classList.remove("opacity-0");
-              cgVideo.classList.add("opacity-100");
-            }, 10);
-
-            if (isNewCg && typeof toggleUI === "function" && !uiHidden) {
-              toggleUI();
-            }
+          if (isNewCg && typeof toggleUI === "function" && !uiHidden) {
+            toggleUI();
           }
         } else {
           cgVideo.classList.remove("opacity-100");
           cgVideo.classList.add("opacity-0");
-          ytIframe.classList.remove("opacity-100");
-          ytIframe.classList.add("opacity-0");
           setTimeout(() => {
             if (cgVideo.classList.contains("opacity-0")) {
               cgVideo.classList.add("hidden");
               cgVideo.pause();
               cgVideo.removeAttribute("src");
-            }
-            if (ytIframe.classList.contains("opacity-0")) {
-              ytIframe.classList.add("hidden");
-              ytIframe.removeAttribute("src");
             }
           }, 500);
         }
@@ -3036,15 +2985,6 @@ document.addEventListener("DOMContentLoaded", () => {
         // 介面顯示時，點擊背景推進對話
         if (isTyping) {
           skipTyping();
-        } else if (
-          optionsContainer &&
-          !optionsContainer.classList.contains("hidden")
-        ) {
-          // 只允許系統產生的「繼續」按鈕透過點擊背景推進，若為玩家自訂的單一選項則必須確實點擊
-          const systemNextBtn = optionsContainer.querySelector(
-            "button.system-next-btn",
-          );
-          if (systemNextBtn) systemNextBtn.click();
         }
       }
     });
@@ -3093,17 +3033,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (isTyping) {
         skipTyping();
-      } else {
-        // 若為系統自動產生的繼續按鈕，則自動點擊推進
-        if (
-          optionsContainer &&
-          !optionsContainer.classList.contains("hidden")
-        ) {
-          const systemNextBtn = optionsContainer.querySelector(
-            "button.system-next-btn",
-          );
-          if (systemNextBtn) systemNextBtn.click();
-        }
       }
     }
   });

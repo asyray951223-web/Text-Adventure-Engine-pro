@@ -182,15 +182,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const project = list.find((p) => p.projectId === projId);
     if (!project) return;
     const title = project.projectInfo.title || "文字冒險遊戲專案";
-    const blob = new Blob([JSON.stringify(project, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = title + ".json";
-    a.click();
-    URL.revokeObjectURL(url);
+    const dataStr = JSON.stringify(project, null, 2);
+
+    const zip = new JSZip();
+    const folder = zip.folder(title);
+    folder.file("project.json", dataStr);
+
+    zip
+      .generateAsync({ type: "blob", compression: "DEFLATE" })
+      .then(function (content) {
+        const url = URL.createObjectURL(content);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = title + ".zip";
+        a.click();
+        URL.revokeObjectURL(url);
+      })
+      .catch((err) => {
+        console.error("ZIP 打包失敗：", err);
+        alert("ZIP 打包失敗！");
+      });
   };
 
   window.deleteProject = function (projId) {
@@ -211,14 +222,13 @@ document.addEventListener("DOMContentLoaded", () => {
     lobbyImportJson.click();
   });
 
-  lobbyImportJson.addEventListener("change", (e) => {
+  lobbyImportJson.addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
+    const processJson = (jsonStr) => {
       try {
-        const importedData = JSON.parse(event.target.result);
+        const importedData = JSON.parse(jsonStr);
         if (importedData && importedData.projectInfo) {
           if (!importedData.projectId) {
             importedData.projectId = "proj_" + Date.now();
@@ -261,7 +271,46 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("載入失敗，檔案格式錯誤或已損壞：" + err);
       }
     };
-    reader.readAsText(file);
+
+    if (file.name.toLowerCase().endsWith(".zip")) {
+      try {
+        const zip = new JSZip();
+        const zipContent = await zip.loadAsync(file);
+
+        // 匯入時將素材解壓存入 IndexedDB 供遊戲讀取
+        const dbReq = indexedDB.open("TextAdventureAssets", 1);
+        dbReq.onupgradeneeded = (e) =>
+          e.target.result.createObjectStore("files");
+        dbReq.onsuccess = async (ev) => {
+          const db = ev.target.result;
+          const tx = db.transaction("files", "readwrite");
+          tx.objectStore("files").clear();
+          for (const key of Object.keys(zipContent.files)) {
+            if (key.includes("/assets/") && !zipContent.files[key].dir) {
+              const fileName = key.substring(key.lastIndexOf("assets/"));
+              const blob = await zipContent.files[key].async("blob");
+              tx.objectStore("files").put(blob, fileName);
+            }
+          }
+        };
+
+        const jsonFileName = Object.keys(zipContent.files).find((name) =>
+          name.endsWith("project.json"),
+        );
+        if (jsonFileName) {
+          const jsonStr = await zipContent.file(jsonFileName).async("string");
+          processJson(jsonStr);
+        } else {
+          alert("ZIP 檔內找不到 project.json 檔案！");
+        }
+      } catch (err) {
+        alert("ZIP 解壓縮失敗：" + err);
+      }
+    } else {
+      const reader = new FileReader();
+      reader.onload = (event) => processJson(event.target.result);
+      reader.readAsText(file);
+    }
     e.target.value = ""; // Reset input 以便重複載入同一檔案
   });
 
@@ -370,14 +419,13 @@ document.addEventListener("DOMContentLoaded", () => {
     playImportJson.click();
   });
 
-  playImportJson.addEventListener("change", (e) => {
+  playImportJson.addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
+    const processJson = (jsonStr) => {
       try {
-        const importedData = JSON.parse(event.target.result);
+        const importedData = JSON.parse(jsonStr);
         if (importedData && importedData.projectInfo) {
           try {
             localStorage.setItem(
@@ -414,7 +462,46 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("載入失敗，檔案格式錯誤或已損壞：" + err);
       }
     };
-    reader.readAsText(file);
+
+    if (file.name.toLowerCase().endsWith(".zip")) {
+      try {
+        const zip = new JSZip();
+        const zipContent = await zip.loadAsync(file);
+
+        // 遊玩匯入時也存入 IndexedDB 供遊戲讀取
+        const dbReq = indexedDB.open("TextAdventureAssets", 1);
+        dbReq.onupgradeneeded = (e) =>
+          e.target.result.createObjectStore("files");
+        dbReq.onsuccess = async (ev) => {
+          const db = ev.target.result;
+          const tx = db.transaction("files", "readwrite");
+          tx.objectStore("files").clear();
+          for (const key of Object.keys(zipContent.files)) {
+            if (key.includes("/assets/") && !zipContent.files[key].dir) {
+              const fileName = key.substring(key.lastIndexOf("assets/"));
+              const blob = await zipContent.files[key].async("blob");
+              tx.objectStore("files").put(blob, fileName);
+            }
+          }
+        };
+
+        const jsonFileName = Object.keys(zipContent.files).find((name) =>
+          name.endsWith("project.json"),
+        );
+        if (jsonFileName) {
+          const jsonStr = await zipContent.file(jsonFileName).async("string");
+          processJson(jsonStr);
+        } else {
+          alert("ZIP 檔內找不到 project.json 檔案！");
+        }
+      } catch (err) {
+        alert("ZIP 解壓縮失敗：" + err);
+      }
+    } else {
+      const reader = new FileReader();
+      reader.onload = (event) => processJson(event.target.result);
+      reader.readAsText(file);
+    }
     e.target.value = "";
   });
 

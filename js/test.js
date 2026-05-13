@@ -117,8 +117,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const popup = document.createElement("div");
     popup.className =
       "bg-gray-900 border-l-4 border-yellow-500 rounded shadow-xl p-4 flex items-center gap-4 text-white transform transition-all duration-500 translate-x-full opacity-0 pointer-events-auto";
-    const icon =
-      achievement.iconUrl || "https://via.placeholder.com/150?text=Achieved";
+    const icon = achievement.iconUrl
+      ? window.getAssetUrl(achievement.iconUrl)
+      : "https://via.placeholder.com/150?text=Achieved";
     popup.innerHTML = `
         <img src="${icon}" class="w-12 h-12 object-cover rounded border border-gray-700">
         <div>
@@ -708,7 +709,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (npc.avatarUrl) {
-      npcInfoAvatar.src = npc.avatarUrl;
+      npcInfoAvatar.src = window.getAssetUrl(npc.avatarUrl);
       npcInfoAvatar.classList.remove("hidden");
     } else {
       npcInfoAvatar.removeAttribute("src");
@@ -1274,7 +1275,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // 處理背景圖片 (優先抓取場景設定，最後預設背景)
     const sceneBgUrl = scene.bgUrl ? scene.bgUrl.trim() : "";
     if (sceneBgUrl) {
-      testBg.style.backgroundImage = `url("${sceneBgUrl.replace(/"/g, '\\"')}")`;
+      const finalBgUrl = window.getAssetUrl(sceneBgUrl);
+      testBg.style.backgroundImage = `url("${finalBgUrl.replace(/"/g, '\\"')}")`;
       testBg.style.opacity = "0.7";
     } else {
       const defaultBgUrl =
@@ -1282,7 +1284,8 @@ document.addEventListener("DOMContentLoaded", () => {
           ? projectData.projectInfo.defaultBgUrl.trim()
           : "";
       if (defaultBgUrl) {
-        testBg.style.backgroundImage = `url("${defaultBgUrl.replace(/"/g, '\\"')}")`;
+        const finalBgUrl = window.getAssetUrl(defaultBgUrl);
+        testBg.style.backgroundImage = `url("${finalBgUrl.replace(/"/g, '\\"')}")`;
         testBg.style.opacity = "0.7";
       } else {
         testBg.style.backgroundImage = "none";
@@ -1315,8 +1318,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // 處理事件 CG 影片
     if (testCgVideo) {
       if (scene.cgVideoUrl) {
-        if (testCgVideo.src !== scene.cgVideoUrl) {
-          testCgVideo.src = scene.cgVideoUrl;
+        const finalCgUrl = window.getAssetUrl(scene.cgVideoUrl);
+        if (testCgVideo.getAttribute("src") !== finalCgUrl) {
+          testCgVideo.src = finalCgUrl;
         }
         testCgVideo.volume = gameSettings.volume / 100;
         testCgVideo.classList.remove("hidden");
@@ -1341,7 +1345,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 處理角色立繪
     if (testSceneSprite) {
       if (scene.spriteUrl) {
-        testSceneSprite.src = scene.spriteUrl;
+        testSceneSprite.src = window.getAssetUrl(scene.spriteUrl);
         testSceneSprite.classList.remove("hidden");
         setTimeout(() => {
           testSceneSprite.classList.remove("opacity-0");
@@ -1411,7 +1415,7 @@ document.addEventListener("DOMContentLoaded", () => {
           speakerName = npc.name;
           displayName = `<span class="pointer-events-auto cursor-pointer text-blue-300 hover:text-blue-400 transition" onclick="event.stopPropagation(); window.showNpcInfo('${npc.id}')" title="點擊查看角色簡介">${npc.name}</span>`;
           if (npc.avatarUrl && dialogueAvatar) {
-            dialogueAvatar.src = npc.avatarUrl;
+            dialogueAvatar.src = window.getAssetUrl(npc.avatarUrl);
             dialogueAvatar.classList.remove("hidden");
             dialogueAvatar.classList.add(
               "cursor-pointer",

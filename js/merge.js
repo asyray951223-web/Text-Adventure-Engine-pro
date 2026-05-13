@@ -79,8 +79,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // 綁定檔案選擇
   selectFilesBtn.addEventListener("click", () => fileInput.click());
 
-  fileInput.addEventListener("change", (e) => {
-    handleFiles(e.target.files);
+  fileInput.addEventListener("change", async (e) => {
+    await handleFiles(e.target.files);
     e.target.value = "";
   });
 
@@ -120,34 +120,61 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 讀取檔案
-  function handleFiles(files) {
-    Array.from(files).forEach((file) => {
-      if (file.name.endsWith(".json")) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const data = JSON.parse(e.target.result);
+  async function handleFiles(files) {
+    for (let file of Array.from(files)) {
+      if (file.name.toLowerCase().endsWith(".zip")) {
+        try {
+          const zip = new JSZip();
+          const zipContent = await zip.loadAsync(file);
+          const jsonFileName = Object.keys(zipContent.files).find((name) =>
+            name.endsWith("project.json"),
+          );
+          if (jsonFileName) {
+            const jsonStr = await zipContent.file(jsonFileName).async("string");
+            const data = JSON.parse(jsonStr);
             if (data.projectInfo) {
               projectFiles.push({
                 id:
                   "file_" +
                   Date.now() +
                   Math.random().toString(36).substr(2, 9),
-                name: file.name,
+                name: file.name + " (ZIP解壓)",
                 size: file.size,
                 data: data,
               });
               renderFileList();
             } else {
-              alert(`檔案 ${file.name} 不是有效的文字冒險專案格式。`);
+              alert(
+                `ZIP 檔案 ${file.name} 內的 JSON 不是有效的文字冒險專案格式。`,
+              );
             }
-          } catch (err) {
-            alert(`檔案 ${file.name} 讀取或解析失敗。`);
+          } else {
+            alert(`檔案 ${file.name} 內找不到 project.json。`);
           }
-        };
-        reader.readAsText(file);
+        } catch (err) {
+          alert(`檔案 ${file.name} ZIP 解析失敗。`);
+        }
+      } else if (file.name.toLowerCase().endsWith(".json")) {
+        try {
+          const text = await file.text();
+          const data = JSON.parse(text);
+          if (data.projectInfo) {
+            projectFiles.push({
+              id:
+                "file_" + Date.now() + Math.random().toString(36).substr(2, 9),
+              name: file.name,
+              size: file.size,
+              data: data,
+            });
+            renderFileList();
+          } else {
+            alert(`檔案 ${file.name} 不是有效的文字冒險專案格式。`);
+          }
+        } catch (err) {
+          alert(`檔案 ${file.name} 讀取或解析失敗。`);
+        }
       }
-    });
+    }
   }
 
   // 渲染待合併清單
@@ -741,13 +768,25 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!mergedData) return;
 
       const dataStr = JSON.stringify(mergedData, null, 2);
-      const blob = new Blob([dataStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = mergedData.projectInfo.title + ".json";
-      a.click();
-      URL.revokeObjectURL(url);
+      const zip = new JSZip();
+      const projectName = mergedData.projectInfo.title || "MergedProject";
+      const folder = zip.folder(projectName);
+      folder.file("project.json", dataStr);
+
+      zip
+        .generateAsync({ type: "blob", compression: "DEFLATE" })
+        .then(function (content) {
+          const url = URL.createObjectURL(content);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = projectName + ".zip";
+          a.click();
+          URL.revokeObjectURL(url);
+        })
+        .catch((err) => {
+          console.error("ZIP 打包失敗：", err);
+          alert("ZIP 打包失敗！");
+        });
     });
 
   document.getElementById("report-edit-btn").addEventListener("click", () => {

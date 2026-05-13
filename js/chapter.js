@@ -376,13 +376,31 @@ window.renderChapters = function () {
           };
 
           const dataStr = JSON.stringify(exportData, null, 2);
-          const blob = new Blob([dataStr], { type: "application/json" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `${chapter.name || "未命名章節"}_匯出.json`;
-          a.click();
-          URL.revokeObjectURL(url);
+          const zip = new JSZip();
+          const folderName = `${chapter.name || "未命名章節"}_匯出`;
+          const folder = zip.folder(folderName);
+          folder.file("project.json", dataStr);
+
+          // 將記憶體中的素材打包進 assets 資料夾
+          const assetsFolder = folder.folder("assets");
+          for (const [path, blob] of Object.entries(window.assetBlobs || {})) {
+            assetsFolder.file(path.replace("assets/", ""), blob);
+          }
+
+          zip
+            .generateAsync({ type: "blob", compression: "DEFLATE" })
+            .then(function (content) {
+              const url = URL.createObjectURL(content);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = folderName + ".zip";
+              a.click();
+              URL.revokeObjectURL(url);
+            })
+            .catch((err) => {
+              console.error("ZIP 打包失敗：", err);
+              alert("ZIP 打包失敗！");
+            });
         });
 
       contentEl

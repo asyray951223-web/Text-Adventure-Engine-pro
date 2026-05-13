@@ -96,6 +96,80 @@ document.addEventListener("DOMContentLoaded", () => {
     document.head.appendChild(style);
   }
 
+  // --- 全域攔截器：從 IndexedDB 載入遊戲素材 (圖片、音樂、影片) ---
+  window.assetUrls = {};
+  window.getAssetUrl = function (path) {
+    if (!path) return "";
+    if (
+      path.startsWith("data:") ||
+      path.startsWith("http") ||
+      path.startsWith("blob:")
+    )
+      return path;
+    return window.assetUrls[path] || path;
+  };
+
+  const req = indexedDB.open("TextAdventureAssets", 1);
+  req.onupgradeneeded = (e) => e.target.result.createObjectStore("files");
+  req.onsuccess = (e) => {
+    const db = e.target.result;
+    const tx = db.transaction("files", "readonly");
+    const store = tx.objectStore("files");
+    const request = store.getAllKeys();
+    request.onsuccess = () => {
+      request.result.forEach((key) => {
+        store.get(key).onsuccess = (res) => {
+          if (res.target.result) {
+            window.assetUrls[key] = URL.createObjectURL(res.target.result);
+          }
+        };
+      });
+    };
+  };
+
+  const assetObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      const checkNode = (el) => {
+        if (
+          el.tagName === "IMG" ||
+          el.tagName === "AUDIO" ||
+          el.tagName === "VIDEO"
+        ) {
+          const src = el.getAttribute("src");
+          if (src && src.startsWith("assets/") && window.assetUrls[src])
+            el.src = window.assetUrls[src];
+        }
+      };
+      if (mutation.type === "attributes") {
+        if (mutation.attributeName === "src") checkNode(mutation.target);
+        else if (
+          mutation.attributeName === "style" &&
+          mutation.target.style.backgroundImage
+        ) {
+          const match = mutation.target.style.backgroundImage.match(
+            /url\("?(assets\/[^"]+)"?\)/,
+          );
+          if (match && window.assetUrls[match[1]])
+            mutation.target.style.backgroundImage = `url("${window.assetUrls[match[1]]}")`;
+        }
+      } else if (mutation.type === "childList") {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1) {
+            checkNode(node);
+            node.querySelectorAll("img, audio, video").forEach(checkNode);
+          }
+        });
+      }
+    });
+  });
+  assetObserver.observe(document.body, {
+    attributes: true,
+    attributeFilter: ["src", "style"],
+    childList: true,
+    subtree: true,
+  });
+  // --- 攔截器設定結束 ---
+
   // DOM 元素綁定
   const dialogueBox = document.getElementById("dialogue-box");
   const nameTag = document.getElementById("dialogue-name");
@@ -837,7 +911,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (npc.avatarUrl) {
-      npcInfoAvatar.src = npc.avatarUrl;
+      npcInfoAvatar.src = window.getAssetUrl(npc.avatarUrl);
       npcInfoAvatar.classList.remove("hidden");
     } else {
       npcInfoAvatar.removeAttribute("src");
@@ -1122,9 +1196,10 @@ document.addEventListener("DOMContentLoaded", () => {
       currentBgmUrl = "";
       return;
     }
-    if (url !== currentBgmUrl) {
-      currentBgmUrl = url;
-      bgmPlayer.src = url;
+    const finalUrl = window.getAssetUrl(url);
+    if (finalUrl !== currentBgmUrl) {
+      currentBgmUrl = finalUrl;
+      bgmPlayer.src = finalUrl;
       bgmPlayer.volume = gameSettings.volume / 100;
       bgmPlayer.play().catch((e) => console.warn("等待玩家互動以播放背景音樂"));
     }
@@ -1726,8 +1801,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const popup = document.createElement("div");
     popup.className =
       "bg-gray-900 border-l-4 border-yellow-500 rounded shadow-xl p-4 flex items-center gap-4 text-white transform transition-all duration-500 translate-x-full opacity-0";
-    const icon =
-      achievement.iconUrl || "https://via.placeholder.com/150?text=Achieved";
+    const icon = achievement.iconUrl
+      ? window.getAssetUrl(achievement.iconUrl)
+      : "https://via.placeholder.com/150?text=Achieved";
     popup.innerHTML = `
         <img src="${icon}" class="w-12 h-12 object-cover rounded border border-gray-700">
         <div>
@@ -2148,9 +2224,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const chapterCoverUrl = chapter.coverUrl ? chapter.coverUrl.trim() : "";
 
     if (chapterCoverUrl) {
-      chapterScreen.style.backgroundImage = `url("${chapterCoverUrl.replace(/"/g, '\\"')}")`;
+      chapterScreen.style.backgroundImage = `url("${window.getAssetUrl(chapterCoverUrl).replace(/"/g, '\\"')}")`;
     } else if (defaultBgUrl) {
-      chapterScreen.style.backgroundImage = `url("${defaultBgUrl.replace(/"/g, '\\"')}")`;
+      chapterScreen.style.backgroundImage = `url("${window.getAssetUrl(defaultBgUrl).replace(/"/g, '\\"')}")`;
     } else {
       chapterScreen.style.backgroundImage = "none";
     }
@@ -2269,7 +2345,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // 更新背景圖片 (優先抓取場景設定，最後預設背景)
       const sceneBgUrl = scene.bgUrl ? scene.bgUrl.trim() : "";
       if (sceneBgUrl) {
-        bgLayer.style.backgroundImage = `url("${sceneBgUrl.replace(/"/g, '\\"')}")`;
+        bgLayer.style.backgroundImage = `url("${window.getAssetUrl(sceneBgUrl).replace(/"/g, '\\"')}")`;
       } else {
         const defaultBgUrl =
           projectData.projectInfo && projectData.projectInfo.defaultBgUrl
@@ -2277,7 +2353,7 @@ document.addEventListener("DOMContentLoaded", () => {
             : "";
 
         if (defaultBgUrl) {
-          bgLayer.style.backgroundImage = `url("${defaultBgUrl.replace(/"/g, '\\"')}")`;
+          bgLayer.style.backgroundImage = `url("${window.getAssetUrl(defaultBgUrl).replace(/"/g, '\\"')}")`;
         } else {
           bgLayer.style.backgroundImage = "none";
         }
@@ -2309,9 +2385,10 @@ document.addEventListener("DOMContentLoaded", () => {
       // 處理事件 CG 影片
       if (cgVideo) {
         if (scene.cgVideoUrl) {
-          const isNewCg = cgVideo.getAttribute("src") !== scene.cgVideoUrl;
+          const finalCgUrl = window.getAssetUrl(scene.cgVideoUrl);
+          const isNewCg = cgVideo.getAttribute("src") !== finalCgUrl;
           if (isNewCg) {
-            cgVideo.setAttribute("src", scene.cgVideoUrl);
+            cgVideo.setAttribute("src", finalCgUrl);
           }
           cgVideo.volume = gameSettings.volume / 100;
           cgVideo.classList.remove("hidden");
@@ -2340,7 +2417,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // 處理角色立繪
       if (sceneSprite) {
         if (scene.spriteUrl) {
-          sceneSprite.src = scene.spriteUrl;
+          sceneSprite.src = window.getAssetUrl(scene.spriteUrl);
           sceneSprite.classList.remove("hidden");
           setTimeout(() => {
             sceneSprite.classList.remove("opacity-0");
@@ -2412,7 +2489,7 @@ document.addEventListener("DOMContentLoaded", () => {
             speakerName = npc.name;
             displayName = `<span class="pointer-events-auto cursor-pointer text-blue-300 hover:text-blue-400 transition" onclick="event.stopPropagation(); window.showNpcInfo('${npc.id}')" title="點擊查看角色簡介">${npc.name}</span>`;
             if (dialogueAvatar && npc.avatarUrl) {
-              dialogueAvatar.src = npc.avatarUrl;
+              dialogueAvatar.src = window.getAssetUrl(npc.avatarUrl);
               dialogueAvatar.classList.remove("hidden");
               dialogueAvatar.classList.add(
                 "cursor-pointer",

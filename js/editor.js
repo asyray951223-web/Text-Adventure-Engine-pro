@@ -45,6 +45,78 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  // --- 自動化素材庫管理 (解決 Base64 記憶體消耗問題) ---
+  window.assetBlobs = {};
+  window.assetUrls = {};
+
+  // 新增：將素材存入 IndexedDB 供其他分頁 (測試模式、玩家模式) 讀取
+  window.saveAssetToDB = function (path, blob) {
+    const req = indexedDB.open("TextAdventureAssets", 1);
+    req.onupgradeneeded = (e) => e.target.result.createObjectStore("files");
+    req.onsuccess = (e) => {
+      e.target.result
+        .transaction("files", "readwrite")
+        .objectStore("files")
+        .put(blob, path);
+    };
+  };
+
+  window.getAssetUrl = function (path) {
+    if (!path) return "";
+    if (
+      path.startsWith("data:") ||
+      path.startsWith("http") ||
+      path.startsWith("blob:")
+    )
+      return path;
+    return window.assetUrls[path] || path;
+  };
+
+  // 動態攔截並替換頁面中的圖片/音檔預覽 (不需修改各模組的渲染邏輯)
+  const assetObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      const checkNode = (el) => {
+        if (
+          el.tagName === "IMG" ||
+          el.tagName === "AUDIO" ||
+          el.tagName === "VIDEO"
+        ) {
+          const src = el.getAttribute("src");
+          if (src && src.startsWith("assets/") && window.assetUrls[src]) {
+            el.src = window.assetUrls[src];
+          }
+        }
+      };
+      if (mutation.type === "attributes") {
+        if (mutation.attributeName === "src") checkNode(mutation.target);
+        else if (
+          mutation.attributeName === "style" &&
+          mutation.target.style.backgroundImage
+        ) {
+          // 攔截 CSS 的 background-image
+          const match = mutation.target.style.backgroundImage.match(
+            /url\("?(assets\/[^"]+)"?\)/,
+          );
+          if (match && window.assetUrls[match[1]])
+            mutation.target.style.backgroundImage = `url("${window.assetUrls[match[1]]}")`;
+        }
+      } else if (mutation.type === "childList") {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1) {
+            checkNode(node);
+            node.querySelectorAll("img, audio, video").forEach(checkNode);
+          }
+        });
+      }
+    });
+  });
+  assetObserver.observe(document.body, {
+    attributes: true,
+    attributeFilter: ["src", "style"],
+    childList: true,
+    subtree: true,
+  });
+
   // 全域圖片上傳與轉 Base64 處理函式
   window.promptImageUpload = function (callback) {
     const input = document.createElement("input");
@@ -78,9 +150,18 @@ document.addEventListener("DOMContentLoaded", () => {
           const ctx = canvas.getContext("2d");
           ctx.drawImage(img, 0, 0, width, height);
 
-          // 壓縮並轉為 Base64 (使用 WebP 格式，保留透明度且高壓縮率，品質設定為 0.8)
-          const compressedBase64 = canvas.toDataURL("image/webp", 0.8);
-          callback(compressedBase64);
+          canvas.toBlob(
+            (blob) => {
+              const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+              const path = "assets/" + Date.now() + "_" + safeName;
+              window.assetBlobs[path] = blob;
+              window.assetUrls[path] = URL.createObjectURL(blob);
+              window.saveAssetToDB(path, blob);
+              callback(path);
+            },
+            "image/webp",
+            0.8,
+          );
         };
         img.src = event.target.result;
       };
@@ -98,22 +179,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const file = e.target.files[0];
       if (!file) return;
 
-      // 音檔大小警告防呆機制 (大於 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        if (
-          !confirm(
-            `⚠️ 警告：您選擇的音檔大小為 ${(file.size / 1024 / 1024).toFixed(2)} MB。\n\n音檔過大非常容易導致瀏覽器儲存空間爆滿並造成專案存檔失敗！\n強烈建議使用外部網址，或將檔案壓縮後再上傳。\n\n確定要強制上傳嗎？`,
-          )
-        ) {
-          return;
-        }
-      }
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        callback(event.target.result);
-      };
-      reader.readAsDataURL(file);
+      const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+      const path = "assets/" + Date.now() + "_" + safeName;
+      window.assetBlobs[path] = file;
+      window.assetUrls[path] = URL.createObjectURL(file);
+      window.saveAssetToDB(path, file);
+      callback(path);
     };
     input.click();
   };
@@ -127,22 +198,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const file = e.target.files[0];
       if (!file) return;
 
-      // 影片大小警告防呆機制 (大於 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        if (
-          !confirm(
-            `⚠️ 警告：您選擇的影片大小為 ${(file.size / 1024 / 1024).toFixed(2)} MB。\n\n影片檔通常極大，直接上傳非常容易導致瀏覽器儲存空間爆滿並造成專案存檔失敗！\n強烈建議將影片上傳至外部空間後，直接貼上外部網址 (URL)。\n\n確定要強制上傳此影片嗎？`,
-          )
-        ) {
-          return;
-        }
-      }
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        callback(event.target.result);
-      };
-      reader.readAsDataURL(file);
+      const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+      const path = "assets/" + Date.now() + "_" + safeName;
+      window.assetBlobs[path] = file;
+      window.assetUrls[path] = URL.createObjectURL(file);
+      window.saveAssetToDB(path, file);
+      callback(path);
     };
     input.click();
   };
@@ -175,7 +236,11 @@ document.addEventListener("DOMContentLoaded", () => {
           "text-emerald-700",
         );
       }
-      window.previewAudio.src = url;
+      const finalUrl =
+        window.getAssetUrl && window.getAssetUrl(url)
+          ? window.getAssetUrl(url)
+          : url;
+      window.previewAudio.src = finalUrl;
       window.previewAudio
         .play()
         .then(() => {
@@ -381,15 +446,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     <textarea id="input-description" class="w-full border border-gray-300 rounded-md shadow-sm p-2 h-[500px] focus:ring-blue-500 focus:border-blue-500 resize-none custom-scrollbar" placeholder="描述一下這個冒險世界...">${data.projectInfo.description}</textarea>
                 </div>
                 <div class="pt-6 border-t border-gray-200 flex justify-between items-center">
-                    <button id="export-json-btn" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded shadow transition flex items-center" title="將專案下載至電腦">
+                <button id="export-json-btn" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded shadow transition flex items-center" title="將專案打包為 ZIP 下載至電腦">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        匯出專案 (JSON)
+                    匯出專案 (ZIP)
                     </button>
                     <div>
-                        <input type="file" id="import-json-input" accept=".json" class="hidden">
+                    <input type="file" id="import-json-input" accept=".json,.zip" class="hidden">
                         <button id="import-json-btn" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded shadow transition flex items-center" title="從電腦載入專案檔案">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                            載入專案 (JSON)
+                        載入專案 (JSON/ZIP)
                         </button>
                     </div>
                 </div>
@@ -673,15 +738,32 @@ document.addEventListener("DOMContentLoaded", () => {
         .getElementById("export-json-btn")
         .addEventListener("click", () => {
           const dataStr = JSON.stringify(window.projectData, null, 2);
-          const blob = new Blob([dataStr], { type: "application/json" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download =
-            (window.projectData.projectInfo.title || "文字冒險遊戲專案") +
-            ".json";
-          a.click();
-          URL.revokeObjectURL(url);
+          const zip = new JSZip();
+          const projectName =
+            window.projectData.projectInfo.title || "文字冒險遊戲專案";
+          const folder = zip.folder(projectName);
+          folder.file("project.json", dataStr);
+
+          // 將記憶體中的實體素材檔案打包進 assets 資料夾
+          const assetsFolder = folder.folder("assets");
+          for (const [path, blob] of Object.entries(window.assetBlobs || {})) {
+            assetsFolder.file(path.replace("assets/", ""), blob);
+          }
+
+          zip
+            .generateAsync({ type: "blob", compression: "DEFLATE" })
+            .then(function (content) {
+              const url = URL.createObjectURL(content);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = projectName + ".zip";
+              a.click();
+              URL.revokeObjectURL(url);
+            })
+            .catch((err) => {
+              console.error("ZIP 打包失敗：", err);
+              alert("ZIP 打包失敗！");
+            });
         });
 
       // 載入 JSON 功能
@@ -692,14 +774,13 @@ document.addEventListener("DOMContentLoaded", () => {
           importInput.click();
         });
 
-      importInput.addEventListener("change", (e) => {
+      importInput.addEventListener("change", async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
+        const processJson = (jsonStr) => {
           try {
-            const importedData = JSON.parse(event.target.result);
+            const importedData = JSON.parse(jsonStr);
             if (importedData && importedData.projectInfo) {
               if (!importedData.projectId) {
                 importedData.projectId = "proj_" + Date.now();
@@ -746,7 +827,53 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("載入失敗，檔案格式錯誤或已損壞：" + err);
           }
         };
-        reader.readAsText(file);
+
+        if (file.name.toLowerCase().endsWith(".zip")) {
+          try {
+            const zip = new JSZip();
+            const zipContent = await zip.loadAsync(file);
+
+            // 從 ZIP 解壓讀取所有的圖片與音檔存入記憶體
+            window.assetBlobs = {};
+            window.assetUrls = {};
+            const dbReq = indexedDB.open("TextAdventureAssets", 1);
+            dbReq.onupgradeneeded = (e) =>
+              e.target.result.createObjectStore("files");
+            dbReq.onsuccess = async (ev) => {
+              const db = ev.target.result;
+              const tx = db.transaction("files", "readwrite");
+              tx.objectStore("files").clear(); // 清空舊專案素材
+              for (const key of Object.keys(zipContent.files)) {
+                if (key.includes("/assets/") && !zipContent.files[key].dir) {
+                  const fileName = key.substring(key.lastIndexOf("assets/"));
+                  const blob = await zipContent.files[key].async("blob");
+                  window.assetBlobs[fileName] = blob;
+                  window.assetUrls[fileName] = URL.createObjectURL(blob);
+                  tx.objectStore("files").put(blob, fileName);
+                }
+              }
+            };
+
+            const jsonFileName = Object.keys(zipContent.files).find((name) =>
+              name.endsWith("project.json"),
+            );
+            if (jsonFileName) {
+              const jsonStr = await zipContent
+                .file(jsonFileName)
+                .async("string");
+              processJson(jsonStr);
+            } else {
+              alert("ZIP 檔內找不到 project.json 檔案！");
+            }
+          } catch (err) {
+            alert("ZIP 解壓縮失敗：" + err);
+          }
+        } else {
+          const reader = new FileReader();
+          reader.onload = (event) => processJson(event.target.result);
+          reader.readAsText(file);
+        }
+        e.target.value = "";
       });
     } else if (tabName === "場景編輯") {
       if (typeof window.renderScenes === "function") {

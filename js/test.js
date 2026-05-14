@@ -211,26 +211,126 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   if (projectData.timeSettings && projectData.timeSettings.enabled) {
     gameState.time = {
+      year: projectData.timeSettings.startYear || 1,
+      month: projectData.timeSettings.startMonth || 1,
       day: projectData.timeSettings.startDay || 1,
       hour: projectData.timeSettings.startHour || 0,
       minute: projectData.timeSettings.startMinute || 0,
     };
   }
 
+  // 自動同步時間到變數
+  function syncTimeVariables() {
+    if (!projectData.timeSettings || !projectData.timeSettings.enabled)
+      return false;
+    let changed = false;
+    const t = projectData.timeSettings;
+    if (t.bindYearVarId) {
+      gameState.variables[t.bindYearVarId] = gameState.time.year || 1;
+      changed = true;
+    }
+    if (t.bindMonthVarId) {
+      gameState.variables[t.bindMonthVarId] = gameState.time.month || 1;
+      changed = true;
+    }
+    if (t.bindDayVarId) {
+      gameState.variables[t.bindDayVarId] = gameState.time.day || 1;
+      changed = true;
+    }
+    return changed;
+  }
+  syncTimeVariables();
+
   // 讀取全域設定 (與正式遊玩模式共用)
   let gameSettings = JSON.parse(
     localStorage.getItem("textAdventureSettings"),
   ) || { textSpeed: 70, volume: 50, typingVolume: 50, version: 2 };
+  if (gameSettings.dialogueOpacity === undefined) {
+    gameSettings.dialogueOpacity = 70;
+  }
+  if (gameSettings.fontSize === undefined) {
+    gameSettings.fontSize = 24;
+  }
+  if (gameSettings.fontFamily === undefined) {
+    gameSettings.fontFamily = "default";
+  }
+
+  if (volumeRange && !document.getElementById("test-dialogue-opacity-range")) {
+    const container = volumeRange.closest("div").parentElement;
+    if (container) {
+      const opacityDiv = document.createElement("div");
+      opacityDiv.innerHTML = `
+        <div class="flex justify-between items-center mb-1 mt-4">
+          <label class="block text-sm font-bold text-gray-300">對話框背景透明度</label>
+          <span class="text-xs text-gray-400 font-mono"><span id="test-opacity-display">${gameSettings.dialogueOpacity}</span>%</span>
+        </div>
+        <input type="range" id="test-dialogue-opacity-range" min="0" max="100" step="5" value="${gameSettings.dialogueOpacity}" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+      `;
+      container.appendChild(opacityDiv);
+    }
+  }
+  const testOpacityRange = document.getElementById(
+    "test-dialogue-opacity-range",
+  );
+  const testOpacityDisplay = document.getElementById("test-opacity-display");
+
+  function updateTestDialogueOpacity() {
+    if (dialogueText && dialogueText.parentElement) {
+      dialogueText.parentElement.style.backgroundColor = `rgba(0, 0, 0, ${gameSettings.dialogueOpacity / 100})`;
+    }
+  }
+  updateTestDialogueOpacity();
+
+  const testFontSizeRange = document.getElementById("test-font-size-range");
+  const testFontSizeDisplay = document.getElementById("test-font-size-display");
+  const testFontFamilySelect = document.getElementById(
+    "test-font-family-select",
+  );
+
+  function updateTestFontSettings() {
+    if (dialogueText) {
+      dialogueText.style.fontSize = gameSettings.fontSize + "px";
+      dialogueText.style.lineHeight = "1.8";
+      dialogueText.style.fontFamily =
+        gameSettings.fontFamily === "default" ? "" : gameSettings.fontFamily;
+    }
+  }
+  updateTestFontSettings();
+
   if (volumeRange) volumeRange.value = gameSettings.volume;
+  if (testFontSizeRange) testFontSizeRange.value = gameSettings.fontSize;
+  if (testFontFamilySelect)
+    testFontFamilySelect.value = gameSettings.fontFamily;
 
   function saveSettings() {
     gameSettings.volume = parseInt(volumeRange.value, 10);
+    if (testOpacityRange) {
+      gameSettings.dialogueOpacity = parseInt(testOpacityRange.value, 10);
+      if (testOpacityDisplay)
+        testOpacityDisplay.textContent = gameSettings.dialogueOpacity;
+    }
+    if (testFontSizeRange) {
+      gameSettings.fontSize = parseInt(testFontSizeRange.value, 10);
+      if (testFontSizeDisplay)
+        testFontSizeDisplay.textContent = gameSettings.fontSize + "px";
+    }
+    if (testFontFamilySelect) {
+      gameSettings.fontFamily = testFontFamilySelect.value;
+    }
     localStorage.setItem("textAdventureSettings", JSON.stringify(gameSettings));
     if (testBgmPlayer) testBgmPlayer.volume = gameSettings.volume / 100;
     if (testCgVideo) testCgVideo.volume = gameSettings.volume / 100;
+    updateTestDialogueOpacity();
+    updateTestFontSettings();
   }
 
   if (volumeRange) volumeRange.addEventListener("input", saveSettings);
+  if (testOpacityRange)
+    testOpacityRange.addEventListener("input", saveSettings);
+  if (testFontSizeRange)
+    testFontSizeRange.addEventListener("input", saveSettings);
+  if (testFontFamilySelect)
+    testFontFamilySelect.addEventListener("change", saveSettings);
 
   let audioCtx = null;
 
@@ -780,7 +880,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const mm = (gameState.time.minute || 0).toString().padStart(2, "0");
 
       let dayText = `D${gameState.time.day || 1}`;
-      if (projectData.timeSettings.dayNames) {
+      if (projectData.timeSettings.useYMD) {
+        const yn = projectData.timeSettings.yearName || "年";
+        const mn = projectData.timeSettings.monthName || "月";
+        const dn = projectData.timeSettings.dayName || "日";
+        dayText = `${gameState.time.year || 1}${yn}${gameState.time.month || 1}${mn}${gameState.time.day || 1}${dn}`;
+      } else if (projectData.timeSettings.dayNames) {
         const names = projectData.timeSettings.dayNames
           .split(",")
           .map((s) => s.trim())
@@ -889,6 +994,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const parts = newTime.split(":");
       gameState.time.hour = parseInt(parts[0], 10) || 0;
       gameState.time.minute = parseInt(parts[1], 10) || 0;
+      syncTimeVariables();
       renderDebugPanels();
       renderScene(gameState.currentSceneId); // 重新渲染場景以更新條件選項
     }
@@ -989,8 +1095,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!gameState.time) return 0;
     const hoursPerDay =
       (projectData.timeSettings && projectData.timeSettings.hoursPerDay) || 24;
+    const daysPerMonth =
+      (projectData.timeSettings && projectData.timeSettings.daysPerMonth) || 30;
+    const monthsPerYear =
+      (projectData.timeSettings && projectData.timeSettings.monthsPerYear) ||
+      12;
+
+    let totalDays = (gameState.time.day || 1) - 1;
+    if (projectData.timeSettings && projectData.timeSettings.useYMD) {
+      totalDays +=
+        ((gameState.time.year || 1) - 1) * monthsPerYear * daysPerMonth;
+      totalDays += ((gameState.time.month || 1) - 1) * daysPerMonth;
+    }
     return (
-      gameState.time.day * hoursPerDay * 60 +
+      totalDays * hoursPerDay * 60 +
       gameState.time.hour * 60 +
       gameState.time.minute
     );
@@ -1084,18 +1202,36 @@ document.addEventListener("DOMContentLoaded", () => {
       !minutes
     )
       return;
-    const oldDay = gameState.time.day || 1;
     let m = (gameState.time.minute || 0) + minutes;
     let h = (gameState.time.hour || 0) + Math.floor(m / 60);
     gameState.time.minute = m % 60;
     const hoursPerDay = projectData.timeSettings.hoursPerDay || 24;
-    gameState.time.day =
-      (gameState.time.day || 1) + Math.floor(h / hoursPerDay);
+    let daysPassed = Math.floor(h / hoursPerDay);
+    let d = (gameState.time.day || 1) + daysPassed;
     gameState.time.hour = h % hoursPerDay;
 
-    if (gameState.time.day > oldDay) {
+    if (projectData.timeSettings.useYMD) {
+      const dpm = projectData.timeSettings.daysPerMonth || 30;
+      const mpy = projectData.timeSettings.monthsPerYear || 12;
+
+      let dayZeroBased = d - 1;
+      let extraMonths = Math.floor(dayZeroBased / dpm);
+      gameState.time.day = (dayZeroBased % dpm) + 1;
+
+      let mo = (gameState.time.month || 1) + extraMonths;
+      let moZeroBased = mo - 1;
+      let extraYears = Math.floor(moZeroBased / mpy);
+      gameState.time.month = (moZeroBased % mpy) + 1;
+
+      gameState.time.year = (gameState.time.year || 1) + extraYears;
+    } else {
+      gameState.time.day = d;
+    }
+
+    if (daysPassed > 0) {
       gameState.pendingDayChangeJump = true;
     }
+    if (syncTimeVariables()) renderDebugPanels();
   }
 
   function applyEffects(

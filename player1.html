@@ -180,6 +180,42 @@
               </div>
             </div>
             <div>
+              <label
+                class="block text-sm font-bold text-gray-300 mb-2 flex justify-between"
+              >
+                <span>文字大小</span>
+                <span id="font-size-display" class="text-blue-400 font-mono"
+                  >24px</span
+                >
+              </label>
+              <input
+                type="range"
+                id="font-size-range"
+                min="16"
+                max="40"
+                step="2"
+                value="24"
+                class="w-full cursor-pointer"
+              />
+              <div class="flex justify-between text-xs text-gray-500 mt-1">
+                <span>小</span><span>大</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-gray-300 mb-2"
+                >字體風格</label
+              >
+              <select
+                id="font-family-select"
+                class="w-full bg-gray-800 border border-gray-600 text-white rounded p-2 focus:outline-none focus:border-blue-500"
+              >
+                <option value="default">預設主題字型</option>
+                <option value="sans-serif">無襯線體 (黑體)</option>
+                <option value="serif">襯線體 (明體/宋體)</option>
+                <option value="cursive">手寫體 (圓體)</option>
+              </select>
+            </div>
+            <div>
               <label class="block text-sm font-bold text-gray-300 mb-2"
                 >打字音量</label
               >

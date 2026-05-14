@@ -49,6 +49,27 @@ document.addEventListener("DOMContentLoaded", () => {
   window.assetBlobs = {};
   window.assetUrls = {};
 
+  // 從 IndexedDB 讀取已儲存的素材 (解決重新整理或從大廳進入時，素材與預覽遺失的問題)
+  const req = indexedDB.open("TextAdventureAssets", 1);
+  req.onupgradeneeded = (e) => e.target.result.createObjectStore("files");
+  req.onsuccess = (e) => {
+    const db = e.target.result;
+    if (!db.objectStoreNames.contains("files")) return;
+    const tx = db.transaction("files", "readonly");
+    const store = tx.objectStore("files");
+    const request = store.getAllKeys();
+    request.onsuccess = () => {
+      request.result.forEach((key) => {
+        store.get(key).onsuccess = (res) => {
+          if (res.target.result) {
+            window.assetBlobs[key] = res.target.result;
+            window.assetUrls[key] = URL.createObjectURL(res.target.result);
+          }
+        };
+      });
+    };
+  };
+
   // 新增：將素材存入 IndexedDB 供其他分頁 (測試模式、玩家模式) 讀取
   window.saveAssetToDB = function (path, blob) {
     const req = indexedDB.open("TextAdventureAssets", 1);
@@ -397,6 +418,17 @@ document.addEventListener("DOMContentLoaded", () => {
       quizzes: [], // 存放測驗系統
       timeSettings: {
         enabled: false,
+        useYMD: false,
+        startYear: 1,
+        startMonth: 1,
+        daysPerMonth: 30,
+        monthsPerYear: 12,
+        yearName: "年",
+        monthName: "月",
+        dayName: "日",
+        bindYearVarId: "",
+        bindMonthVarId: "",
+        bindDayVarId: "",
         startDay: 1,
         startHour: 8,
         startMinute: 0,

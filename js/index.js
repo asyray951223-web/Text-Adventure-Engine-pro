@@ -177,7 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  window.exportProject = function (projId) {
+  window.exportProject = async function (projId) {
     const list = getProjectsList();
     const project = list.find((p) => p.projectId === projId);
     if (!project) return;
@@ -187,6 +187,40 @@ document.addEventListener("DOMContentLoaded", () => {
     const zip = new JSZip();
     const folder = zip.folder(title);
     folder.file("project.json", dataStr);
+
+    // 從 IndexedDB 取得關聯素材一併打包
+    try {
+      const db = await new Promise((resolve, reject) => {
+        const req = indexedDB.open("TextAdventureAssets", 1);
+        req.onupgradeneeded = (e) => e.target.result.createObjectStore("files");
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = (e) => reject(e.target.error);
+      });
+      if (db.objectStoreNames.contains("files")) {
+        const tx = db.transaction("files", "readonly");
+        const store = tx.objectStore("files");
+        const keys = await new Promise((resolve) => {
+          const req = store.getAllKeys();
+          req.onsuccess = () => resolve(req.result);
+        });
+
+        const assetsFolder = folder.folder("assets");
+        for (const key of keys) {
+          // 只匯出該專案確實有使用到的素材 (以字串比對 JSON 內容)
+          if (dataStr.includes(key)) {
+            const blob = await new Promise((resolve) => {
+              const req = store.get(key);
+              req.onsuccess = () => resolve(req.result);
+            });
+            if (blob) {
+              assetsFolder.file(key.replace("assets/", ""), blob);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("打包素材時發生錯誤", e);
+    }
 
     zip
       .generateAsync({ type: "blob", compression: "DEFLATE" })

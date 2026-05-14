@@ -126,6 +126,37 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
           const zip = new JSZip();
           const zipContent = await zip.loadAsync(file);
+
+          let extractedImages = []; // 用來儲存預覽圖片
+
+          // 將 ZIP 內的素材暫存至 IndexedDB 供後續合併打包使用
+          try {
+            const db = await new Promise((resolve, reject) => {
+              const req = indexedDB.open("TextAdventureAssets", 1);
+              req.onupgradeneeded = (e) =>
+                e.target.result.createObjectStore("files");
+              req.onsuccess = (e) => resolve(e.target.result);
+              req.onerror = (e) => reject(e.target.error);
+            });
+            const tx = db.transaction("files", "readwrite");
+            const store = tx.objectStore("files");
+            for (const key of Object.keys(zipContent.files)) {
+              if (key.includes("/assets/") && !zipContent.files[key].dir) {
+                const fileName = key.substring(key.lastIndexOf("assets/"));
+                const blob = await zipContent.files[key].async("blob");
+                store.put(blob, fileName);
+
+                // 判斷是否為圖片，若是則建立 ObjectURL 供預覽
+                if (fileName.match(/\.(png|jpe?g|gif|webp)$/i)) {
+                  const url = URL.createObjectURL(blob);
+                  extractedImages.push(url);
+                }
+              }
+            }
+          } catch (e) {
+            console.warn("合併載入素材失敗", e);
+          }
+
           const jsonFileName = Object.keys(zipContent.files).find((name) =>
             name.endsWith("project.json"),
           );
@@ -141,6 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 name: file.name + " (ZIP解壓)",
                 size: file.size,
                 data: data,
+                images: extractedImages, // 儲存預覽圖 URL
               });
               renderFileList();
             } else {
@@ -206,6 +238,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const sizeStr = fileObj.size ? formatBytes(fileObj.size) : "未知大小";
 
+      let imagesHtml = "";
+      if (fileObj.images && fileObj.images.length > 0) {
+        const previewLimit = 6;
+        const displayImages = fileObj.images.slice(0, previewLimit);
+        const extraCount = fileObj.images.length - previewLimit;
+
+        const imgTags = displayImages
+          .map(
+            (url) =>
+              `<img src="${url}" class="w-10 h-10 object-cover rounded border border-gray-600 shadow-sm bg-gray-900" alt="素材預覽">`,
+          )
+          .join("");
+
+        const extraTag =
+          extraCount > 0
+            ? `<div class="w-10 h-10 flex items-center justify-center rounded border border-gray-600 bg-gray-700 text-xs font-bold text-gray-300 shadow-sm" title="還有 ${extraCount} 張圖片">+${extraCount}</div>`
+            : "";
+
+        imagesHtml = `<div class="mt-3 flex space-x-2 overflow-hidden">${imgTags}${extraTag}</div>`;
+      }
+
       el.innerHTML = `
         <div class="flex items-center flex-1 min-w-0">
           <div class="flex flex-col space-y-1 mr-4 shrink-0">
@@ -223,6 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <p class="text-sm text-gray-400 truncate mt-1 flex items-center">
               來源檔案: ${fileObj.name} <span class="ml-2 pl-2 border-l border-gray-600 text-gray-500">${sizeStr}</span>
             </p>
+            ${imagesHtml}
           </div>
         </div>
         <button class="delete-btn text-red-400 hover:text-red-300 bg-gray-700 hover:bg-gray-600 p-2 rounded transition ml-4 shrink-0 shadow-sm border border-gray-600" title="移除">
@@ -763,7 +817,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document
     .getElementById("report-download-btn")
-    .addEventListener("click", () => {
+    .addEventListener("click", async () => {
       const mergedData = window.currentMergedData;
       if (!mergedData) return;
 
@@ -772,6 +826,38 @@ document.addEventListener("DOMContentLoaded", () => {
       const projectName = mergedData.projectInfo.title || "MergedProject";
       const folder = zip.folder(projectName);
       folder.file("project.json", dataStr);
+
+      try {
+        const db = await new Promise((resolve, reject) => {
+          const req = indexedDB.open("TextAdventureAssets", 1);
+          req.onupgradeneeded = (e) =>
+            e.target.result.createObjectStore("files");
+          req.onsuccess = (e) => resolve(e.target.result);
+          req.onerror = (e) => reject(e.target.error);
+        });
+        if (db.objectStoreNames.contains("files")) {
+          const tx = db.transaction("files", "readonly");
+          const store = tx.objectStore("files");
+          const keys = await new Promise((resolve) => {
+            const req = store.getAllKeys();
+            req.onsuccess = () => resolve(req.result);
+          });
+          const assetsFolder = folder.folder("assets");
+          for (const key of keys) {
+            if (dataStr.includes(key)) {
+              const blob = await new Promise((resolve) => {
+                const req = store.get(key);
+                req.onsuccess = () => resolve(req.result);
+              });
+              if (blob) {
+                assetsFolder.file(key.replace("assets/", ""), blob);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("打包素材時發生錯誤", e);
+      }
 
       zip
         .generateAsync({ type: "blob", compression: "DEFLATE" })

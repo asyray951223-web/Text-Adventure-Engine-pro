@@ -46,6 +46,136 @@
       .manual-section {
         scroll-margin-top: 6rem; /* 確保錨點跳轉時不會被頂部導覽列遮住 */
       }
+
+      /* === 淺色模式樣式覆蓋 (Light Mode) === */
+      .light-mode {
+        background-color: #f8fafc !important;
+      }
+      .light-mode body {
+        background-color: #f8fafc !important;
+        color: #334155 !important;
+      }
+      
+      /* 導覽列與側邊欄 */
+      .light-mode nav {
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        border-color: #e2e8f0 !important;
+      }
+      .light-mode aside {
+        background-color: #f8fafc !important;
+        border-color: #e2e8f0 !important;
+      }
+      .light-mode aside a:hover {
+        background-color: rgba(241, 245, 249, 0.8) !important;
+      }
+      .light-mode .border-gray-800,
+      .light-mode .border-gray-700,
+      .light-mode .border-gray-600 {
+        border-color: #e2e8f0 !important;
+      }
+
+      /* 側邊欄高亮背景 */
+      .light-mode .bg-blue-900\/10 { background-color: rgba(59, 130, 246, 0.1) !important; }
+      .light-mode .bg-emerald-900\/10 { background-color: rgba(16, 185, 129, 0.1) !important; }
+      .light-mode .bg-yellow-900\/10 { background-color: rgba(245, 158, 11, 0.1) !important; }
+
+      /* 卡片背景與 FAQ */
+      .light-mode .bg-gray-800\/50,
+      .light-mode details {
+        background-color: #ffffff !important;
+        border-color: #e2e8f0 !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      }
+      .light-mode details summary:hover {
+        background-color: #f1f5f9 !important;
+      }
+      .light-mode details > div.border-gray-700 {
+        border-color: #e2e8f0 !important;
+      }
+      .light-mode hr {
+        border-color: #e2e8f0 !important;
+      }
+
+      /* 按鈕覆蓋 */
+      .light-mode a.bg-gray-800 {
+        background-color: #ffffff !important;
+        color: #334155 !important;
+        border-color: #cbd5e1 !important;
+      }
+      .light-mode a.bg-gray-800:hover {
+        background-color: #f1f5f9 !important;
+      }
+      .light-mode #theme-toggle-btn {
+        color: #64748b !important;
+      }
+      .light-mode #theme-toggle-btn:hover {
+        background-color: #f1f5f9 !important;
+        color: #f59e0b !important;
+      }
+      .light-mode #back-to-top-btn {
+        background-color: #ffffff !important;
+        color: #64748b !important;
+        border-color: #cbd5e1 !important;
+      }
+      .light-mode #back-to-top-btn:hover {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+      }
+
+      /* 提示框背景 (藍/綠/紅) */
+      .light-mode .bg-blue-900\/20 { background-color: #eff6ff !important; border-color: #bfdbfe !important; }
+      .light-mode .bg-emerald-900\/20 { background-color: #ecfdf5 !important; border-color: #a7f3d0 !important; }
+      .light-mode .bg-red-900\/20 { background-color: #fef2f2 !important; border-color: #fecaca !important; }
+
+      /* 流程圖標籤背景 */
+      .light-mode .bg-emerald-900\/30 { background-color: #d1fae5 !important; border-color: #6ee7b7 !important; }
+      .light-mode .bg-blue-900\/30 { background-color: #dbeafe !important; border-color: #93c5fd !important; }
+      .light-mode span.bg-gray-800 { background-color: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #475569 !important; }
+
+      /* 程式碼與鍵盤按鍵標籤 */
+      .light-mode code.bg-gray-900,
+      .light-mode kbd.bg-gray-700 {
+        background-color: #f1f5f9 !important;
+        border-color: #cbd5e1 !important;
+        color: #0f172a !important;
+      }
+      
+      /* 文字顏色基礎 */
+      .light-mode .text-gray-500 { color: #64748b !important; }
+      .light-mode .text-gray-400 { color: #64748b !important; }
+      .light-mode .text-gray-300 { color: #475569 !important; }
+      .light-mode .text-gray-200 { color: #1e293b !important; }
+      .light-mode .text-gray-100 { color: #0f172a !important; }
+      .light-mode h2.text-white,
+      .light-mode strong.text-white { color: #0f172a !important; }
+      .light-mode .text-white\/80 { color: #334155 !important; }
+      
+      /* 標題與強調色亮度微調 (讓淺色底更容易閱讀) */
+      .light-mode .text-blue-400 { color: #2563eb !important; }
+      .light-mode .text-emerald-400 { color: #059669 !important; }
+      .light-mode .text-yellow-400 { color: #d97706 !important; }
+      .light-mode .text-red-400 { color: #dc2626 !important; }
+      .light-mode .text-purple-400 { color: #7c3aed !important; }
+      .light-mode .text-pink-400 { color: #db2777 !important; }
+      .light-mode .text-amber-400 { color: #d97706 !important; }
+      .light-mode .text-indigo-400 { color: #4f46e5 !important; }
+      .light-mode .text-teal-400 { color: #0d9488 !important; }
+
+      .light-mode .text-blue-300 { color: #3b82f6 !important; }
+      .light-mode .text-emerald-300 { color: #10b981 !important; }
+      .light-mode .text-yellow-300 { color: #f59e0b !important; }
+      .light-mode .text-purple-300 { color: #8b5cf6 !important; }
+
+      /* 捲動條 */
+      .light-mode .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f8fafc;
+      }
+      .light-mode .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+      }
+      .light-mode .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
     </style>
   </head>
   <body
@@ -75,25 +205,54 @@
           完整使用手冊
         </h1>
       </div>
-      <a
-        href="index.html"
-        class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-bold border border-gray-600 transition shadow-sm flex items-center"
-      >
-        <svg
-          class="w-4 h-4 mr-2"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+      <div class="flex items-center space-x-2 md:space-x-4">
+        <!-- 主題切換按鈕 -->
+        <button
+          id="theme-toggle-btn"
+          class="text-gray-400 hover:text-yellow-400 hover:bg-gray-800 p-2 rounded-full transition-colors focus:outline-none"
+          title="切換深色/淺色模式"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M10 19l-7-7m0 0l7-7m-7 7h18"
-          ></path>
-        </svg>
-        返回大廳
-      </a>
+          <svg
+            id="theme-icon-sun"
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+          </svg>
+          <svg
+            id="theme-icon-moon"
+            class="w-6 h-6 hidden"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+          </svg>
+        </button>
+
+        <a
+          href="index.html"
+          class="bg-gray-800 hover:bg-gray-700 text-white px-3 md:px-4 py-2 rounded-lg text-sm font-bold border border-gray-600 transition shadow-sm flex items-center"
+        >
+          <svg
+            class="w-4 h-4 mr-1 md:mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            ></path>
+          </svg>
+          <span class="hidden md:inline">返回大廳</span>
+          <span class="md:hidden">返回</span>
+        </a>
+      </div>
     </nav>
 
     <div class="flex-1 flex overflow-hidden">
@@ -174,6 +333,22 @@
               class="block text-gray-400 hover:text-blue-300 hover:bg-blue-900/10 transition-all duration-300 text-sm font-medium py-2 pl-4 -ml-[2px] border-l-2 border-transparent hover:border-blue-500 rounded-r-lg"
               data-theme="blue"
               >7. 商店、測驗與時間</a
+            >
+          </li>
+          <li>
+            <a
+              href="#ch-debug"
+              class="block text-gray-400 hover:text-blue-300 hover:bg-blue-900/10 transition-all duration-300 text-sm font-medium py-2 pl-4 -ml-[2px] border-l-2 border-transparent hover:border-blue-500 rounded-r-lg"
+              data-theme="blue"
+              >8. 測試模式與除錯面板</a
+            >
+          </li>
+          <li>
+            <a
+              href="#ch-logic-advanced"
+              class="block text-gray-400 hover:text-blue-300 hover:bg-blue-900/10 transition-all duration-300 text-sm font-medium py-2 pl-4 -ml-[2px] border-l-2 border-transparent hover:border-blue-500 rounded-r-lg"
+              data-theme="blue"
+              >9. 進階：多重條件檢定 (AND/OR)</a
             >
           </li>
         </ul>
@@ -352,13 +527,13 @@
                     </li>
                     <li>
                       <strong class="text-amber-400"
-                        >匯出備份 (極度重要)：</strong
-                      >在「基本資訊」頁面點擊<strong class="text-white"
-                        >「匯出專案 (JSON)」</strong
-                      >，會將您的整個專案打包成一個檔案下載到電腦。這是<strong
+                        >匯出備份與資料夾檔案功能 (極度重要)：</strong
+                      >在「基本資訊」頁面，您可以利用新增的資料夾檔案功能將專案匯出。除了一般的 JSON 格式外，現在更支援將專案連同關聯素材打包成<strong class="text-white"
+                        >完整的 ZIP 檔 (包含資料夾結構)</strong
+                      >下載到電腦。這是<strong
                         class="text-white"
-                        >最安全的備份方式</strong
-                      >，能有效防止因瀏覽器清除資料或更換電腦導致的心血白費。這也是與他人協作的基礎。
+                        >最完整且安全的備份方式</strong
+                      >，能有效防止因瀏覽器清除資料或更換電腦導致的心血白費。這也是與他人協作並共享包含素材的完整專案之基礎。
                     </li>
                   </ul>
                 </div>
@@ -461,8 +636,8 @@
                     </li>
                     <li>
                       <strong class="text-red-400"
-                        >動態 CG 影片：</strong
-                      >您可以貼上直連的影片網址 (.mp4 等)，系統會自動在背景靜音循環播放該影片（玩家可透過設定調整音量）。這能為您的遊戲帶來極致的「動態桌布」視覺震撼！
+                        >動態 CG 影片 (強烈推薦)：</strong
+                      >除了貼上直連的影片網址 (.mp4 等)，您現在也可以配合資料夾功能，直接輸入<strong class="text-white">本地檔案的相對路徑</strong>（例如 <code class="text-pink-300 px-1 bg-gray-900 rounded">video/opening.mp4</code>）。系統會自動在背景循環播放該影片，為您的遊戲帶來無可比擬的「動態桌布」視覺震撼！<span class="text-gray-400 text-xs ml-1">（註：為確保網頁載入效能，建議將影片壓縮至 720p 或 1080p，並控制檔案大小。）</span>
                     </li>
                     <li>
                       <strong class="text-blue-400">豐富的轉場特效：</strong
@@ -1093,6 +1268,150 @@
                 </div>
               </div>
             </section>
+
+            <!-- CH8 -->
+            <section id="ch-debug" class="manual-section">
+              <div class="flex items-center space-x-3 mb-6">
+                <span
+                  class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-500/30"
+                  >8</span
+                >
+                <h2 class="text-3xl font-bold text-gray-100">
+                  測試模式與開發者除錯面板
+                </h2>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 space-y-6 text-gray-300 leading-relaxed"
+              >
+                <p>
+                  當您的專案日漸龐大，每次都要從頭開始遊玩來測試新劇情將會非常耗時。此時，您可以在編輯器的「基本資訊」頁面點擊<strong class="text-emerald-400">「測試遊戲」</strong>，進入專為開發者打造的測試模式（<code class="text-pink-300 px-1 bg-gray-900 rounded">test.html</code>）。
+                </p>
+
+                <div
+                  class="bg-blue-900/20 border-l-4 border-blue-500 p-4 my-4 rounded-r"
+                >
+                  <strong class="text-blue-400 block mb-1"
+                    >💡 測試模式專屬優化：</strong
+                  >
+                  為了提升測試效率，測試模式中會<strong class="text-white">強制關閉打字機文字動畫</strong>（文字會瞬間浮現），並且隱藏部分的玩家選單，讓您能專心並快速點擊推進劇情。
+                </div>
+
+                <!-- 面板功能 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-blue-300 mb-2 border-b border-blue-800/50 pb-2"
+                  >
+                    開發者除錯面板功能介紹
+                  </h4>
+                  <p class="text-sm mb-3">
+                    在測試畫面的左側，您會看到一個半透明的「開發者除錯面板」，它提供了以下強大工具：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-blue-400">強制跳轉場景：</strong
+                      >面板上方提供了一個包含專案內所有場景的下拉選單。您可以隨時選取任意場景並點擊「執行跳轉」，直接空降到該處進行測試，省去前面鋪陳的時間。
+                    </li>
+                    <li>
+                      <strong class="text-purple-400">全域變數即時監控：</strong
+                      >在遊玩過程中，所有的變數變化（例如好感度增減、金錢消耗）都會即時顯示在監控列表中。您可以清楚知道剛才點擊的選項有沒有正確扣除數值。
+                    </li>
+                    <li>
+                      <strong class="text-amber-400">持有道具即時監控：</strong
+                      >類似變數監控，您可以在這裡即時查看玩家背包中擁有什麼道具、數量多少，確保條件分支的檢定能正確運作。
+                    </li>
+                    <li>
+                      <strong class="text-emerald-400">一鍵編輯與重載：</strong
+                      >當您在測試時發現錯字或邏輯錯誤，只需點擊面板下方的「編輯當前場景」，系統就會自動帶您回到編輯器並直接打開該場景的編輯視窗！修改並保存專案後，再點擊面板的「重新載入測試」即可無縫接軌繼續測試。
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <!-- CH9 -->
+            <section id="ch-logic-advanced" class="manual-section">
+              <div class="flex items-center space-x-3 mb-6">
+                <span
+                  class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-500/30"
+                  >9</span
+                >
+                <h2 class="text-3xl font-bold text-gray-100">
+                  進階：多重條件檢定 (AND / OR 邏輯)
+                </h2>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700 space-y-6 text-gray-300 leading-relaxed"
+              >
+                <p>
+                  當您的遊戲劇情越來越複雜時，您可能會需要根據玩家的多重狀態來決定劇情的走向。理解引擎的條件檢定邏輯，能幫助您設計出更具深度的解謎與分支。
+                </p>
+
+                <!-- AND 邏輯 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-blue-300 mb-2 border-b border-blue-800/50 pb-2"
+                  >
+                    1. 交集邏輯 (AND)：必須全部滿足
+                  </h4>
+                  <p class="text-sm mb-3">
+                    在引擎中，當您為一個選項、全域觸發器或成就加入<strong class="text-white">多個條件</strong>時，預設的運算邏輯是「AND (且)」。
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-white">運作方式：</strong
+                      >玩家必須<strong class="text-emerald-400">同時滿足列表中的每一個條件</strong>，該項目才會生效。
+                    </li>
+                    <li>
+                      <strong class="text-white">實戰範例：</strong
+                      >設計一個「賄賂守衛」的選項。您可以設定兩個條件：<br>
+                      ① 全域變數「金錢」 >= 500<br>
+                      ② 道具「通關文牒」數量 == 0（代表沒有合法證件才需要賄賂）。<br>
+                      只有當玩家身上有錢且沒有證件時，這個隱藏選項才會浮現。
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- OR 邏輯 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-blue-300 mb-2 border-b border-blue-800/50 pb-2"
+                  >
+                    2. 聯集邏輯 (OR)：滿足其一即可
+                  </h4>
+                  <p class="text-sm mb-3">
+                    如果您希望玩家只要達成多個條件中的「任何一個」，就能推進劇情（例如：用「鑰匙」開門，<strong class="text-amber-400">或者</strong>用「力量」把門踹開），您可以透過以下設計模式來實現：
+                  </p>
+                  <ul class="list-disc list-inside space-y-2 ml-4 text-sm">
+                    <li>
+                      <strong class="text-white">選項中的 OR 實現：</strong
+                      >建立<strong class="text-amber-400">兩個名稱相同、且目標跳轉場景也相同</strong>的選項。<br>
+                      選項 A 條件設為：持有道具「銀鑰匙」 >= 1。<br>
+                      選項 B 條件設為：全域變數「力量」 >= 80。<br>
+                      當玩家滿足任一條件時，畫面上就會出現該選項；若兩個都滿足，即使有相同的選項，玩家也可以順利推進，不會影響體驗。
+                    </li>
+                    <li>
+                      <strong class="text-white">觸發器中的 OR 實現：</strong
+                      >同理，您可以建立多個獨立的「全域觸發器」，將它們的「動作 (跳轉場景)」設為同一個目的地，但各自設定不同的觸發條件。只要其中一個觸發器偵測到條件成立，就會立刻執行跳轉！
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- 複合邏輯 -->
+                <div>
+                  <h4
+                    class="text-xl font-bold text-blue-300 mb-2 border-b border-blue-800/50 pb-2"
+                  >
+                    3. 終極複合邏輯 ( (A AND B) OR C )
+                  </h4>
+                  <p class="text-sm">
+                    結合上述兩種技巧，您可以設計出非常立體的通關條件。例如：「玩家必須有錢且有聲望，<strong class="text-amber-400">或者</strong>直接擁有國王的特赦令」才能覲見。<br><br>
+                    <strong class="text-gray-400">實作方法：</strong><br>
+                    選項 1：「請求覲見」(條件：金錢 >= 1000 <strong class="text-blue-400">AND</strong> 聲望 >= 50)<br>
+                    選項 2：「請求覲見」(條件：持有道具「國王特赦令」 >= 1)
+                  </p>
+                </div>
+              </div>
+            </section>
           </div>
 
           <hr class="border-gray-800 my-16" />
@@ -1208,6 +1527,25 @@
                     </li>
                   </ul>
                 </div>
+
+              <!-- 主題切換 -->
+              <div>
+                <h4
+                  class="text-xl font-bold text-emerald-300 mb-2 border-b border-emerald-800/50 pb-2"
+                >
+                  4. 介面主題風格切換
+                </h4>
+                <ul class="list-disc list-inside space-y-2 ml-4 text-sm mt-3">
+                  <li>
+                    <strong class="text-white">遊玩前設定：</strong
+                    >在遊戲大廳點擊「進入遊玩模式」後，您可以在存檔面板的上方找到「UI 介面主題」下拉選單。
+                  </li>
+                  <li>
+                    <strong class="text-white">內建多種風格：</strong
+                    >目前引擎提供俐落的「現代科幻 (預設深色)」與古色古香的「古典武俠 (中國風)」。您可以依據故事的題材，在每次載入遊戲前自由切換，享受最契合的沉浸體驗。
+                  </li>
+                </ul>
+              </div>
               </div>
             </section>
 
@@ -1262,6 +1600,17 @@
                       >
                     </li>
                   </ul>
+
+                  <div
+                    class="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 mt-4 rounded-r"
+                  >
+                    <strong class="text-emerald-400 block mb-1"
+                      >💡 進階技巧：SL 大法 (Save / Load)</strong
+                    >
+                    <p class="text-sm text-gray-300">
+                      善用 F5 與 F9，您可以輕鬆實現玩家常說的「SL 大法」。在面臨<strong class="text-white">重要劇情分歧</strong>，或是具有<strong class="text-white">機率性 (RNG) 的選項</strong>前（例如：30% 機率偷竊成功）按下 F5 快速存檔。如果點擊後發現結果不滿意（偷竊失敗被抓、選錯對話導致扣好感度等），只要立刻按下 F9 就能瞬間回到選擇前重新來過，是您探索完美結局與全收集的最佳利器！
+                    </p>
+                  </div>
                 </div>
 
                 <!-- 畫廊系統 -->
@@ -1337,6 +1686,32 @@
                 </p>
               </div>
               <div
+              class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700"
+            >
+              <h4 class="font-bold text-white mb-2 text-lg">
+                如何使用「資料夾讀取本地素材」功能？
+              </h4>
+              <div class="text-gray-300 text-sm leading-relaxed space-y-3">
+                <p>
+                  這是一項能讓您突破瀏覽器容量限制，並且方便離線創作的強大功能。您可以直接將電腦中的圖檔與音樂作為素材，而不需要上傳到外部圖床！
+                </p>
+                <ol class="list-decimal list-inside space-y-2 ml-1">
+                  <li>
+                    <strong class="text-white">整理資料夾：</strong>在您的電腦上建立一個專屬的遊戲資料夾（例如 <code class="text-pink-300 px-1 bg-gray-900 rounded">MyAdventure</code>）。將您的專案檔 (<code class="text-pink-300 px-1 bg-gray-900 rounded">.json</code>) 以及所有會用到的圖片和音樂放進這個資料夾中。您也可以建立子資料夾（例如 <code class="text-pink-300 px-1 bg-gray-900 rounded">images/</code>）來分類。
+                  </li>
+                  <li>
+                    <strong class="text-white">相對路徑設定：</strong>進入編輯器後，當您需要設定背景圖、立繪或音樂時，請<strong class="text-emerald-400">直接輸入檔案的相對路徑</strong>，取代原本的網址。例如：輸入 <code class="text-pink-300 px-1 bg-gray-900 rounded">bg_forest.jpg</code> 或是 <code class="text-pink-300 px-1 bg-gray-900 rounded">images/hero.png</code>。
+                  </li>
+                  <li>
+                    <strong class="text-white">載入與遊玩：</strong>在遊戲大廳載入專案時，若透過 ZIP 或多檔案匯入功能載入該專案，引擎便會自動解析裡面的素材。遊戲進行時會直接從本地記憶體讀取檔案，載入速度極快且完全不佔用瀏覽器的 LocalStorage 空間。
+                  </li>
+                  <li>
+                    <strong class="text-white">打包與分享：</strong>遊戲製作完成後，您可以利用大廳的工具或在編輯器內將專案匯出，系統會自動將專案檔與有用到的本地素材壓縮成一個完整的 ZIP 檔案。其他玩家只需在大廳載入這個 ZIP 檔，就能享受包含所有影音素材的完整遊戲體驗！
+                  </li>
+                </ol>
+              </div>
+            </div>
+            <div
                 class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700"
               >
                 <h4 class="font-bold text-white mb-2 text-lg">
@@ -1384,6 +1759,28 @@
                 </h4>
                 <p class="text-gray-300 text-sm leading-relaxed">
                   不需要寫複雜的腳本，您可以利用「選項的複合效果」來達成！建立一個「煉金爐」場景，裡面放一個「合成鐵劍」的選項。將該選項的出現條件設為「鐵礦 >= 3」且「木材 >= 1」。然後在點擊效果中設定：扣除 3 個鐵礦、扣除 1 個木材，並<strong class="text-white">發放 1 把鐵劍</strong>。玩家點擊後就會直接完成合成！
+                </p>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700"
+              >
+                <h4 class="font-bold text-white mb-2 text-lg">
+                  如何實作時間倒流/輪迴系劇情？
+                </h4>
+                <p class="text-gray-300 text-sm leading-relaxed">
+                  這類劇情的精髓在於「重置場景，但保留部分記憶」。您可以建立一個全域變數「輪迴次數」（初始為 0）。當玩家在劇情中死亡或觸發時間重置時，不要讓遊戲直接結束，而是將「輪迴次數 +1」，並利用跳轉選項或全域觸發器，將玩家強行送回故事起點的場景。接著，在起點或關鍵對話中，設定一些出現條件為「輪迴次數 >= 1」的隱藏專屬選項（例如：「我已經知道你會這麼說了！」），就能輕鬆打造出打破第四面牆的輪迴系神作！
+                </p>
+              </div>
+              <div
+                class="bg-gray-800/50 p-6 rounded-2xl border border-gray-700"
+              >
+                <h4 class="font-bold text-white mb-2 text-lg">
+                  如何實作特定節日（如 12 月聖誕節）的專屬事件？
+                </h4>
+                <p class="text-gray-300 text-sm leading-relaxed">
+                  您可以善用引擎的<strong class="text-white">「時間變數綁定」</strong>功能。首先在「數值系統」中建立一個變數叫做「當前月份」。接著到「時間系統」下方的進階設定，將「同步月份至變數」綁定為您剛建立的變數。<br><br>完成後，系統就會在背景自動把目前的月份更新給該變數了！您只需要在選項、全域觸發器或 NPC 出現條件中，設定條件為 <strong class="text-emerald-400">「當前月份 == 12」</strong>，該節日專屬的彩蛋就只會在遊戲時間的 12 月份出現囉！
+                  <br><br><strong class="text-blue-400">進階：指定精確日期 (如 12 月 25 日當天)</strong><br>
+                  同理，您只需再多建立一個變數「當前日期」，並在時間系統將「同步日期至變數」與其綁定。最後在選項或觸發器的條件中，<strong class="text-amber-400">同時加入兩個條件</strong>：①「當前月份 == 12」 ②「當前日期 == 25」。因為系統預設是 AND (且) 邏輯，所以這個事件就只會在 12 月 25 日「當天」觸發了！
                 </p>
               </div>
             </div>
@@ -1459,9 +1856,9 @@
                   <p>
                     A:
                     請善用大廳的「專案合併工具」。您可以和朋友各自在自己的電腦上創作，完成後分別「匯出專案
-                    (JSON)」。最後由一人開啟合併工具，將所有人的 `.json`
-                    檔案上傳。系統會以清單中第一個專案為主體，智慧合併所有人的場景、變數與道具，並自動處理
-                    ID 衝突。
+                    (支援 ZIP 或 JSON)」。最後由一人開啟合併工具，將所有人的 `.zip` 或 `.json`
+                    檔案上傳。系統會以清單中第一個專案為主體，智慧合併所有人的場景、變數、道具與關聯素材，
+                    並自動處理 ID 衝突。
                   </p>
                 </div>
               </details>
@@ -1598,9 +1995,9 @@
                     A: 網頁瀏覽器的 LocalStorage 儲存上限通常在 5MB ~ 10MB 之間。如果您在編輯器內大量使用「上傳圖片」功能（會將圖片轉為龐大的文字編碼塞入專案檔），很快就會爆滿。<br><br>
                     <strong class="text-white">解決方法：</strong>
                     <ol class="list-decimal list-inside mt-2 space-y-1">
-                      <li>請先點擊編輯器內的<strong class="text-emerald-400">「匯出專案 (JSON)」</strong>，將目前進度安全下載到電腦。</li>
+                      <li>請先點擊編輯器內的<strong class="text-emerald-400">「匯出專案」</strong>並選擇 ZIP 或 JSON 格式，將目前進度安全下載到電腦。</li>
                       <li>回到大廳，點擊「專案管理」，刪除舊的或不必要的專案以騰出空間。</li>
-                      <li>未來建議使用「貼上外部網址」的方式來設定圖片，取代直接上傳，您的專案檔大小就會縮小 90% 以上。</li>
+                      <li>未來建議使用「貼上外部網址」的方式來設定圖片，取代直接上傳，您的專案檔大小就會縮小 90% 以上。新增的資料夾檔案功能也能協助您在本地端管理這些龐大的靜態素材。</li>
                     </ol>
                   </p>
                 </div>
@@ -1705,6 +2102,39 @@
                   class="flex justify-between items-center p-5 cursor-pointer group-hover:bg-gray-800"
                 >
                   <span class="font-bold text-gray-200"
+                    >Q: 如何分享我的遊戲給朋友玩？</span
+                  >
+                  <svg
+                    class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </summary>
+                <div
+                  class="p-5 border-t border-gray-700 text-gray-300 text-sm leading-relaxed"
+                >
+                  <p>
+                    A: 當您的遊戲製作完成後，有兩種常見的分享方式：<br /><br />
+                    <strong class="text-white">1. 分享專案檔案：</strong>在編輯器的「基本資訊」頁面點擊「匯出專案」，選擇匯出成 ZIP 檔（強烈建議，會包含本地素材）或 JSON 檔。將檔案傳送給朋友，請他們打開遊戲大廳，點擊「專案管理」匯入該檔案，然後到「進入遊玩模式」載入專案即可。<br /><br />
+                    <strong class="text-white">2. 架設為網頁遊戲：</strong>引擎本身是純靜態網頁，您可以將整個引擎資料夾上傳到 GitHub Pages、Vercel 等免費的靜態網頁空間。這樣朋友只需點開您分享的網址，就能直接線上遊玩您的作品！
+                  </p>
+                </div>
+              </details>
+              <details
+                class="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden transition hover:border-yellow-500/50 group"
+              >
+                <summary
+                  class="flex justify-between items-center p-5 cursor-pointer group-hover:bg-gray-800"
+                >
+                  <span class="font-bold text-gray-200"
                     >Q: 如何徹底清除我的成就與結局等全域收集紀錄？</span
                   >
                   <svg
@@ -1726,6 +2156,100 @@
                 >
                   <p>
                     A: 由於成就與結局畫廊是跨存檔永久保留的，如果您希望完全重置收集進度體驗全新的一輪，請回到大廳點擊「進入遊玩模式」，並在存檔面板中點擊紅色的<strong class="text-red-400">「清空所有紀錄」</strong>按鈕。請注意，此操作將會刪除所有進度且無法復原！
+                  </p>
+                </div>
+              </details>
+              <details
+                class="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden transition hover:border-yellow-500/50 group"
+              >
+                <summary
+                  class="flex justify-between items-center p-5 cursor-pointer group-hover:bg-gray-800"
+                >
+                  <span class="font-bold text-gray-200"
+                    >Q: 手機與電腦的存檔可以共通嗎？</span
+                  >
+                  <svg
+                    class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </summary>
+                <div
+                  class="p-5 border-t border-gray-700 text-gray-300 text-sm leading-relaxed"
+                >
+                  <p>
+                    A: 預設情況下，遊戲存檔是保存在「當前設備的瀏覽器」中，因此手機與電腦的存檔不會自動同步。<br /><br />
+                    <strong class="text-white">如何手動轉移：</strong>請在遊戲大廳點擊「進入遊玩模式」，在存檔面板中點擊<strong class="text-blue-400">「匯出遊玩紀錄」</strong>，將存檔檔案 (.json) 下載並傳送至另一台設備。接著在另一台設備上開啟遊戲大廳，同樣進入存檔面板，點擊<strong class="text-blue-400">「匯入遊玩紀錄」</strong>並選擇剛剛傳送的檔案，就能成功轉移您的所有遊玩進度、解鎖的結局與成就囉！
+                  </p>
+                </div>
+              </details>
+              <details
+                class="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden transition hover:border-yellow-500/50 group"
+              >
+                <summary
+                  class="flex justify-between items-center p-5 cursor-pointer group-hover:bg-gray-800"
+                >
+                  <span class="font-bold text-gray-200"
+                    >Q: 如果我的劇情字數太多，單一對話框塞不下怎麼辦？</span
+                  >
+                  <svg
+                    class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </summary>
+                <div
+                  class="p-5 border-t border-gray-700 text-gray-300 text-sm leading-relaxed"
+                >
+                  <p>
+                    A: 為了保證最佳的閱讀體驗與排版美觀，引擎的對話框有一定的高度限制（字數超出時會出現捲動條）。如果您的單段劇情非常長，建議將其拆分為多個場景！<br /><br />您可以利用「無選項時自動產生『繼續』按鈕」的特性，將長篇大論切分成 2~3 個連續的純對話場景。這樣一來，玩家就能點擊「繼續」一步步閱讀，這也是視覺小說中最常見且最舒適的排版方式。
+                  </p>
+                </div>
+              </details>
+              <details
+                class="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden transition hover:border-yellow-500/50 group"
+              >
+                <summary
+                  class="flex justify-between items-center p-5 cursor-pointer group-hover:bg-gray-800"
+                >
+                  <span class="font-bold text-gray-200"
+                    >Q: 如果我的遊戲不小心清除了暫存，有辦法救回嗎？</span
+                  >
+                  <svg
+                    class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
+                </summary>
+                <div
+                  class="p-5 border-t border-gray-700 text-gray-300 text-sm leading-relaxed"
+                >
+                  <p>
+                    A: 由於引擎的所有資料（包含編輯暫存與遊玩進度）都是儲存在您當前瀏覽器的 LocalStorage 空間中，如果不小心清除了瀏覽器快取，且事前沒有手動匯出專案備份，很遺憾資料是<strong class="text-red-400">無法復原</strong>的。<br /><br />為了避免心血白費，<strong class="text-white">強烈建議您在每次結束編輯或遇到重要進度時，務必點擊編輯器內的「匯出專案 (ZIP/JSON)」</strong>，將檔案安全地備份到您的電腦或雲端硬碟中！
                   </p>
                 </div>
               </details>
@@ -1776,21 +2300,23 @@
         const themeIconSun = document.getElementById("theme-icon-sun");
         const themeIconMoon = document.getElementById("theme-icon-moon");
 
-        if (document.documentElement.classList.contains("light-mode")) {
-          themeIconSun.classList.add("hidden");
-          themeIconMoon.classList.remove("hidden");
+        if (themeToggleBtn && themeIconSun && themeIconMoon) {
+          if (document.documentElement.classList.contains("light-mode")) {
+            themeIconSun.classList.add("hidden");
+            themeIconMoon.classList.remove("hidden");
+          }
+          themeToggleBtn.addEventListener("click", () => {
+            document.documentElement.classList.toggle("light-mode");
+            const isLight =
+              document.documentElement.classList.contains("light-mode");
+            localStorage.setItem("manualTheme", isLight ? "light" : "dark");
+  
+            themeIconSun.classList.toggle("hidden", isLight);
+            themeIconMoon.classList.toggle("hidden", !isLight);
+  
+            updateScrollspy(); // 確保切換主題時高亮顏色能更新
+          });
         }
-        themeToggleBtn.addEventListener("click", () => {
-          document.documentElement.classList.toggle("light-mode");
-          const isLight =
-            document.documentElement.classList.contains("light-mode");
-          localStorage.setItem("manualTheme", isLight ? "light" : "dark");
-
-          themeIconSun.classList.toggle("hidden", isLight);
-          themeIconMoon.classList.toggle("hidden", !isLight);
-
-          updateScrollspy(); // 確保切換主題時高亮顏色能更新
-        });
 
         // 定義各個分類啟用/未啟用時的 Tailwind 樣式
         const themes = {

@@ -1108,6 +1108,26 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!gameState.triggerLastState) gameState.triggerLastState = {};
     if (!gameState.triggeredCount) gameState.triggeredCount = {};
     if (!gameState.baselines) gameState.baselines = {};
+
+    // 正規化 YMD (相容舊存檔或作者中途開啟 YMD)
+    if (projectData.timeSettings && projectData.timeSettings.useYMD) {
+      const dpm = projectData.timeSettings.daysPerMonth || 30;
+      const mpy = projectData.timeSettings.monthsPerYear || 12;
+      let dayZeroBased = (gameState.time.day || 1) - 1;
+      if (dayZeroBased >= dpm) {
+        let extraMonths = Math.floor(dayZeroBased / dpm);
+        gameState.time.day = (dayZeroBased % dpm) + 1;
+        let mo = (gameState.time.month || 1) + extraMonths;
+        let moZeroBased = mo - 1;
+        let extraYears = Math.floor(moZeroBased / mpy);
+        gameState.time.month = (moZeroBased % mpy) + 1;
+        gameState.time.year = (gameState.time.year || 1) + extraYears;
+      }
+      if (gameState.time.year === undefined)
+        gameState.time.year = projectData.timeSettings.startYear || 1;
+      if (gameState.time.month === undefined)
+        gameState.time.month = projectData.timeSettings.startMonth || 1;
+    }
   } else {
     // 新遊戲初始化
     if (projectData.globalVariables) {
@@ -1117,6 +1137,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (projectData.timeSettings && projectData.timeSettings.enabled) {
       gameState.time = {
+        year: projectData.timeSettings.startYear || 1,
+        month: projectData.timeSettings.startMonth || 1,
         day: projectData.timeSettings.startDay || 1,
         hour: projectData.timeSettings.startHour || 0,
         minute: projectData.timeSettings.startMinute || 0,
@@ -1125,6 +1147,28 @@ document.addEventListener("DOMContentLoaded", () => {
     gameState.currentSceneId = projectData.scenes[0].id;
     gameState.chapterId = ""; // 設定為空，讓第一個場景觸發章節畫面
   }
+
+  // 自動同步時間到變數
+  function syncTimeVariables() {
+    if (!projectData.timeSettings || !projectData.timeSettings.enabled)
+      return false;
+    let changed = false;
+    const t = projectData.timeSettings;
+    if (t.bindYearVarId) {
+      gameState.variables[t.bindYearVarId] = gameState.time.year || 1;
+      changed = true;
+    }
+    if (t.bindMonthVarId) {
+      gameState.variables[t.bindMonthVarId] = gameState.time.month || 1;
+      changed = true;
+    }
+    if (t.bindDayVarId) {
+      gameState.variables[t.bindDayVarId] = gameState.time.day || 1;
+      changed = true;
+    }
+    return changed;
+  }
+  syncTimeVariables();
 
   // 初始化時靜默檢查一次辭典解鎖 (避免載入舊存檔時突然跳出一堆通知)
   checkDictionaryUnlocks(true);
@@ -1152,10 +1196,60 @@ document.addEventListener("DOMContentLoaded", () => {
   if (gameSettings.typingVolume === undefined) {
     gameSettings.typingVolume = 50;
   }
+  if (gameSettings.dialogueOpacity === undefined) {
+    gameSettings.dialogueOpacity = 70; // 預設 70% 不透明
+  }
+  if (gameSettings.fontSize === undefined) {
+    gameSettings.fontSize = 24;
+  }
+  if (gameSettings.fontFamily === undefined) {
+    gameSettings.fontFamily = "default";
+  }
+
+  // 動態注入對話框透明度滑桿
+  if (volumeRange && !document.getElementById("dialogue-opacity-range")) {
+    const container = volumeRange.closest("div").parentElement;
+    if (container) {
+      const opacityDiv = document.createElement("div");
+      opacityDiv.innerHTML = `
+        <div class="flex justify-between items-center mb-1 mt-4">
+          <label class="block text-sm font-bold text-gray-300">對話框背景透明度</label>
+          <span class="text-xs text-gray-400 font-mono"><span id="opacity-display">${gameSettings.dialogueOpacity}</span>%</span>
+        </div>
+        <input type="range" id="dialogue-opacity-range" min="0" max="100" step="5" value="${gameSettings.dialogueOpacity}" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+      `;
+      container.appendChild(opacityDiv);
+    }
+  }
+  const opacityRange = document.getElementById("dialogue-opacity-range");
+  const opacityDisplay = document.getElementById("opacity-display");
+
+  function updateDialogueOpacity() {
+    if (dialogueBox) {
+      dialogueBox.style.backgroundColor = `rgba(0, 0, 0, ${gameSettings.dialogueOpacity / 100})`;
+    }
+  }
+  updateDialogueOpacity();
+
+  const fontSizeRange = document.getElementById("font-size-range");
+  const fontSizeDisplay = document.getElementById("font-size-display");
+  const fontFamilySelect = document.getElementById("font-family-select");
+
+  function updateFontSettings() {
+    if (textContainer) {
+      textContainer.style.fontSize = gameSettings.fontSize + "px";
+      textContainer.style.lineHeight = "1.8";
+      textContainer.style.fontFamily =
+        gameSettings.fontFamily === "default" ? "" : gameSettings.fontFamily;
+    }
+  }
+  updateFontSettings();
 
   if (textSpeedRange) textSpeedRange.value = gameSettings.textSpeed;
   if (volumeRange) volumeRange.value = gameSettings.volume;
   if (typingVolumeRange) typingVolumeRange.value = gameSettings.typingVolume;
+  if (fontSizeRange) fontSizeRange.value = gameSettings.fontSize;
+  if (fontFamilySelect) fontFamilySelect.value = gameSettings.fontFamily;
   if (bgmPlayer) bgmPlayer.volume = gameSettings.volume / 100;
   if (cgVideo) cgVideo.volume = gameSettings.volume / 100;
 
@@ -1171,15 +1265,34 @@ document.addEventListener("DOMContentLoaded", () => {
     gameSettings.textSpeed = parseInt(textSpeedRange.value, 10);
     gameSettings.volume = parseInt(volumeRange.value, 10);
     gameSettings.typingVolume = parseInt(typingVolumeRange.value, 10);
+    if (opacityRange) {
+      gameSettings.dialogueOpacity = parseInt(opacityRange.value, 10);
+      if (opacityDisplay)
+        opacityDisplay.textContent = gameSettings.dialogueOpacity;
+    }
+    if (fontSizeRange) {
+      gameSettings.fontSize = parseInt(fontSizeRange.value, 10);
+      if (fontSizeDisplay)
+        fontSizeDisplay.textContent = gameSettings.fontSize + "px";
+    }
+    if (fontFamilySelect) {
+      gameSettings.fontFamily = fontFamilySelect.value;
+    }
     localStorage.setItem("textAdventureSettings", JSON.stringify(gameSettings));
     updateSpeedDisplay();
     if (bgmPlayer) bgmPlayer.volume = gameSettings.volume / 100;
     if (cgVideo) cgVideo.volume = gameSettings.volume / 100;
+    updateDialogueOpacity();
+    updateFontSettings();
   }
   if (textSpeedRange) textSpeedRange.addEventListener("input", saveSettings);
   if (volumeRange) volumeRange.addEventListener("input", saveSettings);
   if (typingVolumeRange)
     typingVolumeRange.addEventListener("input", saveSettings);
+  if (opacityRange) opacityRange.addEventListener("input", saveSettings);
+  if (fontSizeRange) fontSizeRange.addEventListener("input", saveSettings);
+  if (fontFamilySelect)
+    fontFamilySelect.addEventListener("change", saveSettings);
 
   let isTyping = false;
   let typeTimer = null;
@@ -1439,7 +1552,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const mm = (gameState.time.minute || 0).toString().padStart(2, "0");
 
       let dayText = `第 ${gameState.time.day || 1} 天`;
-      if (projectData.timeSettings.dayNames) {
+      if (projectData.timeSettings.useYMD) {
+        const yn = projectData.timeSettings.yearName || "年";
+        const mn = projectData.timeSettings.monthName || "月";
+        const dn = projectData.timeSettings.dayName || "日";
+        dayText = `${gameState.time.year || 1}${yn}${gameState.time.month || 1}${mn}${gameState.time.day || 1}${dn}`;
+      } else if (projectData.timeSettings.dayNames) {
         const names = projectData.timeSettings.dayNames
           .split(",")
           .map((s) => s.trim())
@@ -1561,8 +1679,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!gameState.time) return 0;
     const hoursPerDay =
       (projectData.timeSettings && projectData.timeSettings.hoursPerDay) || 24;
+    const daysPerMonth =
+      (projectData.timeSettings && projectData.timeSettings.daysPerMonth) || 30;
+    const monthsPerYear =
+      (projectData.timeSettings && projectData.timeSettings.monthsPerYear) ||
+      12;
+
+    let totalDays = (gameState.time.day || 1) - 1;
+    if (projectData.timeSettings && projectData.timeSettings.useYMD) {
+      totalDays +=
+        ((gameState.time.year || 1) - 1) * monthsPerYear * daysPerMonth;
+      totalDays += ((gameState.time.month || 1) - 1) * daysPerMonth;
+    }
     return (
-      gameState.time.day * hoursPerDay * 60 +
+      totalDays * hoursPerDay * 60 +
       gameState.time.hour * 60 +
       gameState.time.minute
     );
@@ -1662,18 +1792,36 @@ document.addEventListener("DOMContentLoaded", () => {
       !minutes
     )
       return;
-    const oldDay = gameState.time.day || 1;
     let m = (gameState.time.minute || 0) + minutes;
     let h = (gameState.time.hour || 0) + Math.floor(m / 60);
     gameState.time.minute = m % 60;
     const hoursPerDay = projectData.timeSettings.hoursPerDay || 24;
-    gameState.time.day =
-      (gameState.time.day || 1) + Math.floor(h / hoursPerDay);
+    let daysPassed = Math.floor(h / hoursPerDay);
+    let d = (gameState.time.day || 1) + daysPassed;
     gameState.time.hour = h % hoursPerDay;
 
-    if (gameState.time.day > oldDay) {
+    if (projectData.timeSettings.useYMD) {
+      const dpm = projectData.timeSettings.daysPerMonth || 30;
+      const mpy = projectData.timeSettings.monthsPerYear || 12;
+
+      let dayZeroBased = d - 1;
+      let extraMonths = Math.floor(dayZeroBased / dpm);
+      gameState.time.day = (dayZeroBased % dpm) + 1;
+
+      let mo = (gameState.time.month || 1) + extraMonths;
+      let moZeroBased = mo - 1;
+      let extraYears = Math.floor(moZeroBased / mpy);
+      gameState.time.month = (moZeroBased % mpy) + 1;
+
+      gameState.time.year = (gameState.time.year || 1) + extraYears;
+    } else {
+      gameState.time.day = d;
+    }
+
+    if (daysPassed > 0) {
       gameState.pendingDayChangeJump = true;
     }
+    if (syncTimeVariables()) updateTopBar();
   }
 
   function applyEffects(
@@ -3019,6 +3167,22 @@ document.addEventListener("DOMContentLoaded", () => {
     mobileMenuBtn,
   ];
 
+  // 建立專屬的「顯示介面」懸浮按鈕
+  let restoreUiBtn = document.getElementById("restore-ui-btn");
+  if (!restoreUiBtn && document.body) {
+    restoreUiBtn = document.createElement("button");
+    restoreUiBtn.id = "restore-ui-btn";
+    restoreUiBtn.className =
+      "fixed top-4 right-4 md:top-6 md:right-6 z-[100] hidden items-center justify-center bg-black/60 hover:bg-gray-800 text-white px-4 py-2 rounded-full border border-gray-600 shadow-lg backdrop-blur-sm transition-all duration-300 font-bold";
+    restoreUiBtn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>顯示介面`;
+    document.body.appendChild(restoreUiBtn);
+
+    restoreUiBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (uiHidden) toggleUI();
+    });
+  }
+
   function toggleUI() {
     uiHidden = !uiHidden;
     uiElementsToToggle.forEach((el) => {
@@ -3029,6 +3193,29 @@ document.addEventListener("DOMContentLoaded", () => {
           } else if (!isTyping && el.children.length > 0) {
             el.classList.remove("hidden");
           }
+        } else if (el === topActionMenu) {
+          if (uiHidden) {
+            el.classList.remove("md:flex", "flex");
+            el.classList.add("hidden");
+          } else {
+            el.classList.add("hidden", "md:flex");
+          }
+        } else if (el === topBarVars) {
+          if (uiHidden) {
+            el.classList.remove("flex");
+            el.classList.add("hidden");
+          } else {
+            el.classList.remove("hidden");
+            el.classList.add("flex");
+          }
+        } else if (el === mobileMenuBtn) {
+          if (uiHidden) {
+            el.classList.remove("flex");
+            el.classList.add("hidden");
+          } else {
+            el.classList.remove("hidden");
+            el.classList.add("flex");
+          }
         } else {
           el.classList.toggle("hidden", uiHidden);
         }
@@ -3038,6 +3225,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const span = toggleUiBtn.querySelector("span");
       if (span) {
         span.textContent = uiHidden ? "顯示介面" : "隱藏介面";
+      }
+    }
+
+    // 切換浮動還原按鈕的顯示狀態
+    if (restoreUiBtn) {
+      if (uiHidden) {
+        restoreUiBtn.classList.remove("hidden");
+        restoreUiBtn.classList.add("flex");
+      } else {
+        restoreUiBtn.classList.add("hidden");
+        restoreUiBtn.classList.remove("flex");
       }
     }
   }
